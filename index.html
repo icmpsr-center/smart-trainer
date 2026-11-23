@@ -413,6 +413,23 @@ async function fillKbPicker(id){
 }
 const pickedDocs = id => [...document.querySelectorAll(`#${id} input:checked`)].map(i=>i.value);
 
+/* ================= الخصائص (يتحكم بها المدير لكل مستخدم) ================= */
+const FEATURES=[
+  ["studio","استوديو المحاضرة","إنشاء محاضرات جديدة"],
+  ["video","محرك الفيديو","تصدير المحاضرات فيديو MP4"],
+  ["drive","الحفظ في Google Drive","رفع الفيديو تلقائياً إلى Drive"],
+  ["publish","نشر المحاضرات","نشر المحاضرات ومشاركة روابطها مع المتدرّبين"],
+  ["clone","استنساخ الصوت","تسجيل صوت المدرّب واستخدامه في الشرح"],
+  ["alexa","Alexa","ربط حساب Alexa والتحكم الصوتي"],
+  ["assistant","المساعد الصوتي","المساعد الذكي بالصوت والكتابة"],
+  ["kb","قاعدة المعرفة","رفع المراجع وبناء المحاضرات منها"],
+  ["exams","منشئ الاختبارات","إنشاء الاختبارات وبنوك الأسئلة"],
+  ["tools","أدوات المحتوى","أدوات توليد المحتوى التعليمي"],
+  ["coursechat","محادثة الدورة","محادثة المتدرّبين مع محتوى الدورة"]
+];
+const can=f=>profile?.features?.[f]!==false;
+const offNote=n=>`<div class="card" style="border-color:#e5e7eb;background:#f8fafc"><b>خاصية «${esc(n)}» غير مفعّلة لحسابك.</b> <span class="muted">تواصل مع مدير المنصة لتفعيلها.</span></div>`;
+
 /* ================= Navigation ================= */
 const TABS = [
   {id:"dash", t:"لوحة التحكم", i:"dash"},
@@ -427,7 +444,7 @@ const TABS = [
   {id:"admin", t:"إدارة المنصة", i:"admin", admin:true}
 ];
 function renderTabs(cur){
-  $("#tabs").innerHTML = TABS.filter(t=>!t.admin || profile?.role==="admin").map(t=>`<a class="tab ${t.id===cur?"on":""}" href="#${t.id}">${ico(t.i)}${t.t}</a>`).join("");
+  $("#tabs").innerHTML = TABS.filter(t=>(!t.admin || profile?.role==="admin") && (!FEATURES.some(f=>f[0]===t.id) || can(t.id))).map(t=>`<a class="tab ${t.id===cur?"on":""}" href="#${t.id}">${ico(t.i)}${t.t}</a>`).join("");
 }
 function route(){
   const h = location.hash.replace("#","");
@@ -439,6 +456,7 @@ function route(){
   if (curAudio) curAudio.pause();
   const views = {settings:vSettings, dash:vDash, studio:vStudio, lessons:vLessons, assistant:vAssistant, kb:vKb, exams:vExams, tools:vTools, coursechat:vCourseChat, admin:vAdmin};
   if (h.startsWith("play-")) return vPlay(h.slice(5));
+  if (FEATURES.some(f=>f[0]===id) && !can(id)){ $("#main").innerHTML=offNote(FEATURES.find(f=>f[0]===id)[1]); return; }
   (views[id]||vDash)().catch(e=>toast(e.message,true));
   window.scrollTo(0,0);
 }
@@ -468,7 +486,7 @@ $("#authForm").addEventListener("submit", async e=>{
 function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); }
 $("#logout").onclick=$("#logout2").onclick=async()=>{ await sb.auth.signOut(); };
 async function loadProfile(){
-  const { data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url").eq("id", session.user.id).single();
+  const { data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url,features").eq("id", session.user.id).single();
   profile = data || {role:"trainer", approved:false};
   $("#whoName").textContent = (profile.full_name||session.user.email) + (profile.role==="admin"?" · مدير":"");
   if(profile.role==="admin") syncAssets();
@@ -484,7 +502,7 @@ function pending(){ return profile && !profile.approved ? `<div class="card" sty
 /* ================= Dashboard ================= */
 async function vDash(){
   const main=$("#main");
-  main.innerHTML = `<div class="head"><div><h1>أهلاً ${esc(profile?.full_name||"")}</h1><p class="muted">ابدأ محاضرة جديدة، أو تابع عملك.</p></div><div class="row"><a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a><a class="btn ghost" href="#exams">اختبار جديد</a></div></div>${pending()}
+  main.innerHTML = `<div class="head"><div><h1>أهلاً ${esc(profile?.full_name||"")}</h1><p class="muted">ابدأ محاضرة جديدة، أو تابع عملك.</p></div><div class="row">${can("studio")?`<a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a>`:""}${can("exams")?`<a class="btn ghost" href="#exams">اختبار جديد</a>`:""}</div></div>${pending()}
   <div class="stats" id="stats">${"<div class='card stat'><b>…</b></div>".repeat(4)}</div>
   <div id="alexaBox"></div>
   <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2>الاستهلاك هذا الشهر</h2><div id="usage"></div></div></div>`;
@@ -497,7 +515,7 @@ async function vDash(){
   const used = u.data?.[0]?.used||0, lim = u.data?.[0]?.lim||0;
   $("#stats").innerHTML = [["المحاضرات",l.count],["الاختبارات",e.count],["ملفات المعرفة",d.count],["توكنز هذا الشهر",used]].map(([t,v])=>`<div class="card stat"><span class="muted small">${t}</span><b>${num(v)}</b></div>`).join("");
   $("#recentL").innerHTML = (l.data||[]).length ? l.data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${fmtDate(x.created_at)} · ${num((x.slides||[]).length)} شريحة</span></div><a class="btn sm ghost" href="#play-${x.id}">${ico("play")} تشغيل</a></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد.</div>`;
-  alexaPanel().catch(e=>console.error(e));
+  if(can("alexa")) alexaPanel().catch(e=>console.error(e));
   const pct = lim? Math.min(100, used/lim*100):0;
   $("#usage").innerHTML = `<p><b style="font-size:22px">${num(used)}</b> <span class="muted">من ${num(lim)} توكن</span></p><div class="meter"><i style="width:${pct}%"></i></div><p class="small muted" style="margin-top:10px">يشمل الشرح والصوت والبحث في الملفات. يحدّد مدير المنصة الحد الشهري لكل مدرّب. الخدمة مجانية ضمن الحدود اليومية لـ Google Gemini.</p>`;
 }
@@ -802,7 +820,7 @@ async function exportVideo(lesson, onP){
   VS=vset();
   const type=(mime||"video/webm").split(";")[0]; const blob=new Blob(chunks,{type}); const ext=type.includes("mp4")?"mp4":"webm";
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`${lesson.title.replace(/[\\/:*?"<>|]/g,"").slice(0,60)}.${ext}`; document.body.append(a); a.click(); a.remove();
-  let drive=null; try{ drive=await saveToDrive(blob, a.download, type, onP); }catch(err){ drive={error:err.message}; }
+  let drive=null; if(can("drive")){ try{ drive=await saveToDrive(blob, a.download, type, onP); }catch(err){ drive={error:err.message}; } }
   return {ext, drive, blob, name:a.download, type};
 }
 
@@ -836,7 +854,7 @@ async function vPlay(id){
   const EV = effVS(l);
   const vName = l.voice==="clone" ? (profile?.cloned_voice_name||"صوتي") : VOICES.find(v=>v.id===l.voice)?.n;
   $("#main").innerHTML = `<div class="head"><div><a href="#lessons" class="small">← محاضراتي</a><h1 style="margin-top:6px">${esc(l.title)}</h1><p class="muted">${esc([l.subject,l.level,(l.duration_min||"")+" دقيقة",vName].filter(Boolean).join(" · "))}</p></div>
-   <div class="row"><label class="row" style="color:var(--ink);font-weight:500"><input type="checkbox" id="pubT" ${l.is_public?"checked":""}> منشورة للمتدرّبين</label><button class="btn sm ghost" id="copyL">نسخ رابط المتدرّبين</button><button class="btn sm ghost" id="reA" title="يعيد تسجيل صوت المحاضرة كاملة">إعادة تسجيل الصوت</button><button class="btn sm gold" id="mp4">تحميل فيديو MP4</button><button class="btn sm ghost" id="mkExam">اختبار من هذه المحاضرة</button></div></div>
+   <div class="row"><label class="row" style="color:var(--ink);font-weight:500;${can("publish")?"":"display:none"}"><input type="checkbox" id="pubT" ${l.is_public?"checked":""}> منشورة للمتدرّبين</label><button class="btn sm ghost" id="copyL">نسخ رابط المتدرّبين</button><button class="btn sm ghost" id="reA" title="يعيد تسجيل صوت المحاضرة كاملة">إعادة تسجيل الصوت</button>${can("video")?`<button class="btn sm gold" id="mp4">تحميل فيديو MP4</button>`:""}${can("exams")?`<button class="btn sm ghost" id="mkExam">اختبار من هذه المحاضرة</button>`:""}</div></div>
    ${missing?`<div class="card row" style="border-color:#ead9a6;background:#fffaf0;justify-content:space-between"><span><b>${num(missing)} شريحة بلا صوت مسجّل.</b> <span class="muted">تُعرض حالياً بلا صوت، ولن يُصدَّر الفيديو قبل اكتمال صوتها. أكمل التسجيل عندما يتجدد الحد اليومي.</span></span><button class="btn sm" id="fillA">أكمل تسجيل الصوت</button></div>`:""}
    <div class="card stack" id="linkBox"><b>روابط المحاضرة</b><span class="small" style="font-weight:600">رابط المنصة (للمتدرّبين)</span><div class="row" style="gap:8px"><input id="linkTxt" dir="ltr" readonly value="${esc(link)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="copyL2">نسخ</button>${navigator.share?`<button class="btn sm" type="button" id="shareL">مشاركة</button>`:""}</div><span class="small muted" id="linkNote">${l.is_public?"المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط.":"المحاضرة غير منشورة بعد: عند النسخ أو المشاركة تُنشر تلقائياً."}</span><span class="small" style="font-weight:600;margin-top:6px">رابط الفيديو على Google Drive</span><div class="row" style="gap:8px" id="dRow">${l.video_url?`<input id="vLinkTxt" dir="ltr" readonly value="${esc(l.video_url)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="vCopy">نسخ</button><a class="btn sm ghost" href="${esc(l.video_url)}" target="_blank" rel="noopener">فتح</a>`:`<span class="small muted">يظهر هنا بعد تصدير الفيديو وحفظه في Drive.</span>`}</div></div>
    <details class="card" id="vsBox"><summary style="cursor:pointer;font-weight:600">إعدادات الفيديو والصوت</summary><div class="stack" style="margin-top:12px">
@@ -853,7 +871,7 @@ async function vPlay(id){
    <details class="card"><summary style="cursor:pointer;font-weight:600">نص الشرح الكامل</summary><div class="stack" style="margin-top:12px">${(l.slides||[]).map((s,k)=>`<div><b>${k+1}. ${esc(s.title)}</b><p class="muted">${esc(s.narration||"")}</p></div>`).join("")}</div></details>`;
   mountPlayer($("#pl"), l);
   $("#pubT").onchange=async e=>{ const v=e.target.checked; const { error } = await sb.from("lessons").update({is_public:v}).eq("id",l.id); if(error) return toast(error.message,true); l.is_public=v; $("#linkNote").textContent=v?"المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط.":"المحاضرة غير منشورة بعد: عند النسخ أو المشاركة تُنشر تلقائياً."; toast(v?"المحاضرة منشورة الآن لمن يملك الرابط":"أُلغي نشر المحاضرة"); };
-  const ensurePub=async()=>{ if(l.is_public) return; const { error } = await sb.from("lessons").update({is_public:true}).eq("id",l.id); if(error) throw error; l.is_public=true; $("#pubT").checked=true; $("#linkNote").textContent="المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط."; };
+  const ensurePub=async()=>{ if(l.is_public) return; if(!can("publish")) throw new Error("نشر المحاضرات غير مفعّل لحسابك"); const { error } = await sb.from("lessons").update({is_public:true}).eq("id",l.id); if(error) throw error; l.is_public=true; $("#pubT").checked=true; $("#linkNote").textContent="المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط."; };
   const copyLink=async()=>{ try{ await ensurePub(); }catch(err){ return toast(err.message,true); } try{ await navigator.clipboard.writeText(link); toast("نُسخ رابط المتدرّبين"); }catch{ const t=$("#linkTxt"); t.focus(); t.select(); try{ document.execCommand("copy"); toast("نُسخ رابط المتدرّبين"); }catch{ toast("حدّد الرابط وانسخه يدوياً",true); } } };
   $("#copyL").onclick=copyLink; $("#copyL2").onclick=copyLink;
   $("#vCopy")?.addEventListener("click",()=>copy($("#vLinkTxt").value));
@@ -870,9 +888,9 @@ async function vPlay(id){
     }catch(err){ toast("تعذّر رفع الشعار: "+err.message,true); logErr("logo-upload","رفع الشعار الخاص",err.message,String(err)); } finally{ e.target.value=""; } };
   $("#vsLogo").onchange=vsSave; $("#vsShowName").onchange=vsSave; $("#vsName").onchange=vsSave; $("#vsBg").onchange=vsSave; $("#vsRate").onchange=vsSave;
   $("#reA").onclick=async e=>{ const b=e.currentTarget; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد إعادة التسجيل"; return; } busy(b,true,"جارٍ التسجيل…"); l.voice=$("#vsVoice").value||l.voice; (l.slides||[]).forEach(s=>{ delete s.audio; delete s.a0; delete s.a1; }); try{ await sb.from("lessons").update({ slides:l.slides, voice:l.voice }).eq("id",l.id); const r=await fillAudio(l,(k,n)=>b.textContent=`القسم ${k+1} من ${n}…`); toast(r.missing?"سُجّل جزء، والباقي بعد تجدد الحد":"أُعيد تسجيل الصوت", !!r.missing); vPlay(l.id); }catch(err){ toast(err.message,true); busy(b,false); } };
-  $("#mkExam").onclick=()=>{ examPrefill={ topic:l.title, source:(l.slides||[]).map(s=>`${s.title}: ${(s.bullets||[]).join("، ")}. ${s.narration||""}`).join("\n") }; location.hash="exams"; };
+  if($("#mkExam")) $("#mkExam").onclick=()=>{ examPrefill={ topic:l.title, source:(l.slides||[]).map(s=>`${s.title}: ${(s.bullets||[]).join("، ")}. ${s.narration||""}`).join("\n") }; location.hash="exams"; };
   $("#fillA")?.addEventListener("click", async e=>{ const b=e.currentTarget; busy(b,true,"جارٍ التسجيل…"); try{ const r=await fillAudio(l,(k,n)=>b.textContent=`القسم ${k+1} من ${n}…`); toast(r.missing?"سُجّل جزء، والباقي بعد تجدد الحد اليومي":"اكتمل الصوت", !!r.missing); vPlay(l.id); }catch(err){ toast(err.message,true); busy(b,false); } });
-  $("#mp4").onclick=async e=>{ const b=e.currentTarget; if(curAudio) curAudio.pause(); busy(b,true,"جارٍ إنشاء الفيديو…"); $("#vidBox").classList.remove("hidden");
+  if($("#mp4")) $("#mp4").onclick=async e=>{ const b=e.currentTarget; if(curAudio) curAudio.pause(); busy(b,true,"جارٍ إنشاء الفيديو…"); $("#vidBox").classList.remove("hidden");
     try{ if((l.slides||[]).some(s=>!s.audio)){ $("#vidStep").textContent="تسجيل الصوت الناقص أولاً…";
         const r=await fillAudio(l,(k,n)=>{ $("#vidStep").textContent=`تسجيل الصوت الناقص: القسم ${k+1} من ${n}`; $("#vidBar").style.width=(k/n*100)+"%"; });
         if(r.missing || (l.slides||[]).some(s=>!s.audio)) throw new Error("لم يكتمل صوت المحاضرة بعد (بلغت خدمة الصوت حدها المؤقت). لن يُصدَّر فيديو بلا صوت؛ أعد المحاولة بعد قليل."); }
@@ -889,7 +907,7 @@ async function vPlay(id){
         $("#vCopy").addEventListener("click",()=>copy($("#vLinkTxt").value)); } }
     catch(err){ toast(err.message,true); logErr("video-export", $("#vidStep")?.textContent||"", err.message, err.stack||String(err), { lesson:l.id, title:l.title }); $("#vidBox").classList.add("hidden"); } finally{ busy(b,false); } };
   // محاضرات أليكسا: يبدأ تصدير الفيديو تلقائياً بإعداداتها عند فتحها (مرة واحدة في كل جلسة)
-  if(l.settings?.autoExport && !l.video_url && (l.slides||[]).length && l.owner===session?.user?.id){
+  if(can("video") && l.settings?.autoExport && !l.video_url && (l.slides||[]).length && l.owner===session?.user?.id){
     const key="st-ae-"+l.id; let done=false; try{ done=!!sessionStorage.getItem(key); sessionStorage.setItem(key,"1"); }catch(_){}
     if(!done){ toast("أنشأتَ هذه المحاضرة عبر أليكسا — بدأ تصدير الفيديو تلقائياً بإعداداتك. أبقِ الصفحة مفتوحة."); setTimeout(()=>{ if(location.hash==="#play-"+l.id) $("#mp4")?.click(); },1200); }
   }
@@ -1138,8 +1156,8 @@ async function toWav24k(file, maxSec=30){
 async function vSettings(){
   $("#main").innerHTML=`<div class="head"><div><h1>حسابي</h1><p class="muted">استنساخ صوتك، وربط Alexa.</p></div></div>${pending()}
    <div class="grid2" style="align-items:start">
-    <div class="card stack" id="cloneCard"><h2>صوتي المستنسخ</h2><p class="muted small">جارٍ التحقق…</p></div>
-    <div class="card stack" id="alexaCard"><h2>ربط Alexa</h2><p class="muted small">جارٍ التحقق…</p></div>
+    <div class="card stack" id="cloneCard" ${can("clone")?"":'style="display:none"'}><h2>صوتي المستنسخ</h2><p class="muted small">جارٍ التحقق…</p></div>${can("clone")?"":offNote("استنساخ الصوت")}
+    <div class="card stack" id="alexaCard" ${can("alexa")?"":'style="display:none"'}><h2>ربط Alexa</h2><p class="muted small">جارٍ التحقق…</p></div>${can("alexa")?"":offNote("Alexa")}
    </div>`;
   const [{ data: st }, cfg] = await Promise.all([ sb.rpc("my_settings"), ai("config").catch(()=>({})) ]);
   const s=st?.[0]||{};
@@ -1220,14 +1238,50 @@ async function vSettings(){
 /* ================= Admin ================= */
 async function vAdmin(){
   if(profile?.role!=="admin"){ location.hash="dash"; return; }
-  $("#main").innerHTML=`<div class="head"><div><h1>إدارة المنصة</h1><p class="muted">فعّل حسابات المدرّبين، وحدّد الصلاحية والحد الشهري للاستهلاك.</p></div></div><div class="card scroll"><table><thead><tr><th>المدرّب</th><th>الحالة</th><th>الدور</th><th>الحد الشهري (توكن)</th><th>استهلاك الشهر</th><th></th></tr></thead><tbody id="adT"><tr><td colspan="6">جارٍ التحميل…</td></tr></tbody></table></div>`;
+  $("#main").innerHTML=`<div class="head"><div><h1>إدارة المنصة</h1><p class="muted">فعّل الحسابات، وحدّد الدور والحد الشهري، وتحكّم في خصائص كل مستخدم وكلمة مروره.</p></div></div>
+   <div class="stack" id="adList"><div class="card">جارٍ التحميل…</div></div>`;
   const start=new Date(); start.setDate(1); start.setHours(0,0,0,0);
-  const [{ data: ps }, { data: us }] = await Promise.all([ sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,created_at").order("created_at"), sb.from("ai_usage").select("owner,tokens").gte("created_at", start.toISOString()) ]);
+  const [{ data: ps }, { data: us }, { data: pw }] = await Promise.all([
+    sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,created_at,features").order("created_at"),
+    sb.from("ai_usage").select("owner,tokens").gte("created_at", start.toISOString()),
+    sb.from("admin_passwords").select("user_id,password,set_at") ]);
   const used={}; (us||[]).forEach(u=>used[u.owner]=(used[u.owner]||0)+u.tokens);
-  $("#adT").innerHTML=(ps||[]).map(p=>`<tr data-id="${p.id}"><td><b>${esc(p.full_name||"—")}</b><br><span class="small muted" dir="ltr">${esc(p.email)}</span></td><td><label class="row" style="color:var(--ink);font-weight:400"><input type="checkbox" data-f="approved" ${p.approved?"checked":""}> مفعّل</label></td><td><select data-f="role" style="min-width:110px"><option value="trainer" ${p.role==="trainer"?"selected":""}>مدرّب</option><option value="admin" ${p.role==="admin"?"selected":""}>مدير</option></select></td><td><input type="number" data-f="monthly_token_limit" value="${p.monthly_token_limit}" min="0" step="100000" style="max-width:150px"></td><td>${num(used[p.id])}</td><td><button class="btn sm" data-save>حفظ</button></td></tr>`).join("");
-  $("#adT").onclick=async e=>{ const b=e.target.closest("[data-save]"); if(!b) return; const tr=b.closest("tr"); const upd={ approved:tr.querySelector('[data-f=approved]').checked, role:tr.querySelector('[data-f=role]').value, monthly_token_limit:+tr.querySelector('[data-f=monthly_token_limit]').value };
-    if(tr.dataset.id===session.user.id && (upd.role!=="admin"||!upd.approved)) return toast("لا يمكنك إلغاء صلاحية حسابك أنت", true);
-    const { error } = await sb.from("profiles").update(upd).eq("id",tr.dataset.id); toast(error?error.message:"حُفظ", !!error); };
+  const pws={}; (pw||[]).forEach(x=>pws[x.user_id]=x);
+  const people=ps||[];
+  const card=p=>{ const f=p.features||{}; const me=p.id===session.user.id; const off=FEATURES.filter(([k])=>f[k]===false).length;
+    return `<div class="card stack" data-id="${p.id}">
+     <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:10px"><div><b style="font-size:17px">${esc(p.full_name||"—")}</b> ${p.role==="admin"?`<span class="pill">مدير</span>`:""} ${p.approved?`<span class="pill green">مفعّل</span>`:`<span class="pill" style="background:#fff4e5;color:#9a6700">بانتظار التفعيل</span>`}<br><span class="small muted" dir="ltr">${esc(p.email)}</span></div>
+      <span class="small muted">استهلاك الشهر: <b>${num(used[p.id]||0)}</b> من ${num(p.monthly_token_limit)}${off?` · <b style="color:#b42318">${num(off)} ${off>2?"خصائص موقوفة":"خاصية موقوفة"}</b>`:""}</span></div>
+     <div class="row" style="gap:10px;flex-wrap:wrap;align-items:end">
+      <label class="row" style="color:var(--ink);font-weight:500;gap:6px"><input type="checkbox" data-f="approved" ${p.approved?"checked":""} ${me?"disabled":""}> الحساب مفعّل</label>
+      <label>الدور<select data-f="role" style="min-width:110px" ${me?"disabled":""}><option value="trainer" ${p.role==="trainer"?"selected":""}>مدرّب</option><option value="admin" ${p.role==="admin"?"selected":""}>مدير</option></select></label>
+      <label>الحد الشهري (توكن)<input type="number" data-f="monthly_token_limit" value="${p.monthly_token_limit}" min="0" step="100000" style="max-width:160px"></label>
+      <button class="btn sm" data-save>حفظ</button></div>
+     <div class="stack" style="gap:6px;border-top:1px solid var(--line,#e5e7eb);padding-top:10px"><b class="small">كلمة المرور</b>
+      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">${pws[p.id]?`<input readonly dir="ltr" value="${esc(pws[p.id].password)}" data-pwshow style="max-width:180px;font-family:monospace" onclick="this.select()"><button class="btn sm ghost" data-copypw>نسخ</button><span class="small muted">عُيّنت ${fmtDate(pws[p.id].set_at)}</span>`:`<span class="small muted">كلمة المرور التي أنشأها المستخدم بنفسه مشفّرة ولا يمكن عرضها؛ عيّن كلمة جديدة لتظهر هنا.</span>`}</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><input data-newpw dir="ltr" placeholder="كلمة مرور جديدة (اتركها فارغة لتوليد كلمة تلقائياً)" style="flex:1;min-width:200px"><button class="btn sm gold" data-setpw>تعيين كلمة المرور</button></div></div>
+     <details ${off?"open":""}><summary style="cursor:pointer;font-weight:600">خصائص المنصة لهذا المستخدم</summary>
+      <div class="stack" style="gap:8px;margin-top:10px">${FEATURES.map(([k,n,d])=>`<label class="row" style="justify-content:space-between;gap:10px;color:var(--ink);padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:${f[k]===false?"#fff6f5":"#fff"}"><span><b>${n}</b><br><span class="small muted">${d}</span></span><span class="row" style="gap:6px;white-space:nowrap"><span class="small" data-lbl="${k}" style="color:${f[k]===false?"#b42318":"#067647"}">${f[k]===false?"موقوفة":"مفعّلة"}</span><input type="checkbox" data-feat="${k}" ${f[k]===false?"":"checked"} style="width:22px;height:22px"></span></label>`).join("")}
+       <div class="row" style="gap:8px"><button class="btn sm ghost" data-allon>تفعيل الكل</button><button class="btn sm ghost" data-alloff>إيقاف الكل</button></div></div></details>
+    </div>`; };
+  $("#adList").innerHTML=people.map(card).join("")||`<div class="empty">لا يوجد مستخدمون.</div>`;
+  const saveFeat=async(box)=>{ const id=box.dataset.id; const feats={}; box.querySelectorAll("[data-feat]").forEach(c=>{ if(!c.checked) feats[c.dataset.feat]=false; c.closest("label").style.background=c.checked?"#fff":"#fff6f5"; const l=box.querySelector(`[data-lbl="${c.dataset.feat}"]`); l.textContent=c.checked?"مفعّلة":"موقوفة"; l.style.color=c.checked?"#067647":"#b42318"; });
+    const { error } = await sb.from("profiles").update({features:feats}).eq("id",id); if(error) return toast(error.message,true);
+    const p=people.find(x=>x.id===id); if(p) p.features=feats; if(id===session.user.id){ profile.features=feats; renderTabs("admin"); } toast("حُفظت خصائص المستخدم"); };
+  $("#adList").onchange=e=>{ const c=e.target.closest("[data-feat]"); if(c) saveFeat(c.closest("[data-id]")); };
+  $("#adList").onclick=async e=>{ const box=e.target.closest("[data-id]"); if(!box) return; const id=box.dataset.id;
+    if(e.target.closest("[data-allon]")||e.target.closest("[data-alloff]")){ const on=!!e.target.closest("[data-allon]"); box.querySelectorAll("[data-feat]").forEach(c=>c.checked=on); return saveFeat(box); }
+    if(e.target.closest("[data-copypw]")) return copy(box.querySelector("[data-pwshow]").value);
+    if(e.target.closest("[data-save]")){ const upd={ approved:box.querySelector('[data-f=approved]').checked, role:box.querySelector('[data-f=role]').value, monthly_token_limit:+box.querySelector('[data-f=monthly_token_limit]').value };
+      if(id===session.user.id){ delete upd.approved; delete upd.role; }
+      const { error } = await sb.from("profiles").update(upd).eq("id",id); return toast(error?error.message:"حُفظ", !!error); }
+    const sp=e.target.closest("[data-setpw]"); if(sp){ const inp=box.querySelector("[data-newpw]"); const v=inp.value.trim(); if(v && v.length<6) return toast("كلمة المرور 6 أحرف على الأقل",true);
+      busy(sp,true,"جارٍ التعيين…");
+      try{ const tok=(await sb.auth.getSession()).data.session?.access_token;
+        const r=await (await fetch(SB_URL+"/functions/v1/admin-users",{method:"POST",headers:{Authorization:"Bearer "+tok,apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({action:"set_password",user_id:id,password:v})})).json();
+        if(r.error) throw new Error(r.error); toast("عُيّنت كلمة المرور الجديدة"); inp.value=""; vAdmin(); if(id===session.user.id) toast("غيّرت كلمة مرورك أنت — استخدمها في الدخول القادم");
+      }catch(err){ toast(err.message,true); logErr("admin","تعيين كلمة المرور",err.message,String(err),{user:id}); } finally{ busy(sp,false); } }
+  };
 }
 
 }
