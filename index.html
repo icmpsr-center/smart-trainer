@@ -415,19 +415,28 @@ const pickedDocs = id => [...document.querySelectorAll(`#${id} input:checked`)].
 
 /* ================= الخصائص (يتحكم بها المدير لكل مستخدم) ================= */
 const FEATURES=[
-  ["studio","استوديو المحاضرة","إنشاء محاضرات جديدة"],
-  ["video","محرك الفيديو","تصدير المحاضرات فيديو MP4"],
-  ["drive","الحفظ في Google Drive","رفع الفيديو تلقائياً إلى Drive"],
-  ["publish","نشر المحاضرات","نشر المحاضرات ومشاركة روابطها مع المتدرّبين"],
-  ["clone","استنساخ الصوت","تسجيل صوت المدرّب واستخدامه في الشرح"],
-  ["alexa","Alexa","ربط حساب Alexa والتحكم الصوتي"],
-  ["assistant","المساعد الصوتي","المساعد الذكي بالصوت والكتابة"],
-  ["kb","قاعدة المعرفة","رفع المراجع وبناء المحاضرات منها"],
-  ["exams","منشئ الاختبارات","إنشاء الاختبارات وبنوك الأسئلة"],
-  ["tools","أدوات المحتوى","أدوات توليد المحتوى التعليمي"],
-  ["coursechat","محادثة الدورة","محادثة المتدرّبين مع محتوى الدورة"]
+  ["studio","استوديو المحاضرة","إنشاء محاضرات جديدة","main"],
+  ["video","محرك الفيديو","تصدير المحاضرات فيديو MP4","main"],
+  ["drive","الحفظ في Google Drive","رفع الفيديو تلقائياً إلى Drive","main"],
+  ["clone","استنساخ الصوت","تسجيل صوت المدرّب واستخدامه في الشرح","main"],
+  ["alexa","Alexa","ربط حساب Alexa والتحكم الصوتي","main"],
+  ["assistant","المساعد الصوتي","المساعد الذكي بالصوت والكتابة","main"],
+  ["kb","قاعدة المعرفة","رفع المراجع وبناء المحاضرات منها","main"],
+  ["exams","منشئ الاختبارات","إنشاء الاختبارات، وزر «اختبار من هذه المحاضرة»","main"],
+  ["tools","أدوات المحتوى","أدوات توليد المحتوى التعليمي","main"],
+  ["coursechat","محادثة الدورة","محادثة المتدرّبين مع محتوى الدورة","main"],
+  ["publish","نشر المحاضرات","خيار «منشورة للمتدرّبين»","lesson"],
+  ["links","روابط المحاضرة","نسخ ومشاركة رابط المتدرّبين ورابط Drive","lesson"],
+  ["rerecord","إعادة تسجيل الصوت","زر إعادة تسجيل صوت المحاضرة","lesson"],
+  ["vlogo","الشعار","اختيار الشعار ورفع شعار خاص","lesson"],
+  ["vname","اسم المحاضر","إظهار الاسم في الفيديو وتعديله","lesson"],
+  ["vbg","لون الخلفية","تغيير لون خلفية الشرائح","lesson"],
+  ["vrate","سرعة الكلام","تغيير سرعة الكلام","lesson"],
+  ["vvoice","صوت المحاضرة","تغيير صوت الشرح","lesson"]
 ];
-const can=f=>profile?.features?.[f]!==false;
+const asAdmin=()=>{ try{ return !!localStorage.getItem("st_admin_return"); }catch(_){ return false; } };
+const can=f=>asAdmin() || profile?.features?.[f]!==false;
+const hid=f=>can(f)?"":' style="display:none"';
 const offNote=n=>`<div class="card" style="border-color:#e5e7eb;background:#f8fafc"><b>خاصية «${esc(n)}» غير مفعّلة لحسابك.</b> <span class="muted">تواصل مع مدير المنصة لتفعيلها.</span></div>`;
 
 /* ================= Navigation ================= */
@@ -484,7 +493,7 @@ $("#authForm").addEventListener("submit", async e=>{
   finally{ busy(btn,false); }
 });
 function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); }
-$("#logout").onclick=$("#logout2").onclick=async()=>{ await sb.auth.signOut(); };
+$("#logout").onclick=$("#logout2").onclick=async()=>{ if(asAdmin()) return backToAdmin(); await sb.auth.signOut(); };
 async function loadProfile(){
   let { data, error } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url,features").eq("id", session.user.id).single();
   // احتياط: إن تعذّرت قراءة الأعمدة الجديدة نقرأ الأساسية حتى لا يبدو الحساب غير مفعّل
@@ -492,6 +501,7 @@ async function loadProfile(){
   profile = data || {role:"trainer", approved:false};
   $("#whoName").textContent = (profile.full_name||session.user.email) + (profile.role==="admin"?" · مدير":"");
   if(profile.role==="admin") syncAssets();
+  adminBanner();
 }
 // لا ننتظر أي طلب لـ Supabase داخل هذا المستمع: انتظاره يسبب تجمّد الصفحة عند إعادة فتحها بجلسة محفوظة
 let authSeq=0;
@@ -856,17 +866,17 @@ async function vPlay(id){
   const EV = effVS(l);
   const vName = l.voice==="clone" ? (profile?.cloned_voice_name||"صوتي") : VOICES.find(v=>v.id===l.voice)?.n;
   $("#main").innerHTML = `<div class="head"><div><a href="#lessons" class="small">← محاضراتي</a><h1 style="margin-top:6px">${esc(l.title)}</h1><p class="muted">${esc([l.subject,l.level,(l.duration_min||"")+" دقيقة",vName].filter(Boolean).join(" · "))}</p></div>
-   <div class="row"><label class="row" style="color:var(--ink);font-weight:500;${can("publish")?"":"display:none"}"><input type="checkbox" id="pubT" ${l.is_public?"checked":""}> منشورة للمتدرّبين</label><button class="btn sm ghost" id="copyL">نسخ رابط المتدرّبين</button><button class="btn sm ghost" id="reA" title="يعيد تسجيل صوت المحاضرة كاملة">إعادة تسجيل الصوت</button>${can("video")?`<button class="btn sm gold" id="mp4">تحميل فيديو MP4</button>`:""}${can("exams")?`<button class="btn sm ghost" id="mkExam">اختبار من هذه المحاضرة</button>`:""}</div></div>
+   <div class="row"><label class="row" style="color:var(--ink);font-weight:500;${can("publish")?"":"display:none"}"><input type="checkbox" id="pubT" ${l.is_public?"checked":""}> منشورة للمتدرّبين</label><button class="btn sm ghost" id="copyL"${hid("links")}>نسخ رابط المتدرّبين</button><button class="btn sm ghost"${hid("rerecord")} id="reA" title="يعيد تسجيل صوت المحاضرة كاملة">إعادة تسجيل الصوت</button>${can("video")?`<button class="btn sm gold" id="mp4">تحميل فيديو MP4</button>`:""}${can("exams")?`<button class="btn sm ghost" id="mkExam">اختبار من هذه المحاضرة</button>`:""}</div></div>
    ${missing?`<div class="card row" style="border-color:#ead9a6;background:#fffaf0;justify-content:space-between"><span><b>${num(missing)} شريحة بلا صوت مسجّل.</b> <span class="muted">تُعرض حالياً بلا صوت، ولن يُصدَّر الفيديو قبل اكتمال صوتها. أكمل التسجيل عندما يتجدد الحد اليومي.</span></span><button class="btn sm" id="fillA">أكمل تسجيل الصوت</button></div>`:""}
-   <div class="card stack" id="linkBox"><b>روابط المحاضرة</b><span class="small" style="font-weight:600">رابط المنصة (للمتدرّبين)</span><div class="row" style="gap:8px"><input id="linkTxt" dir="ltr" readonly value="${esc(link)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="copyL2">نسخ</button>${navigator.share?`<button class="btn sm" type="button" id="shareL">مشاركة</button>`:""}</div><span class="small muted" id="linkNote">${l.is_public?"المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط.":"المحاضرة غير منشورة بعد: عند النسخ أو المشاركة تُنشر تلقائياً."}</span><span class="small" style="font-weight:600;margin-top:6px">رابط الفيديو على Google Drive</span><div class="row" style="gap:8px" id="dRow">${l.video_url?`<input id="vLinkTxt" dir="ltr" readonly value="${esc(l.video_url)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="vCopy">نسخ</button><a class="btn sm ghost" href="${esc(l.video_url)}" target="_blank" rel="noopener">فتح</a>`:`<span class="small muted">يظهر هنا بعد تصدير الفيديو وحفظه في Drive.</span>`}</div></div>
-   <details class="card" id="vsBox"><summary style="cursor:pointer;font-weight:600">إعدادات الفيديو والصوت</summary><div class="stack" style="margin-top:12px">
-     <label for="vsLogo">الشعار أعلى يسار الفيديو<select id="vsLogo">${Object.entries(VLOGOS).map(([k,n])=>`<option value="${k}" ${EV.logo===k?"selected":""}>${n}</option>`).join("")}</select></label>
-     <div class="row" style="gap:10px;align-items:center" id="cLogoRow"><img id="cLogoImg" alt="الشعار الخاص" src="${esc(profile?.custom_logo_url||"")}" style="height:48px;max-width:120px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid var(--line,#e5e7eb);${profile?.custom_logo_url?"":"display:none"}"><label class="btn sm ghost" style="cursor:pointer">${profile?.custom_logo_url?"تغيير شعاري الخاص":"رفع شعار خاص"}<input type="file" id="cLogoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden></label><span class="small muted">PNG بخلفية شفافة أفضل، حتى 2 ميغابايت.</span></div>
-     <label class="row" style="gap:8px;color:var(--ink)"><input type="checkbox" id="vsShowName" ${EV.showName?"checked":""}> إظهار اسم المحاضر في الفيديو</label>
-     <label for="vsName">الاسم كما يظهر (مع اللقب العلمي)<input id="vsName" value="${esc(EV.name||profile?.full_name||"")}" placeholder="مثال: أ.د. طه حسين قاضي"></label>
-     <label for="vsBg">لون خلفية الشرائح<select id="vsBg">${Object.entries(VBGS).map(([k,[n]])=>`<option value="${k}" ${EV.bg===k?"selected":""}>${n}</option>`).join("")}</select></label>
-     <label for="vsRate">سرعة الكلام<select id="vsRate">${[[0.85,"أبطأ"],[0.93,"أبطأ قليلاً"],[1,"عادية"],[1.08,"أسرع قليلاً"],[1.15,"أسرع"]].map(([v,n])=>`<option value="${v}" ${EV.rate===v?"selected":""}>${n}</option>`).join("")}</select></label>
-     <label for="vsVoice">صوت المحاضرة (يُستخدم عند «إعادة تسجيل الصوت»)<select id="vsVoice">${voiceList().map(v=>`<option value="${v.id}" ${v.id===(l.voice||"nova")?"selected":""}>${esc(v.n)} — ${esc(v.d)}</option>`).join("")}</select></label>
+   <div class="card stack" id="linkBox"${hid("links")}><b>روابط المحاضرة</b><span class="small" style="font-weight:600">رابط المنصة (للمتدرّبين)</span><div class="row" style="gap:8px"><input id="linkTxt" dir="ltr" readonly value="${esc(link)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="copyL2">نسخ</button>${navigator.share?`<button class="btn sm" type="button" id="shareL">مشاركة</button>`:""}</div><span class="small muted" id="linkNote">${l.is_public?"المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط.":"المحاضرة غير منشورة بعد: عند النسخ أو المشاركة تُنشر تلقائياً."}</span><span class="small" style="font-weight:600;margin-top:6px">رابط الفيديو على Google Drive</span><div class="row" style="gap:8px" id="dRow">${l.video_url?`<input id="vLinkTxt" dir="ltr" readonly value="${esc(l.video_url)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="vCopy">نسخ</button><a class="btn sm ghost" href="${esc(l.video_url)}" target="_blank" rel="noopener">فتح</a>`:`<span class="small muted">يظهر هنا بعد تصدير الفيديو وحفظه في Drive.</span>`}</div></div>
+   <details class="card" id="vsBox"${["vlogo","vname","vbg","vrate","vvoice"].some(can)?"":' style="display:none"'}><summary style="cursor:pointer;font-weight:600">إعدادات الفيديو والصوت</summary><div class="stack" style="margin-top:12px">
+     <label for="vsLogo"${hid("vlogo")}>الشعار أعلى يسار الفيديو<select id="vsLogo">${Object.entries(VLOGOS).map(([k,n])=>`<option value="${k}" ${EV.logo===k?"selected":""}>${n}</option>`).join("")}</select></label>
+     <div class="row" style="gap:10px;align-items:center;${can("vlogo")?"":"display:none"}" id="cLogoRow"><img id="cLogoImg" alt="الشعار الخاص" src="${esc(profile?.custom_logo_url||"")}" style="height:48px;max-width:120px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid var(--line,#e5e7eb);${profile?.custom_logo_url?"":"display:none"}"><label class="btn sm ghost" style="cursor:pointer">${profile?.custom_logo_url?"تغيير شعاري الخاص":"رفع شعار خاص"}<input type="file" id="cLogoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden></label><span class="small muted">PNG بخلفية شفافة أفضل، حتى 2 ميغابايت.</span></div>
+     <label class="row" style="gap:8px;color:var(--ink);${can("vname")?"":"display:none"}"><input type="checkbox" id="vsShowName" ${EV.showName?"checked":""}> إظهار اسم المحاضر في الفيديو</label>
+     <label for="vsName"${hid("vname")}>الاسم كما يظهر (مع اللقب العلمي)<input id="vsName" value="${esc(EV.name||profile?.full_name||"")}" placeholder="مثال: أ.د. طه حسين قاضي"></label>
+     <label for="vsBg"${hid("vbg")}>لون خلفية الشرائح<select id="vsBg">${Object.entries(VBGS).map(([k,[n]])=>`<option value="${k}" ${EV.bg===k?"selected":""}>${n}</option>`).join("")}</select></label>
+     <label for="vsRate"${hid("vrate")}>سرعة الكلام<select id="vsRate">${[[0.85,"أبطأ"],[0.93,"أبطأ قليلاً"],[1,"عادية"],[1.08,"أسرع قليلاً"],[1.15,"أسرع"]].map(([v,n])=>`<option value="${v}" ${EV.rate===v?"selected":""}>${n}</option>`).join("")}</select></label>
+     <label for="vsVoice"${hid("vvoice")}>صوت المحاضرة (يُستخدم عند «إعادة تسجيل الصوت»)<select id="vsVoice">${voiceList().map(v=>`<option value="${v.id}" ${v.id===(l.voice||"nova")?"selected":""}>${esc(v.n)} — ${esc(v.d)}</option>`).join("")}</select></label>
      <span class="small muted">تُحفظ هذه الإعدادات لهذه المحاضرة وتصبح الافتراضية لمحاضراتك القادمة، وتُطبَّق عند تصدير الفيديو. لتغيير الصوت اختره ثم اضغط «إعادة تسجيل الصوت».</span></div></details>
    <div class="card stack hidden" id="vidBox"><b id="vidStep">تجهيز الفيديو…</b><div class="prog"><div class="bar"><i id="vidBar"></i></div></div><span class="small muted">يُسجَّل الفيديو بالسرعة الطبيعية للمحاضرة، فمحاضرة من 5 دقائق تحتاج 5 دقائق تقريباً، ثم يظهر زر حفظه على جهازك.</span></div>
    <div id="pl"></div>
@@ -1238,6 +1248,29 @@ async function vSettings(){
 }
 
 /* ================= Admin ================= */
+// دخول المدير إلى حساب مدرّب: يحفظ جلسة المدير ليعود إليها بضغطة
+async function enterAccount(id, btn){
+  busy(btn,true,"جارٍ الدخول…");
+  try{ const cur=(await sb.auth.getSession()).data.session; if(!cur) throw new Error("سجّل الدخول أولاً");
+    const r=await (await fetch(SB_URL+"/functions/v1/admin-users",{method:"POST",headers:{Authorization:"Bearer "+cur.access_token,apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({action:"impersonate",user_id:id})})).json();
+    if(r.error) throw new Error(r.error);
+    localStorage.setItem("st_admin_return", JSON.stringify({access_token:cur.access_token, refresh_token:cur.refresh_token, name:profile?.full_name||""}));
+    let v=await sb.auth.verifyOtp({token_hash:r.token_hash, type:"magiclink"}); if(v.error) v=await sb.auth.verifyOtp({token_hash:r.token_hash, type:"email"});
+    if(v.error){ localStorage.removeItem("st_admin_return"); throw v.error; }
+    location.hash="dash"; toast("أنت الآن داخل حساب المدرّب بصفتك المدير");
+  }catch(err){ toast("تعذّر الدخول إلى الحساب: "+err.message,true); logErr("admin","الدخول إلى حساب مدرّب",err.message,String(err),{user:id}); busy(btn,false); }
+}
+async function backToAdmin(){
+  let a=null; try{ a=JSON.parse(localStorage.getItem("st_admin_return")||"null"); }catch(_){}
+  if(!a) return; const { error } = await sb.auth.setSession({access_token:a.access_token, refresh_token:a.refresh_token});
+  localStorage.removeItem("st_admin_return");
+  if(error){ toast("انتهت جلسة المدير، سجّل الدخول بحسابك من جديد",true); await sb.auth.signOut({scope:"local"}); return; }
+  location.hash="admin";
+}
+function adminBanner(){ let b=$("#asAdminBar"); if(!asAdmin()){ b?.remove(); return; }
+  if(!b){ b=document.createElement("div"); b.id="asAdminBar"; b.style.cssText="position:sticky;top:0;z-index:50;background:#c9a13b;color:#0b2a5b;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-weight:600"; document.body.prepend(b); }
+  b.innerHTML=`<span>أنت داخل حساب «${esc(profile?.full_name||"")}» بصفتك المدير — كل الخصائص متاحة لك هنا.</span><button class="btn sm" type="button" id="backAdm">العودة إلى حسابي</button>`; $("#backAdm").onclick=backToAdmin; }
+
 async function vAdmin(){
   if(profile?.role!=="admin"){ location.hash="dash"; return; }
   $("#main").innerHTML=`<div class="head"><div><h1>إدارة المنصة</h1><p class="muted">فعّل الحسابات، وحدّد الدور والحد الشهري، وتحكّم في خصائص كل مستخدم وكلمة مروره.</p></div></div>
@@ -1258,12 +1291,12 @@ async function vAdmin(){
       <label class="row" style="color:var(--ink);font-weight:500;gap:6px"><input type="checkbox" data-f="approved" ${p.approved?"checked":""} ${me?"disabled":""}> الحساب مفعّل</label>
       <label>الدور<select data-f="role" style="min-width:110px" ${me?"disabled":""}><option value="trainer" ${p.role==="trainer"?"selected":""}>مدرّب</option><option value="admin" ${p.role==="admin"?"selected":""}>مدير</option></select></label>
       <label>الحد الشهري (توكن)<input type="number" data-f="monthly_token_limit" value="${p.monthly_token_limit}" min="0" step="100000" style="max-width:160px"></label>
-      <button class="btn sm" data-save>حفظ</button></div>
+      <button class="btn sm" data-save>حفظ</button>${me?"":`<button class="btn sm gold" data-enter>الدخول إلى حسابه</button>`}</div>
      <div class="stack" style="gap:6px;border-top:1px solid var(--line,#e5e7eb);padding-top:10px"><b class="small">كلمة المرور</b>
       <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">${pws[p.id]?`<input readonly dir="ltr" value="${esc(pws[p.id].password)}" data-pwshow style="max-width:180px;font-family:monospace" onclick="this.select()"><button class="btn sm ghost" data-copypw>نسخ</button><span class="small muted">عُيّنت ${fmtDate(pws[p.id].set_at)}</span>`:`<span class="small muted">كلمة المرور التي أنشأها المستخدم بنفسه مشفّرة ولا يمكن عرضها؛ عيّن كلمة جديدة لتظهر هنا.</span>`}</div>
       <div class="row" style="gap:8px;flex-wrap:wrap"><input data-newpw dir="ltr" placeholder="كلمة مرور جديدة (اتركها فارغة لتوليد كلمة تلقائياً)" style="flex:1;min-width:200px"><button class="btn sm gold" data-setpw>تعيين كلمة المرور</button></div></div>
      <details ${off?"open":""}><summary style="cursor:pointer;font-weight:600">خصائص المنصة لهذا المستخدم</summary>
-      <div class="stack" style="gap:8px;margin-top:10px">${FEATURES.map(([k,n,d])=>`<label class="row" style="justify-content:space-between;gap:10px;color:var(--ink);padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:${f[k]===false?"#fff6f5":"#fff"}"><span><b>${n}</b><br><span class="small muted">${d}</span></span><span class="row" style="gap:6px;white-space:nowrap"><span class="small" data-lbl="${k}" style="color:${f[k]===false?"#b42318":"#067647"}">${f[k]===false?"موقوفة":"مفعّلة"}</span><input type="checkbox" data-feat="${k}" ${f[k]===false?"":"checked"} style="width:22px;height:22px"></span></label>`).join("")}
+      <div class="stack" style="gap:8px;margin-top:10px">${[["main","الأقسام الرئيسية"],["lesson","صفحة المحاضرة"]].map(([g,gt])=>`<b class="small" style="margin-top:6px">${gt}</b>`+FEATURES.filter(x=>x[3]===g).map(([k,n,d])=>`<label class="row" style="justify-content:space-between;gap:10px;color:var(--ink);padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:${f[k]===false?"#fff6f5":"#fff"}"><span><b>${n}</b><br><span class="small muted">${d}</span></span><span class="row" style="gap:6px;white-space:nowrap"><span class="small" data-lbl="${k}" style="color:${f[k]===false?"#b42318":"#067647"}">${f[k]===false?"موقوفة":"مفعّلة"}</span><input type="checkbox" data-feat="${k}" ${f[k]===false?"":"checked"} style="width:22px;height:22px"></span></label>`).join("")).join("")}
        <div class="row" style="gap:8px"><button class="btn sm ghost" data-allon>تفعيل الكل</button><button class="btn sm ghost" data-alloff>إيقاف الكل</button></div></div></details>
     </div>`; };
   $("#adList").innerHTML=people.map(card).join("")||`<div class="empty">لا يوجد مستخدمون.</div>`;
@@ -1274,6 +1307,7 @@ async function vAdmin(){
   $("#adList").onclick=async e=>{ const box=e.target.closest("[data-id]"); if(!box) return; const id=box.dataset.id;
     if(e.target.closest("[data-allon]")||e.target.closest("[data-alloff]")){ const on=!!e.target.closest("[data-allon]"); box.querySelectorAll("[data-feat]").forEach(c=>c.checked=on); return saveFeat(box); }
     if(e.target.closest("[data-copypw]")) return copy(box.querySelector("[data-pwshow]").value);
+    const en=e.target.closest("[data-enter]"); if(en) return enterAccount(id, en);
     if(e.target.closest("[data-save]")){ const upd={ approved:box.querySelector('[data-f=approved]').checked, role:box.querySelector('[data-f=role]').value, monthly_token_limit:+box.querySelector('[data-f=monthly_token_limit]').value };
       if(id===session.user.id){ delete upd.approved; delete upd.role; }
       const { error } = await sb.from("profiles").update(upd).eq("id",id); return toast(error?error.message:"حُفظ", !!error); }
