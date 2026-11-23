@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المدرب الذكي · ICMPSR</title>
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#0f172a" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<link rel="icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE work tool for medical trainers — calm, precise, the centre's own navy and gold
+   IDEA a lecture hall: a projection board that draws each slide while the trainer's voice explains it
+   PICTURE the lesson board itself (studio + player) — the working thing is the picture
+   COLOUR soft white → cream → pale blue gradient ground (as supplied), ICMPSR navy #0b2a5b, gold #c9a13b, globe blue #2f6db5
+   TYPE Cairo throughout (titles 700–800, text 400–500)
+   LAYOUT laptop: slim sidebar + work area; phone: top bar + scrolling tab row, one column */
+:root{
+  color-scheme:light;
+  --navy:#0b2a5b;--navy2:#123b7a;--gold:#c9a13b;--gold2:#e2c271;--blue:#2f6db5;--sky:#dfe8f6;
+  --ink:#0e1b33;--muted:#53627c;--line:#d8e0ec;--card:rgba(255,255,255,.86);--ok:#1f8a5b;--err:#c0392b;
+  --r:16px;
+}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;color:var(--ink);font:16px/1.6 Cairo,Tahoma,sans-serif;overflow-x:clip;
+  background:
+   radial-gradient(60% 45% at 50% 108%,#c8d6ee 0%,rgba(200,214,238,0) 70%),
+   radial-gradient(45% 50% at 92% 22%,#f5efe4 0%,rgba(245,239,228,0) 70%),
+   linear-gradient(170deg,#ffffff 0%,#f7f8fb 45%,#e9eef8 100%) fixed;
+  background-attachment:fixed}
+h1,h2,h3{font-family:Cairo,sans-serif;margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(28px,3.4vw,40px)}h2{font-size:24px}h3{font-size:18px}
+p{margin:0}
+button,input,select,textarea{font:inherit}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+a{color:var(--blue)}
+
+/* buttons & fields */
+a.btn{text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid transparent;background:var(--navy);color:#fff;font:600 15px Cairo,sans-serif;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--navy2)}
+.btn.gold{background:var(--gold);color:#1d1606}.btn.gold:hover{background:var(--gold2)}
+.btn.ghost{background:#fff;color:var(--navy);border-color:var(--line)}.btn.ghost:hover{border-color:var(--navy)}
+.btn.danger{background:#fff;color:var(--err);border-color:#f0c9c4}
+.btn svg,.tab svg{width:18px;height:18px;flex:none}
+.btn.sm{min-height:36px;padding:0 12px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.tab:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+label{display:grid;gap:6px;font-size:14px;font-weight:500;color:var(--muted)}
+input,select,textarea{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:16px}
+textarea{min-height:96px;resize:vertical;line-height:1.6}
+input[type=range]{padding:0;accent-color:var(--navy)}
+input[type=checkbox]{width:20px;height:20px;min-height:0;accent-color:var(--navy)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:0 1px 2px rgba(11,42,91,.04)}
+.stack{display:grid;gap:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;background:var(--sky);color:var(--navy);font-size:13px;font-weight:600}
+.pill.gold{background:#f6ebcc;color:#6b5112}.pill.green{background:#dcf2e7;color:#17663f}.pill.red{background:#f9e0dc;color:#8e2a1f}
+
+/* shell */
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100%}
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px;padding:18px 14px;background:linear-gradient(180deg,var(--navy) 0%,#0a2350 100%);color:#fff}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 6px 14px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px}
+.brand img{flex:none;width:48px;height:48px;object-fit:contain;background:#fff;border-radius:10px;padding:2px}
+.brand b{display:block;font:700 18px Cairo,sans-serif}
+.brand span{display:block;font-size:11.5px;line-height:1.45;opacity:.8}
+.brand span.en{font-size:10.5px;opacity:.65;text-align:right}
+.orgname{margin-top:6px;color:var(--navy);font-weight:600;font-size:16px;line-height:1.6}
+.orgname span{display:block;font-weight:500;font-size:13.5px;opacity:.75;text-align:right}
+.public-head .org{display:flex;flex-direction:column;line-height:1.5;color:var(--navy);flex:1;min-width:220px}
+.public-head .org b{font-size:17px}.public-head .org span{font-size:13px;opacity:.85}.public-head .org span.en{font-size:12px;opacity:.65;text-align:right}
+
+.tabs{display:flex;flex-direction:column;gap:2px}
+.tab{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 12px;border-radius:10px;color:#dfe7f5;text-decoration:none;font-size:15px;border:0;background:none;cursor:pointer;text-align:start;width:100%}
+.tab svg{width:20px;height:20px;flex:none;opacity:.85}
+.tab:hover{background:rgba(255,255,255,.08)}
+.tab.on{background:rgba(201,161,59,.18);color:#fff;box-shadow:inset -3px 0 0 var(--gold)}
+.side .who{margin-top:auto;padding:12px 6px 0;border-top:1px solid rgba(255,255,255,.12);font-size:13px;display:grid;gap:8px}
+.side .who .btn{background:rgba(255,255,255,.1)}
+.topout{position:fixed;top:14px;left:18px;z-index:40;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid rgba(11,42,91,.18);background:#fff;color:var(--navy);font:600 14px Cairo,sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(11,42,91,.1)}
+.topout:hover{border-color:var(--gold)}
+.main{padding:clamp(16px,3vw,36px);padding-bottom:96px;display:grid;gap:20px;align-content:start;max-width:1240px;width:100%}
+.head{display:flex;justify-content:space-between;gap:16px;align-items:end;flex-wrap:wrap}
+.head p{margin-top:6px}
+@media(max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:sticky;top:0;z-index:30;height:auto;flex-direction:column;padding:10px 12px;gap:6px}
+  .brand{padding:0 0 8px;margin:0}
+  .tabs{flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:4px}
+  .tab{width:auto;flex:none;min-height:38px;font-size:14px}
+  .tab.on{box-shadow:inset 0 -3px 0 var(--gold)}
+  .side .who{display:none}
+  .topout{position:static;margin-inline-start:auto;align-self:flex-start;flex:none;background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25);box-shadow:none;padding:7px 12px}
+}
+
+/* auth / landing */
+.auth{min-height:100%;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(20px,5vw,72px);align-items:center;padding:clamp(20px,5vw,64px) max(5vw,16px);max-width:1240px;margin:auto}
+.auth .logo{width:min(380px,90%);background:#fff;border-radius:18px;padding:12px;box-shadow:0 10px 30px rgba(11,42,91,.08)}
+.auth h1{margin-top:22px;color:var(--navy)}
+.auth h1 b{color:var(--gold)}
+.feat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:22px}
+.feat div{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.feat svg{flex:none;width:22px;height:22px;color:var(--gold)}
+.authcard{max-width:440px;width:100%;justify-self:center}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--sky);border-radius:12px;padding:4px;margin-bottom:16px}
+.seg button{min-height:40px;border:0;border-radius:9px;background:none;font:600 15px Cairo,sans-serif;color:var(--navy);cursor:pointer}
+.seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+@media(max-width:860px){.auth{grid-template-columns:minmax(0,1fr)}.feat{grid-template-columns:minmax(0,1fr)}}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.stat b{display:block;font:700 30px Cairo,sans-serif;color:var(--navy)}
+.meter{height:10px;border-radius:6px;background:var(--sky);overflow:hidden;margin-top:8px}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--blue))}
+.list{display:grid;gap:8px}
+.item{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;flex-wrap:wrap}
+.item h3{font-size:16px}
+.empty{padding:28px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:14px}
+
+/* voices */
+.voices{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+@media(max-width:560px){.voices{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.voice{display:flex;gap:10px;align-items:center;padding:10px;border:2px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;text-align:start}
+.voice.on{border-color:var(--navy);background:#f1f5fc}
+.voice .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 17px Cairo,sans-serif;flex:none}
+.voice b{display:block;font-size:15px}.voice small{color:var(--muted);font-size:13px}
+.voice .pv{margin-inline-start:auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+
+/* progress */
+.prog{display:grid;gap:8px}
+.prog .bar{height:12px;border-radius:8px;background:var(--sky);overflow:hidden}
+.prog .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--navy),var(--blue));transition:width .4s}
+.log{font-size:14px;color:var(--muted);max-height:140px;overflow:auto}
+
+/* board player */
+.player{display:grid;gap:0}
+.board{position:relative;aspect-ratio:16/9;border-radius:16px 16px 0 0;background:radial-gradient(120% 90% at 20% 10%,#174289 0%,#0b2a5b 60%,#081f45 100%);border:10px solid var(--gold);border-bottom:0;overflow:hidden;color:#f5f7fb}
+@media(max-width:600px){.board{aspect-ratio:auto;min-height:420px;border-width:6px}}
+.slide{position:absolute;inset:0;padding:clamp(16px,3.4vw,44px);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-content:center}
+@media(max-width:600px){.slide{position:relative;grid-template-columns:minmax(0,1fr)}}
+.slide .sec{font-size:13px;color:var(--gold2)}
+.slide h2{font-size:clamp(22px,3.2vw,38px);margin:6px 0 4px;color:#fff}
+.slide .uline{height:4px;width:140px;border-radius:2px;background:var(--gold);margin:6px 0 16px;transform-origin:right;animation:grow .9s ease both}
+.slide ul{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:clamp(16px,1.9vw,22px)}
+.slide li{display:flex;gap:10px;align-items:baseline;opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.slide li.show{opacity:1;transform:none}
+.slide li i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--gold);transform:translateY(-2px)}
+.slide .ico{width:clamp(80px,13vw,170px);height:clamp(80px,13vw,170px);color:var(--gold2);align-self:center;animation:pop .8s ease both}
+@media(max-width:600px){.slide .ico{width:70px;height:70px;order:-1}}
+.slide .defn{border:2px solid rgba(226,194,113,.6);border-radius:14px;padding:14px 16px;font-size:clamp(17px,2vw,23px);background:rgba(255,255,255,.05)}
+.slide .cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.slide .cmp>div{border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.07)}
+.slide .cmp b{display:block;color:var(--gold2);font-family:Cairo;margin-bottom:6px}
+.slide ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:s;font-size:clamp(16px,1.9vw,21px)}
+.slide ol.steps li{counter-increment:s}
+.slide ol.steps li::before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#1d1606;display:grid;place-items:center;font:700 15px Cairo}
+.slide .quote{font-size:clamp(20px,2.6vw,30px);border-inline-start:5px solid var(--gold);padding-inline-start:16px}
+@keyframes grow{from{transform:scaleX(0)}}
+@keyframes pop{from{opacity:0;transform:scale(.8)}}
+@media(prefers-reduced-motion:reduce){.slide .uline,.slide .ico{animation:none}.slide li{transition:none}}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:#0a2350;color:#fff;border-radius:0 0 16px 16px}
+.controls .btn{background:rgba(255,255,255,.12)}
+.controls .btn.gold{background:var(--gold)}
+.track{flex:1;min-width:120px;height:8px;border-radius:5px;background:rgba(255,255,255,.18);overflow:hidden;cursor:pointer}
+.track i{display:block;height:100%;width:0;background:var(--gold)}
+.dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.dots button{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}
+.dots button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.ask{display:grid;gap:10px;margin-top:12px}
+.bubble{padding:12px 14px;border-radius:14px;background:#fff;border:1px solid var(--line);font-size:15px}
+.bubble.me{background:#f6ebcc;border-color:#ead9a6}
+
+/* chat */
+.chat{display:grid;gap:10px;max-height:56vh;overflow:auto;padding:4px}
+.msg{max-width:85%;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid var(--line);white-space:pre-wrap}
+.msg.me{justify-self:start;background:#f6ebcc;border-color:#ead9a6}
+.msg.ai{justify-self:end}
+.msg .src{margin-top:8px;font-size:13px;color:var(--muted)}
+.mic{width:48px;height:48px;border-radius:50%;border:0;background:var(--navy);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.mic.rec{background:var(--err);animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(192,57,43,.2)}}
+
+/* exam */
+.q{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;display:grid;gap:8px}
+.q .opts{display:grid;gap:6px}
+.q .opt{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;border:1px solid var(--line);cursor:pointer}
+.q .opt.right{border-color:var(--ok);background:#e6f5ee}.q .opt.wrong{border-color:var(--err);background:#fbe9e6}
+.q [contenteditable]{outline:none;border-radius:6px;padding:2px 4px}
+.q [contenteditable]:focus{background:#f1f5fc}
+.out{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;min-height:120px;line-height:1.8}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:start;vertical-align:middle}
+.scroll{overflow-x:auto}
+.toast{position:fixed;bottom:18px;inset-inline:0;margin:auto;width:max-content;max-width:92vw;padding:12px 18px;border-radius:12px;background:var(--navy);color:#fff;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:15px}
+.toast.err{background:var(--err)}
+.public-head{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;padding:14px max(4vw,16px);background:rgba(255,255,255,.8);border-bottom:1px solid var(--line)}
+.public-head img{height:52px;background:#fff;border-radius:10px}
+</style>
+</head>
+<body>
+
+<!-- ===== Public lesson viewer (for trainees) ===== -->
+<div id="publicView" class="hidden">
+  <div class="public-head"><img data-logo alt="ICMPSR"><div class="org"><b>منصة المدرب الذكي</b><span>المركز الدولي للدراسات والأبحاث الطبية والصيدلانية</span><span class="en" dir="ltr">International Center for Medical and Pharmaceutical Studies and Research</span></div></div>
+  <div class="main" style="margin:auto">
+    <div id="pubBody"></div>
+  </div>
+</div>
+
+<!-- ===== Auth ===== -->
+<div id="authView" class="hidden">
+  <div class="auth">
+    <div>
+      <img class="logo" data-logo alt="المركز الدولي للدراسات والأبحاث الطبية والصيدلانية ICMPSR">
+      <h1>منصة <b>المدرب الذكي</b></h1>
+      <p class="orgname">المركز الدولي للدراسات والأبحاث الطبية والصيدلانية<span dir="ltr">International Center for Medical and Pharmaceutical Studies and Research</span></p>
+      <p class="muted" style="margin-top:8px;font-size:17px">قسم التدريب والتعليم المستمر بالمركز الدولي للدراسات والأبحاث الطبية والصيدلانية. حوّل محاضرتك إلى عرض متحرك بصوت عربي فصيح، وابنِ الاختبارات من مراجعك، وأجب متدرّبيك بالصوت.</p>
+      <div class="feat" id="featList"></div>
+    </div>
+    <div class="card authcard">
+      <div class="seg"><button id="segIn" class="on" type="button">تسجيل الدخول</button><button id="segUp" type="button">حساب مدرّب جديد</button></div>
+      <form id="authForm" class="stack" novalidate>
+        <label id="nameWrap" class="hidden" for="aName">الاسم الكامل<input id="aName" autocomplete="name"></label>
+        <label for="aEmail">البريد الإلكتروني<input id="aEmail" type="email" dir="ltr" autocomplete="email" required></label>
+        <label for="aPass">كلمة المرور<input id="aPass" type="password" dir="ltr" autocomplete="current-password" minlength="6" required></label>
+        <button class="btn gold" id="authBtn" type="submit">دخول</button>
+        <p class="small muted" id="authNote">حسابات المدرّبين الجديدة تُفعَّل بعد موافقة مدير المنصة.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===== App ===== -->
+<div id="appView" class="app hidden">
+  <aside class="side">
+    <div class="brand"><img data-icon alt=""><div><b>المدرب الذكي</b><span>المركز الدولي للدراسات والأبحاث الطبية والصيدلانية</span><span class="en" dir="ltr">International Center for Medical and Pharmaceutical Studies and Research</span></div><button class="topout" id="logout2" type="button" aria-label="تسجيل الخروج"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l-5-5 5-5"/><path d="M11 12h10"/></svg><span>خروج</span></button></div>
+    <nav class="tabs" id="tabs"></nav>
+    <div class="who"><span id="whoName"></span><button class="btn sm" id="logout" type="button">تسجيل الخروج</button></div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<div id="toast" class="toast hidden" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+<script>
+const LOGO="./logo.jpg";
+const ICON192="./icon-192.png";
+document.querySelectorAll("img[data-logo]").forEach(i=>i.src=LOGO);
+document.querySelectorAll("img[data-icon]").forEach(i=>i.src=ICON192);
+// الرفع من الهاتف إلى Netlify يقبل HTML فقط: يرفع حساب المدير الأيقونات المضمّنة إلى الخادم مرة واحدة لتظهر أيقونة التطبيق عند التثبيت
+async function syncAssets(){}
+</script>
+<script>
+{
+/* ================= Config ================= */
+const SB_URL = "https://xrjzmnnonrlpejyxlkat.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyanptbm5vbnJscGVqeXhsa2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MTkyNjQsImV4cCI6MjExMDk5NTI2NH0.rEQLFvcCHNG99Ctn_RNOWJm2jaT_a33KveWQQsmHnaU";
+const FN = SB_URL + "/functions/v1/ai";
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+const VOICES = [
+  {id:"nova", n:"نور", d:"أنثى، دافئ", c:"#2f6db5"},
+  {id:"shimmer", n:"شيماء", d:"أنثى، رقيق", c:"#8a4f9e"},
+  {id:"alloy", n:"أليكس", d:"ذكر، متزن", c:"#4a7f8c"},
+  {id:"fable", n:"فارس", d:"ذكر، راوٍ", c:"#9a7a2c"},
+  {id:"echo", n:"إياد", d:"ذكر، واضح", c:"#1f6e52"},
+  {id:"onyx", n:"عمر", d:"ذكر، رصين", c:"#0b2a5b"}
+];
+const LEVELS = ["مبتدئ","متوسط","متقدم"];
+const ALEXA_MODEL = {"interactionModel": {"languageModel": {"invocationName": "المدرب الذكي", "intents": [{"name": "AMAZON.CancelIntent", "samples": []}, {"name": "AMAZON.HelpIntent", "samples": ["ماذا تستطيع أن تفعل", "مساعدة", "ما الأوامر"]}, {"name": "AMAZON.StopIntent", "samples": []}, {"name": "AMAZON.NavigateHomeIntent", "samples": []}, {"name": "AMAZON.FallbackIntent", "samples": []}, {"name": "AMAZON.YesIntent", "slots": [], "samples": []}, {"name": "AMAZON.NoIntent", "slots": [], "samples": []}, {"name": "PinIntent", "slots": [{"name": "pin", "type": "AMAZON.NUMBER"}], "samples": ["الرمز {pin}", "رمزي {pin}", "الرمز السري {pin}", "رقمي السري {pin}", "الرقم السري {pin}", "الكود {pin}"]}, {"name": "ListLecturesIntent", "slots": [], "samples": ["اعرض محاضراتي", "ما هي محاضراتي", "آخر المحاضرات", "اقرأ محاضراتي", "محاضراتي", "كم محاضرة عندي"]}, {"name": "CreateLectureIntent", "slots": [{"name": "topic", "type": "AMAZON.SearchQuery"}], "samples": ["أنشئ محاضرة عن {topic}", "انشئ محاضرة عن {topic}", "اعمل محاضرة عن {topic}", "جهز محاضرة عن {topic}", "حضر محاضرة عن {topic}", "اصنع محاضرة عن {topic}", "سوي محاضرة عن {topic}", "أنشئ درس عن {topic}", "اعمل درس عن {topic}", "محاضرة جديدة عن {topic}"]}, {"name": "CreateExamIntent", "slots": [{"name": "topic", "type": "AMAZON.SearchQuery"}], "samples": ["أنشئ اختبارا عن {topic}", "اعمل اختبار عن {topic}", "اختبار عن {topic}", "سوي اختبار عن {topic}", "جهز امتحان عن {topic}", "أنشئ امتحان عن {topic}"]}, {"name": "QuizMeIntent", "slots": [{"name": "topic", "type": "AMAZON.SearchQuery"}], "samples": ["اختبرني في {topic}", "اختبرني عن {topic}", "اسألني عن {topic}", "اسألني في {topic}", "تدرب معي على {topic}", "اختبرني", "ابدأ الاختبار", "اسألني أسئلة"]}, {"name": "LectureSummaryIntent", "slots": [{"name": "topic", "type": "AMAZON.SearchQuery"}], "samples": ["لخص محاضرة {topic}", "ملخص محاضرة {topic}", "اقرأ ملخص محاضرة {topic}", "لخص لي محاضرة {topic}", "لخص آخر محاضرة", "ملخص آخر محاضرة"]}, {"name": "PublishLatestIntent", "slots": [], "samples": ["انشر آخر محاضرة", "انشر المحاضرة الأخيرة", "انشر المحاضرة للمتدربين", "اجعل آخر محاضرة متاحة"]}, {"name": "ListExamsIntent", "slots": [], "samples": ["اعرض اختباراتي", "ما هي اختباراتي", "آخر الاختبارات", "اختباراتي"]}, {"name": "UsageIntent", "slots": [], "samples": ["كم استهلاكي", "ما استهلاكي هذا الشهر", "كم تبقى من رصيدي", "رصيدي", "الاستهلاك"]}, {"name": "KnowledgeIntent", "slots": [], "samples": ["اعرض قاعدة المعرفة", "كم ملف في قاعدة المعرفة", "ما هي مراجعي", "ملفات المعرفة"]}, {"name": "AskIntent", "slots": [{"name": "question", "type": "AMAZON.SearchQuery"}], "samples": ["اسأل {question}", "سؤال {question}", "عندي سؤال {question}", "اشرح {question}", "ما هو {question}"]}, {"name": "CreateCourseIntent", "slots": [{"name": "topic", "type": "AMAZON.SearchQuery"}], "samples": ["أنشئ دورة عن {topic}", "انشئ دورة عن {topic}", "اعمل دورة عن {topic}", "جهز دورة عن {topic}", "حضر دورة عن {topic}", "سوي دورة عن {topic}", "دورة جديدة عن {topic}", "أنشئ دورة تدريبية عن {topic}", "اعمل كورس عن {topic}", "أنشئ برنامج تدريبي عن {topic}"]}, {"name": "ChoiceIntent", "slots": [{"name": "choice", "type": "CHOICE_TYPE"}], "samples": ["{choice}", "الصوت {choice}", "صوت {choice}", "بصوت {choice}", "اللون {choice}", "الخلفية {choice}", "خلفية {choice}", "المستوى {choice}", "مستوى {choice}", "السرعة {choice}", "سرعة {choice}", "اللغة {choice}", "باللغة {choice}", "أريد {choice}", "اريد {choice}", "اختر {choice}", "اخترت {choice}", "الخيار {choice}", "الإجابة {choice}", "اجابتي {choice}", "الجواب {choice}", "خليها {choice}", "غير الصوت إلى {choice}", "غير الخلفية إلى {choice}"]}, {"name": "DurationIntent", "slots": [{"name": "minutes", "type": "AMAZON.NUMBER"}], "samples": ["{minutes} دقائق", "{minutes} دقيقة", "مدتها {minutes} دقائق", "مدتها {minutes} دقيقة", "المدة {minutes} دقائق", "المدة {minutes} دقيقة", "اجعلها {minutes} دقائق", "خليها {minutes} دقائق"]}, {"name": "PartsIntent", "slots": [{"name": "parts", "type": "AMAZON.NUMBER"}], "samples": ["{parts} محاضرات", "{parts} محاضرة", "عدد المحاضرات {parts}", "الدورة {parts} محاضرات", "اجعلها {parts} محاضرات"]}, {"name": "SkipIntent", "slots": [], "samples": ["الافتراضي", "تخطى", "تخطي", "كما تقترح", "كما تشاء", "اختر أنت", "انت اختار", "التالي", "عادي"]}, {"name": "DefaultsIntent", "slots": [], "samples": ["استخدم الافتراضي للباقي", "ابدأ بالإعدادات الافتراضية", "الباقي افتراضي", "استخدم الإعدادات الافتراضية", "كمل بالافتراضي", "الباقي كما تقترح"]}, {"name": "StatusIntent", "slots": [], "samples": ["ما حالة المحاضرة", "هل جهزت المحاضرة", "ما حالة الدورة", "هل جهزت الدورة", "هل انتهت المحاضرة", "أين وصلت المحاضرة", "وين وصلت", "ما حالة الإنشاء", "هل خلصت المحاضرة"]}, {"name": "TrainersIntent", "slots": [], "samples": ["اعرض المدربين", "من المدربين", "قائمة المدربين", "من ينتظر التفعيل", "المدربين المنتظرين", "اعرض الحسابات", "كم مدرب في المنصة"]}, {"name": "ApproveTrainerIntent", "slots": [{"name": "person", "type": "AMAZON.SearchQuery"}], "samples": ["فعل المدرب {person}", "فعّل المدرب {person}", "فعل حساب {person}", "وافق على {person}", "فعل {person}", "اقبل المدرب {person}"]}, {"name": "DisableTrainerIntent", "slots": [{"name": "person", "type": "AMAZON.SearchQuery"}], "samples": ["أوقف المدرب {person}", "اوقف المدرب {person}", "أوقف حساب {person}", "عطل حساب {person}", "عطل المدرب {person}", "ألغ تفعيل {person}"]}, {"name": "SetLimitIntent", "slots": [{"name": "person", "type": "AMAZON.SearchQuery"}], "samples": ["غير حد التوكن لـ {person}", "غير حد التوكن ل {person}", "ارفع التوكن لـ {person}", "ارفع توكن {person}", "زد حد {person}", "اخفض توكن {person}", "قلل حد {person}", "خفض التوكن لـ {person}", "حد التوكن {person}"]}, {"name": "MakeAdminIntent", "slots": [{"name": "person", "type": "AMAZON.SearchQuery"}], "samples": ["اجعل {person} مدير", "رق {person} إلى مدير", "غير صلاحية {person}", "صلاحية المدير لـ {person}"]}, {"name": "TrainersUsageIntent", "slots": [], "samples": ["استهلاك المدربين", "كم استهلك المدربون", "استهلاك كل المدربين", "استهلاك الحسابات"]}, {"name": "StatsIntent", "slots": [], "samples": ["إحصائيات المنصة", "احصائيات المنصة", "ملخص المنصة", "حالة المنصة", "تقرير المنصة"]}, {"name": "AmountIntent", "slots": [{"name": "amount", "type": "AMAZON.NUMBER"}, {"name": "unit", "type": "UNIT_TYPE"}], "samples": ["{amount} {unit}", "اجعله {amount} {unit}", "الحد {amount} {unit}", "{amount} {unit} توكن", "خليه {amount} {unit}"]}, {"name": "ErrorsIntent", "slots": [], "samples": ["ما الأعطال", "ما الاعطال", "اعرض الأعطال", "هل يوجد عطل", "سجل الأعطال", "ما المشكلة", "لماذا فشل الفيديو", "لماذا تعطلت المحاضرة"]}, {"name": "ClearErrorsIntent", "slots": [], "samples": ["أغلق الأعطال", "تم إصلاح الأعطال", "امسح الأعطال", "أصلحت الأعطال"]}, {"name": "RetryIntent", "slots": [], "samples": ["أعد المحاولة", "اعد المحاولة", "حاول مرة أخرى", "كمل المحاضرة", "استأنف المحاضرة", "أكمل الإنشاء"]}, {"name": "UnpublishLatestIntent", "slots": [{"name": "topic", "type": "AMAZON.SearchQuery"}], "samples": ["ألغ نشر آخر محاضرة", "الغ نشر آخر محاضرة", "أوقف نشر آخر محاضرة", "ألغ نشر محاضرة {topic}", "أوقف نشر محاضرة {topic}", "اخف محاضرة {topic}"]}, {"name": "DeleteLectureIntent", "slots": [{"name": "topic", "type": "AMAZON.SearchQuery"}], "samples": ["احذف آخر محاضرة", "احذف محاضرة {topic}", "امسح محاضرة {topic}", "احذف المحاضرة الأخيرة"]}], "types": [{"name": "CHOICE_TYPE", "values": [{"id": "voice:nova", "name": {"value": "نور", "synonyms": ["نورا", "صوت نور"]}}, {"id": "voice:shimmer", "name": {"value": "شيماء", "synonyms": ["شيما"]}}, {"id": "voice:alloy", "name": {"value": "أليكس", "synonyms": ["اليكس", "أليكس"]}}, {"id": "voice:fable", "name": {"value": "فارس", "synonyms": []}}, {"id": "voice:echo", "name": {"value": "إياد", "synonyms": ["اياد"]}}, {"id": "voice:onyx", "name": {"value": "عمر", "synonyms": []}}, {"id": "level:مبتدئ", "name": {"value": "مبتدئ", "synonyms": ["مبتدئين", "المبتدئ", "أساسي", "اساسي"]}}, {"id": "level:متوسط", "name": {"value": "متوسط", "synonyms": ["متوسطين", "المتوسط"]}}, {"id": "level:متقدم", "name": {"value": "متقدم", "synonyms": ["متقدمين", "المتقدم", "خبير"]}}, {"id": "lang:ar", "name": {"value": "عربي", "synonyms": ["العربية", "عربية", "باللغة العربية", "بالعربي"]}}, {"id": "lang:en", "name": {"value": "إنجليزي", "synonyms": ["انجليزي", "الإنجليزية", "الانجليزية", "انجليزية", "بالانجليزي", "English"]}}, {"id": "bg:center", "name": {"value": "خلفية المركز", "synonyms": ["المتدرجة", "المتدرّجة", "خلفية المركز المتدرجة", "المركز"]}}, {"id": "bg:white", "name": {"value": "أبيض", "synonyms": ["ابيض", "بيضاء", "الأبيض"]}}, {"id": "bg:cream", "name": {"value": "كريمي", "synonyms": ["كريم", "بيج"]}}, {"id": "bg:sky", "name": {"value": "أزرق فاتح", "synonyms": ["ازرق فاتح", "سماوي", "أزرق"]}}, {"id": "bg:gray", "name": {"value": "رمادي", "synonyms": ["رمادي فاتح", "رصاصي"]}}, {"id": "bg:navy", "name": {"value": "كحلي", "synonyms": ["أزرق غامق", "ازرق غامق", "كحلية"]}}, {"id": "rate:0.85", "name": {"value": "أبطأ", "synonyms": ["ابطأ", "بطيئة", "بطيء"]}}, {"id": "rate:0.93", "name": {"value": "أبطأ قليلا", "synonyms": ["ابطأ قليلا", "أبطأ شوي", "بطيئة قليلا"]}}, {"id": "rate:1", "name": {"value": "عادية", "synonyms": ["عادي", "طبيعية", "متوسطة"]}}, {"id": "rate:1.08", "name": {"value": "أسرع قليلا", "synonyms": ["اسرع قليلا", "أسرع شوي"]}}, {"id": "rate:1.15", "name": {"value": "أسرع", "synonyms": ["اسرع", "سريعة", "سريع"]}}, {"id": "ans:1", "name": {"value": "الأول", "synonyms": ["الاول", "الأولى", "الاولى", "أ", "الف", "واحد", "رقم واحد"]}}, {"id": "ans:2", "name": {"value": "الثاني", "synonyms": ["الثانية", "التاني", "ب", "باء", "اثنين", "اثنان", "رقم اثنين"]}}, {"id": "ans:3", "name": {"value": "الثالث", "synonyms": ["الثالثة", "التالت", "ج", "جيم", "ثلاثة", "رقم ثلاثة"]}}, {"id": "ans:4", "name": {"value": "الرابع", "synonyms": ["الرابعة", "د", "أربعة", "اربعة", "رقم أربعة"]}}]}, {"name": "UNIT_TYPE", "values": [{"id": "m", "name": {"value": "مليون", "synonyms": ["ملايين", "مليونين", "ملايين توكن"]}}, {"id": "k", "name": {"value": "ألف", "synonyms": ["الف", "آلاف", "الاف", "ألفا"]}}]}]}}};
+
+/* ================= Icons ================= */
+const P = {
+  dash:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+  studio:'<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4M8 9l3 2-3 2z"/>',
+  lessons:'<path d="M4 5h16v14H4z"/><path d="M4 9h16M9 5v14"/>',
+  voice:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  kb:'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  exam:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  tools:'<path d="M14 6l4 4-9 9H5v-4z"/><path d="M13 7l4 4"/>',
+  chat:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
+  admin:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 15-4 16 0"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  play:'<path d="M7 4v16l13-8z" fill="currentColor" stroke="none"/>',
+  pause:'<rect x="6" y="4" width="4" height="16" fill="currentColor" stroke="none"/><rect x="14" y="4" width="4" height="16" fill="currentColor" stroke="none"/>',
+  check:'<path d="M5 12l4 4 10-10"/>',
+  /* slide icons */
+  pill:'<rect x="3" y="9" width="18" height="7" rx="3.5" transform="rotate(-35 12 12)"/><path d="M9.5 8.5l5 7"/>',
+  heart:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/><path d="M5 12h3l2-3 2 6 2-3h5"/>',
+  brain:'<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a2 2 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/>',
+  flask:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/>',
+  dna:'<path d="M7 3c0 6 10 6 10 12s-10 6-10 6M17 3c0 6-10 6-10 12"/><path d="M8 7h8M8 17h8M10 12h4"/>',
+  microscope:'<path d="M6 21h12M9 18h6M12 18a5 5 0 0 0 5-5M10 4l4 2-3 6-4-2z"/><path d="M8 12l-1 2"/>',
+  stethoscope:'<path d="M6 3v6a4 4 0 0 0 8 0V3M10 13v3a4 4 0 0 0 8 0v-2"/><circle cx="18" cy="12" r="2"/>',
+  syringe:'<path d="M18 3l3 3M16 5l3 3M17 7l-9 9-3 1 1-3 9-9M11 9l2 2M9 11l2 2M5 19l-2 2"/>',
+  virus:'<circle cx="12" cy="12" r="5"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/>',
+  lungs:'<path d="M12 4v8M12 10c-2 0-3 1-3 3M12 10c2 0 3 1 3 3"/><path d="M8 7C5 8 3 13 3 17c0 2 2 3 4 2l2-1V9zM16 7c3 1 5 6 5 10 0 2-2 3-4 2l-2-1V9z"/>',
+  molecule:'<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="10" cy="18" r="2.5"/><path d="M8 7l7.5 1M7 8l2 8M12 17l5-7"/>',
+  book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+  bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
+  warning:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+  chart:'<path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-7"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 12.2-4 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14c3 0 5 1.5 5.5 4"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  scale:'<path d="M12 4v16M6 20h12M4 8h16"/><path d="M6 8l-3 6h6zM18 8l-3 6h6z"/>',
+  kidney:'<path d="M9 4C5 4 4 8 4 12s1 8 5 8c2 0 3-2 2-4s0-4 1-5 1-3-1-4-1-3-2-3zM15 4c4 0 5 4 5 8s-1 8-5 8c-2 0-3-2-2-4s0-4-1-5-1-3 1-4 1-3 2-3z"/>',
+  bacteria:'<rect x="4" y="8" width="16" height="8" rx="4"/><path d="M8 8V5M12 8V4M16 8V5M8 16v3M12 16v4M16 16v3"/>',
+  tooth:'<path d="M7 3c-3 0-4 3-3 6 1 2 1 4 2 8 .5 2 2.5 2 3 0l1-4h4l1 4c.5 2 2.5 2 3 0 1-4 1-6 2-8 1-3 0-6-3-6-2 0-3 1-5 1S9 3 7 3z"/>',
+  eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  bone:'<path d="M7 4a2.5 2.5 0 0 0-3 3 2.5 2.5 0 0 0 3 3l7 7a2.5 2.5 0 0 0 3 3 2.5 2.5 0 0 0 3-3 2.5 2.5 0 0 0-3-3l-7-7a2.5 2.5 0 0 0-3-3z"/>'
+};
+const SLIDE_ICONS = ["pill","heart","brain","flask","dna","microscope","stethoscope","syringe","virus","lungs","molecule","book","target","bulb","warning","chart","clock","users","shield","scale","kidney","bacteria","tooth","eye","bone","check"];
+const ico = (k, cls="") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[k]||P.bulb}</svg>`;
+
+/* ================= Helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let toastT;
+function logErr(source, stage, reason, detail, context={}){ try{ const uid=session?.user?.id; if(!uid) return; sb.from("system_errors").insert({ owner:uid, source, stage, reason:String(reason||"خطأ غير معروف").slice(0,300), detail:String(detail||"").slice(0,2000), context:{ ...context, ua:navigator.userAgent.slice(0,160) } }).then(()=>{}); }catch(_){} }
+function toast(msg, err=false){ const t=$("#toast"); t.textContent=msg; t.className="toast"+(err?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.add("hidden"), err?6000:3200); }
+const fmtDate = d => new Date(d).toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"short",year:"numeric"});
+const num = n => Number(n||0).toLocaleString("ar-EG-u-nu-latn");
+async function copy(text){ try{ await navigator.clipboard.writeText(text); toast("تم النسخ"); }catch{ toast("تعذّر النسخ، انسخ يدوياً", true); } }
+function busy(btn, on, label){ if(!btn) return; if(on){ btn.dataset.l=btn.innerHTML; btn.disabled=true; btn.innerHTML=label||"جارٍ العمل…"; } else { btn.disabled=false; btn.innerHTML=btn.dataset.l||btn.innerHTML; } }
+
+let session=null, profile=null;
+async function token(){ const { data } = await sb.auth.getSession(); return data.session?.access_token || SB_KEY; }
+
+async function ai(action, payload={}){
+  // يعيد المحاولة تلقائياً عند انشغال الخدمة أو انقطاع الاتصال (حتى 3 مرات)
+  for (let tr=0;;tr++){
+    let r;
+    try{ r = await fetch(FN, { method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+await token(), apikey:SB_KEY }, body: JSON.stringify({ action, ...payload }) }); }
+    catch(e){ if(tr<3){ await sleep(5000); continue; } throw new Error("تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة."); }
+    if ([429,500,502,503,504,546].includes(r.status) && tr<3){ toast(`الخدمة مشغولة (رمز ${r.status})، إعادة المحاولة تلقائياً ${tr+1} من 3…`); await sleep(r.status===429?30000:8000); continue; }
+    if (action === "tts" && r.ok) return await r.blob();
+    let d; try{ d = await r.json(); }catch{ throw new Error("تعذّر الاتصال بخادم الذكاء الاصطناعي (رمز "+r.status+")"); }
+    if (r.status===546) throw new Error("تجاوز الخادم حدّ الموارد المجانية لهذا الطلب (رمز 546). أعد المحاولة بمدة محاضرة أقصر.");
+    if (!r.ok || d.error) throw new Error(d.error || d.message || ("خطأ "+r.status));
+    return d;
+  }
+}
+async function aiForm(fields){
+  const fd = new FormData(); for (const [k,v] of Object.entries(fields)) if (v!=null) fd.append(k, v);
+  const r = await fetch(FN, { method:"POST", headers:{ Authorization:"Bearer "+await token(), apikey:SB_KEY }, body: fd });
+  const d = await r.json().catch(()=>({error:"خطأ "+r.status}));
+  if (!r.ok || d.error) throw new Error(d.error || ("خطأ "+r.status));
+  return d;
+}
+async function chat(system, user, {json=false, maxTokens=3000, temperature=0.6, history=[]}={}){
+  const messages = [{role:"system", content:system}, ...history, {role:"user", content:user}];
+  const { text } = await ai("chat", { messages, json, maxTokens, temperature });
+  if (!json) return text;
+  try { return JSON.parse(text); } catch { const m = text.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error("ردّ غير مفهوم من النموذج، أعد المحاولة"); }
+}
+const SYS = "أنت خبير تعليم طبي وصيدلاني في منصة المدرب الذكي التابعة لقسم التدريب والتعليم المستمر بالمركز الدولي للدراسات والأبحاث الطبية والصيدلانية (ICMPSR). اكتب بالعربية الفصحى الواضحة، واحتفظ بالمصطلحات العلمية الإنجليزية بين قوسين عند الحاجة. التزم بالدقة العلمية والمراجع المعتمدة، ولا تخترع أرقاماً أو مصادر.";
+
+/* audio: play blob / url, one at a time */
+let curAudio=null;
+function playUrl(url){ if(curAudio){ curAudio.pause(); } curAudio=new Audio(url); curAudio.play().catch(()=>toast("اضغط مرة أخرى لتشغيل الصوت", true)); return curAudio; }
+const voiceCache = {};
+async function speak(text, voice="nova"){ const b = await ai("tts",{text, voice}); return playUrl(URL.createObjectURL(b)); }
+
+/* recorder */
+async function record(btn){
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error("المتصفح لا يدعم تسجيل الصوت");
+  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+  const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : (MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "");
+  const rec = new MediaRecorder(stream, mime?{mimeType:mime}:undefined);
+  const chunks=[]; rec.ondataavailable=e=>chunks.push(e.data);
+  btn.classList.add("rec");
+  return new Promise(res=>{
+    rec.onstop=()=>{ stream.getTracks().forEach(t=>t.stop()); btn.classList.remove("rec"); const type=rec.mimeType||"audio/webm"; res(new File([new Blob(chunks,{type})], "q."+(type.includes("mp4")?"m4a":"webm"), {type})); };
+    rec.start(); btn._stop=()=>rec.state!=="inactive"&&rec.stop(); setTimeout(()=>btn._stop?.(), 30000);
+  });
+}
+function micButton(onFile, title="اضغط للتحدث، واضغط مرة أخرى للإرسال"){
+  const b=document.createElement("button"); b.type="button"; b.className="mic"; b.title=title; b.setAttribute("aria-label",title); b.innerHTML=ico("voice");
+  b.onclick=async()=>{ if(b.classList.contains("rec")){ b._stop?.(); return; } try{ const f=await record(b); b.disabled=true; await onFile(f); }catch(e){ toast(e.message,true); } finally{ b.disabled=false; } };
+  return b;
+}
+
+/* knowledge retrieval */
+async function retrieve(query, docIds, k=6){
+  if (!docIds?.length) return [];
+  const { vectors } = await ai("embed",{ texts:[query], query:true });
+  const { data, error } = await sb.rpc("match_chunks",{ query_embedding: vectors[0], doc_ids: docIds, match_count:k });
+  if (error) throw error; return data||[];
+}
+function ctxText(chunks, docs){ const t = Object.fromEntries((docs||[]).map(d=>[d.id,d.title])); return chunks.map((c,i)=>`[${i+1}] (${t[c.doc_id]||"مرجع"}، ص ${c.page??"؟"})\n${c.content}`).join("\n\n"); }
+let kbCache=null;
+async function kbDocs(force=false){ if(kbCache && !force) return kbCache; const { data } = await sb.from("kb_docs").select("*").order("created_at",{ascending:false}); kbCache=data||[]; return kbCache; }
+function kbPicker(id){ return `<div class="stack" id="${id}"><span class="small muted">جاري تحميل الملفات…</span></div>`; }
+async function fillKbPicker(id){
+  const docs = await kbDocs(); const el = document.getElementById(id); if(!el) return;
+  el.innerHTML = docs.length ? `<div class="row">${docs.map(d=>`<label class="row" style="gap:6px;color:var(--ink);font-weight:400"><input type="checkbox" value="${d.id}"> ${esc(d.title)} <span class="pill">${esc(d.folder||"عام")}</span></label>`).join("")}</div>` : `<span class="small muted">لا توجد ملفات في قاعدة المعرفة بعد. أضفها من قسم «قاعدة المعرفة».</span>`;
+}
+const pickedDocs = id => [...document.querySelectorAll(`#${id} input:checked`)].map(i=>i.value);
+
+/* ================= Navigation ================= */
+const TABS = [
+  {id:"dash", t:"لوحة التحكم", i:"dash"},
+  {id:"studio", t:"استوديو المحاضرة", i:"studio"},
+  {id:"lessons", t:"محاضراتي", i:"lessons"},
+  {id:"assistant", t:"المساعد الصوتي", i:"voice"},
+  {id:"kb", t:"قاعدة المعرفة", i:"kb"},
+  {id:"exams", t:"منشئ الاختبارات", i:"exam"},
+  {id:"tools", t:"أدوات المحتوى", i:"tools"},
+  {id:"coursechat", t:"محادثة الدورة", i:"chat"},
+  {id:"settings", t:"حسابي", i:"gear"},
+  {id:"admin", t:"إدارة المنصة", i:"admin", admin:true}
+];
+function renderTabs(cur){
+  $("#tabs").innerHTML = TABS.filter(t=>!t.admin || profile?.role==="admin").map(t=>`<a class="tab ${t.id===cur?"on":""}" href="#${t.id}">${ico(t.i)}${t.t}</a>`).join("");
+}
+function route(){
+  const h = location.hash.replace("#","");
+  if (h.startsWith("lesson-")) return showPublic(h.slice(7));
+  if (!session) return showAuth();
+  $("#publicView").classList.add("hidden"); $("#authView").classList.add("hidden"); $("#appView").classList.remove("hidden");
+  const id = TABS.some(t=>t.id===h) ? h : (h.startsWith("play-") ? "lessons" : "dash");
+  renderTabs(id);
+  if (curAudio) curAudio.pause();
+  const views = {settings:vSettings, dash:vDash, studio:vStudio, lessons:vLessons, assistant:vAssistant, kb:vKb, exams:vExams, tools:vTools, coursechat:vCourseChat, admin:vAdmin};
+  if (h.startsWith("play-")) return vPlay(h.slice(5));
+  (views[id]||vDash)().catch(e=>toast(e.message,true));
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", route);
+
+/* ================= Auth ================= */
+const FEATS = ["محاضرة متحركة بصوت عربي من وصف قصير","تنزيل المحاضرة فيديو MP4","استنساخ صوت المدرّب","أسئلة المتدرّبين بالصوت أثناء المحاضرة","قاعدة معرفة واختبارات من مراجعك","مساعد صوتي وربط Alexa"];
+$("#featList").innerHTML = FEATS.map(f=>`<div>${ico("check")}<span>${f}</span></div>`).join("");
+let signup=false;
+function setMode(up){ signup=up; $("#segIn").classList.toggle("on",!up); $("#segUp").classList.toggle("on",up); $("#nameWrap").classList.toggle("hidden",!up); $("#authBtn").textContent=up?"إنشاء الحساب":"دخول"; $("#aPass").autocomplete=up?"new-password":"current-password"; }
+$("#segIn").onclick=()=>setMode(false); $("#segUp").onclick=()=>setMode(true);
+$("#authForm").addEventListener("submit", async e=>{
+  e.preventDefault(); const btn=$("#authBtn"); const email=$("#aEmail").value.trim(), password=$("#aPass").value;
+  if(!email||password.length<6) return toast("اكتب البريد وكلمة مرور من 6 أحرف على الأقل", true);
+  busy(btn,true);
+  try{
+    if(signup){
+      const { data, error } = await sb.auth.signUp({ email, password, options:{ data:{ full_name: $("#aName").value.trim() }, emailRedirectTo: location.origin+location.pathname } });
+      if(error) throw error;
+      if(!data.session) toast("تم إنشاء الحساب. افتح بريدك لتأكيده ثم سجّل الدخول.");
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email, password }); if(error) throw error;
+    }
+  }catch(err){ toast(err.message==="Invalid login credentials"?"البريد أو كلمة المرور غير صحيحة":err.message, true); }
+  finally{ busy(btn,false); }
+});
+function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); }
+$("#logout").onclick=$("#logout2").onclick=async()=>{ await sb.auth.signOut(); };
+async function loadProfile(){
+  const { data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name").eq("id", session.user.id).single();
+  profile = data || {role:"trainer", approved:false};
+  $("#whoName").textContent = (profile.full_name||session.user.email) + (profile.role==="admin"?" · مدير":"");
+  if(profile.role==="admin") syncAssets();
+}
+// لا ننتظر أي طلب لـ Supabase داخل هذا المستمع: انتظاره يسبب تجمّد الصفحة عند إعادة فتحها بجلسة محفوظة
+let authSeq=0;
+// لا نعيد رسم الصفحة إلا عند تغيّر المستخدم فعلاً (دخول/خروج)؛ تجديد الجلسة عند العودة من منتقي الملفات كان يمسح الملف المختار
+let authUid;
+sb.auth.onAuthStateChange((_ev, s)=>{ session=s; const uid=s?.user?.id||null; if(uid===authUid && _ev!=="USER_UPDATED") return; authUid=uid; const my=++authSeq; setTimeout(async()=>{ if(my!==authSeq) return; if(s){ try{ await loadProfile(); }catch(e){ console.error(e); } } else { profile=null; } route(); },0); });
+
+function pending(){ return profile && !profile.approved ? `<div class="card" style="border-color:#ead9a6;background:#fffaf0"><b>حسابك بانتظار موافقة مدير المنصة.</b> <span class="muted">يمكنك التصفح، وتعمل أدوات الذكاء الاصطناعي بعد التفعيل.</span></div>` : ""; }
+
+/* ================= Dashboard ================= */
+async function vDash(){
+  const main=$("#main");
+  main.innerHTML = `<div class="head"><div><h1>أهلاً ${esc(profile?.full_name||"")}</h1><p class="muted">ابدأ محاضرة جديدة، أو تابع عملك.</p></div><div class="row"><a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a><a class="btn ghost" href="#exams">اختبار جديد</a></div></div>${pending()}
+  <div class="stats" id="stats">${"<div class='card stat'><b>…</b></div>".repeat(4)}</div>
+  <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2>الاستهلاك هذا الشهر</h2><div id="usage"></div></div></div>`;
+  const [l,e,d,u] = await Promise.all([
+    sb.from("lessons").select("id,title,created_at,slides,is_public",{count:"exact"}).order("created_at",{ascending:false}).limit(5),
+    sb.from("exams").select("id",{count:"exact",head:true}),
+    sb.from("kb_docs").select("id",{count:"exact",head:true}),
+    sb.rpc("month_usage")
+  ]);
+  const used = u.data?.[0]?.used||0, lim = u.data?.[0]?.lim||0;
+  $("#stats").innerHTML = [["المحاضرات",l.count],["الاختبارات",e.count],["ملفات المعرفة",d.count],["توكنز هذا الشهر",used]].map(([t,v])=>`<div class="card stat"><span class="muted small">${t}</span><b>${num(v)}</b></div>`).join("");
+  $("#recentL").innerHTML = (l.data||[]).length ? l.data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${fmtDate(x.created_at)} · ${num((x.slides||[]).length)} شريحة</span></div><a class="btn sm ghost" href="#play-${x.id}">${ico("play")} تشغيل</a></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد.</div>`;
+  const pct = lim? Math.min(100, used/lim*100):0;
+  $("#usage").innerHTML = `<p><b style="font-size:22px">${num(used)}</b> <span class="muted">من ${num(lim)} توكن</span></p><div class="meter"><i style="width:${pct}%"></i></div><p class="small muted" style="margin-top:10px">يشمل الشرح والصوت والبحث في الملفات. يحدّد مدير المنصة الحد الشهري لكل مدرّب. الخدمة مجانية ضمن الحدود اليومية لـ Google Gemini.</p>`;
+}
+
+/* ================= Studio ================= */
+function voiceList(){ return [...VOICES, ...(profile?.cloned_voice_name?[{id:"clone", n:profile.cloned_voice_name, d:"صوتي المستنسخ", c:"#c9a13b"}]:[])]; }
+function voicePicker(cur="nova"){
+  return `<div class="voices" id="voicePick">${voiceList().map(v=>`<div class="voice ${v.id===cur?"on":""}" data-v="${v.id}" role="radio" tabindex="0" aria-checked="${v.id===cur}"><span class="av" style="background:${v.c}">${v.n[0]}</span><span><b>${v.n}</b><small>${v.d}</small></span><button type="button" class="pv" data-pv="${v.id}" aria-label="استمع إلى ${v.n}">${ico("play")}</button></div>`).join("")}</div>`;
+}
+function bindVoicePicker(){
+  const wrap=$("#voicePick");
+  wrap.addEventListener("click", async e=>{
+    const pv=e.target.closest("[data-pv]");
+    if(pv){ e.stopPropagation(); const v=voiceList().find(x=>x.id===pv.dataset.pv); try{ pv.disabled=true; if(!voiceCache[v.id]) voiceCache[v.id]=URL.createObjectURL(await ai("tts",{voice:v.id,text:`مرحباً، أنا ${v.n}. سأشرح لكم درس اليوم خطوة بخطوة، ونبدأ بالمفهوم الأساسي ثم نطبّقه على حالة سريرية.`})); playUrl(voiceCache[v.id]); }catch(err){ toast(err.message,true);} finally{ pv.disabled=false; } return; }
+    const c=e.target.closest("[data-v]"); if(!c) return; wrap.querySelectorAll(".voice").forEach(x=>{x.classList.toggle("on",x===c); x.setAttribute("aria-checked",x===c);});
+  });
+  wrap.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ const c=e.target.closest("[data-v]"); if(c){ e.preventDefault(); c.click(); } } });
+}
+const pickedVoice = () => $("#voicePick .voice.on")?.dataset.v || "nova";
+
+let studioPrefill=null;
+async function vStudio(){
+  const p = studioPrefill||{}; studioPrefill=null;
+  $("#main").innerHTML = `<div class="head"><div><h1>استوديو المحاضرة المتحركة</h1><p class="muted">اكتب وصف المحاضرة، وسيكتب النظام الشرائح والشرح ويسجّل الصوت، ثم تراجعها وتنشرها أو تنزّلها فيديو.</p></div></div>${pending()}
+  <div class="grid2" style="align-items:start">
+   <form class="card stack" id="studioForm" novalidate>
+    <label for="sTitle">عنوان المحاضرة<input id="sTitle" required placeholder="مثال: مثبطات ACE في علاج ارتفاع ضغط الدم" value="${esc(p.title||"")}"></label>
+    <label for="sDesc">ماذا تريد أن تشرح المحاضرة؟<textarea id="sDesc" placeholder="النقاط الأساسية، الجمهور، وأي حالة سريرية تريد إدراجها">${esc(p.description||"")}</textarea></label>
+    <div class="grid2"><label for="sSubj">التخصص أو المادة<input id="sSubj" placeholder="علم الأدوية، الباطنة، التمريض…" value="${esc(p.subject||"")}"></label>
+    <label for="sLevel">المستوى<select id="sLevel">${LEVELS.map(l=>`<option ${l===(p.level||"متوسط")?"selected":""}>${l}</option>`).join("")}</select></label></div>
+    <label for="sLang">لغة المحاضرة<select id="sLang"><option value="ar">عربي + المصطلحات بالإنجليزية</option><option value="en" ${/[A-Za-z]/.test(p.title||"")&&!/[\u0600-\u06FF]/.test(p.title||"")?"selected":""}>English only</option></select></label>
+    <label for="sDur">مدة المحاضرة: <b id="durV">${p.duration||5} دقائق</b><input id="sDur" type="range" min="1" max="60" value="${p.duration||5}"></label>
+    <div class="stack"><span class="small muted" style="font-weight:500">صوت الشرح</span>${voicePicker(p.voice||"nova")}</div>
+    <div class="stack"><span class="small muted" style="font-weight:500">ابنِ المحاضرة من ملفات قاعدة المعرفة (اختياري)</span>${kbPicker("sKb")}</div>
+    <button class="btn gold" id="genBtn" type="submit">${ico("studio")} أنشئ المحاضرة</button>
+   </form>
+   <div class="stack">
+    <div class="card stack hidden" id="genBox"><h2>جارٍ إنشاء المحاضرة</h2><div class="prog"><div class="bar"><i id="genBar"></i></div><span id="genStep" class="small"></span></div><div class="log" id="genLog"></div></div>
+    <div class="card stack" id="genHint"><h2>كيف يعمل؟</h2><ol class="muted" style="margin:0;padding-inline-start:20px;display:grid;gap:6px"><li>تُقسَّم المحاضرة إلى أقسام حسب المدة.</li><li>تُكتب لكل قسم شرائح: عنوان ونقاط ونص شرح ورسم مناسب.</li><li>يُسجَّل الشرح صوتياً بالصوت المختار، أو بصوتك المستنسخ.</li><li>تشاهد المحاضرة على السبورة، وتنشرها برابط أو تنزّلها فيديو MP4.</li></ol><p class="small muted">المحاضرة من 5 دقائق تستغرق دقيقة إلى دقيقتين. أبقِ الصفحة مفتوحة أثناء الإنشاء.</p></div>
+   </div>
+  </div>`;
+  const dur=$("#sDur"); dur.oninput=()=>$("#durV").textContent=dur.value+(dur.value>2&&dur.value<11?" دقائق":" دقيقة");
+  bindVoicePicker(); fillKbPicker("sKb");
+  $("#studioForm").addEventListener("submit", e=>{ e.preventDefault(); generateLesson().catch(err=>{ toast(err.message,true); busy($("#genBtn"),false); }); });
+  if (p.autostart && p.title) generateLesson().catch(err=>{ toast(err.message,true); busy($("#genBtn"),false); });
+}
+
+async function generateLesson(){
+  const title=$("#sTitle").value.trim(); if(!title) return toast("اكتب عنوان المحاضرة", true);
+  const cfg = { title, description:$("#sDesc").value.trim(), subject:$("#sSubj").value.trim(), level:$("#sLevel").value, duration:+$("#sDur").value, voice:pickedVoice(), docs:pickedDocs("sKb"), lang: $("#sLang")?.value || (/[\u0600-\u06FF]/.test(title)?"ar":"en") };
+  const btn=$("#genBtn"); busy(btn,true,"جارٍ الإنشاء…"); $("#genBox").classList.remove("hidden"); $("#genHint").classList.add("hidden");
+  const bar=$("#genBar"), step=$("#genStep"), logEl=$("#genLog");
+  const log = t => { logEl.insertAdjacentHTML("beforeend", `<div>✓ ${esc(t)}</div>`); logEl.scrollTop=1e6; };
+  const setP = (p,t) => { bar.style.width=p+"%"; step.textContent=t; };
+
+  let context="";
+  if (cfg.docs.length){ setP(4,"البحث في ملفاتك…"); const docs=await kbDocs(); const ch=await retrieve(`${title}\n${cfg.description}`, cfg.docs, 10); context=ctxText(ch, docs); log(`وُجد ${ch.length} مقطعاً مرتبطاً في ملفاتك`); }
+  const totalSlides = Math.max(4, Math.min(48, Math.round(cfg.duration*1.4)));
+  const sections = Math.max(2, Math.min(12, Math.round(totalSlides/3.5)));
+  const wordsPer = Math.max(35, Math.round(cfg.duration*120/totalSlides));
+  const base = `العنوان: ${title}\nالوصف: ${cfg.description||"—"}\nالتخصص: ${cfg.subject||"—"}\nالمستوى: ${cfg.level}\nالمدة: ${cfg.duration} دقيقة${context?`\n\nاعتمد فقط على هذه المقتطفات من مراجع المدرّب:\n${context}`:""}`;
+
+  // لغة المحاضرة: عربية مع المصطلحات بالإنجليزية، أو إنجليزية بالكامل
+  const LSYS = cfg.lang==="en"
+    ? "You are a medical and pharmaceutical education expert at the Smart Trainer platform of ICMPSR (International Center for Medical and Pharmaceutical Studies and Research). Write EVERYTHING in clear academic English only: titles, bullets, definitions, comparisons and narration. Do not use any Arabic. Be scientifically accurate and never invent numbers or sources. Keep the JSON keys exactly as requested. Never mention \"Smart Trainer platform\". Start the narration of the FIRST slide only with: \"Welcome to the International Center for Medical and Pharmaceutical Studies and Research, Department of Training and Continuing Education.\" The narration is read aloud verbatim, so it must contain only the scientific explanation, with no instructions or remarks about the voice, delivery or the slides themselves."
+    : SYS+" التزم دائماً بكتابة كل مصطلح طبي وكل اسم دواء بالإنجليزية بين قوسين بعد مقابله العربي في العناوين والنقاط والتعريفات والمقارنات، مثل: مثبطات الإنزيم المحوّل للأنجيوتنسين (ACE inhibitors)، الإنالابريل (Enalapril)، تليّف الكبد (Liver cirrhosis). وفي نص الشرح المنطوق اذكر المصطلح الإنجليزي عند أول ذكر له. لا تذكر عبارة «منصة المدرب الذكي» إطلاقاً في أي شريحة. ابدأ نص شرح الشريحة الأولى فقط بعبارة: «مرحباً بكم في المركز الدولي للدراسات والأبحاث الطبية والصيدلانية، قسم التدريب والتعليم المستمر». نص الشرح (narration) يُقرأ كما هو بصوت المدرّب، فاكتب فيه الشرح العلمي فقط، بلا أي تعليمات أو حديث عن الصوت أو طريقة الإلقاء أو الشرائح نفسها.";
+  const baseL = base + (cfg.lang==="en" ? "\n\nIMPORTANT: The lecture language is ENGLISH. Write all titles, bullets, definitions and narration in English only." : "\n\nمهم: المحاضرة بالعربية، مع كتابة المصطلحات الطبية وأسماء الأدوية بالإنجليزية بين قوسين.");
+  setP(8,"كتابة مخطط المحاضرة…");
+  const outline = await chat(LSYS, `${baseL}\n\nاكتب مخطط محاضرة تعليمية من ${sections} أقسام بالضبط، تبدأ بمقدمة (ويفضّل حالة سريرية أو سؤال محفّز) وتنتهي بتلخيص. وزّع ${totalSlides} شريحة على الأقسام.\nأعد JSON بالشكل: {"sections":[{"title":"","goal":"","slides":3}]}`, {json:true, maxTokens:1500});
+  const secs = (outline.sections||[]).slice(0,12); if(!secs.length) throw new Error("لم يُكتب المخطط، أعد المحاولة");
+  log(`المخطط: ${secs.length} أقسام`);
+
+  const { data: row, error } = await sb.from("lessons").insert({ title, description:cfg.description, subject:cfg.subject, level:cfg.level, duration_min:cfg.duration, voice:cfg.voice, outline:secs, slides:[] }).select().single();
+  if (error) throw error;
+
+  const slides=[];
+  for (let i=0;i<secs.length;i++){
+    const s=secs[i]; setP(10+Math.round(i/secs.length*45), `كتابة شرائح القسم ${i+1} من ${secs.length}: ${s.title}`);
+    const out = await chat(LSYS, `${baseL}\n\nمخطط المحاضرة: ${secs.map((x,k)=>`${k+1}. ${x.title}`).join(" | ")}\n\nاكتب الآن شرائح القسم ${i+1} «${s.title}» (هدفه: ${s.goal||""}) وعددها ${Math.max(1,Math.min(6,s.slides||3))}.\nلكل شريحة:\n- title: عنوان قصير\n- layout: واحد من [bullets, definition, steps, compare, quote, summary]\n- bullets: من 2 إلى 4 نقاط قصيرة (للـ compare اجعلها فارغة)\n- definition: نص التعريف إن كان layout=definition\n- compare: {"a":"عنوان","a_points":[],"b":"عنوان","b_points":[]} إن كان layout=compare\n- icon: واحد من [${SLIDE_ICONS.join(",")}]\n- narration: نص الشرح المسموع بالفصحى بنحو ${wordsPer} كلمة، يشرح الشريحة بأسلوب مدرّب ودود دون قراءة النقاط حرفياً، ويربط بما قبلها.\nأعد JSON: {"slides":[...]}`, {json:true, maxTokens:Math.min(6000, 600+wordsPer*12)});
+    (out.slides||[]).forEach(x=>slides.push({ ...x, section:s.title, sec:i }));
+    log(`القسم ${i+1}: ${(out.slides||[]).length} شرائح`);
+  }
+  if(!slides.length) throw new Error("لم تُكتب الشرائح، أعد المحاولة");
+  await sb.from("lessons").update({ slides }).eq("id", row.id);
+  const lesson = { ...row, slides };
+  const r = await fillAudio(lesson, (k,n)=>setP(56+Math.round(k/n*42), `تسجيل الصوت: القسم ${k+1} من ${n}`), log);
+  setP(100, r.missing ? "حُفظت المحاضرة، وبعض الأقسام بلا صوت" : "اكتملت المحاضرة");
+  toast(r.missing ? "حُفظت المحاضرة. بلغ الصوت حده اليومي في بعض الأقسام؛ أكمله لاحقاً من صفحة المحاضرة." : "تم إنشاء المحاضرة", !!r.missing);
+  await sleep(700); location.hash = "play-"+row.id;
+}
+
+/* تسجيل الصوت لكل قسم (طلب واحد لكل قسم)، ثم تحويله إلى MP3 ورفعه، وتوزيع زمن القسم على شرائحه */
+function wavToMp3(buf){
+  if(!window.lamejs) return new Blob([buf],{type:"audio/wav"});
+  const dv=new DataView(buf); let off=12, rate=24000, ch=1, dataOff=44, dataLen=buf.byteLength-44;
+  while(off<buf.byteLength-8){ const id=String.fromCharCode(dv.getUint8(off),dv.getUint8(off+1),dv.getUint8(off+2),dv.getUint8(off+3)); const sz=dv.getUint32(off+4,true);
+    if(id==="fmt "){ ch=dv.getUint16(off+10,true); rate=dv.getUint32(off+12,true); } if(id==="data"){ dataOff=off+8; dataLen=Math.min(sz,buf.byteLength-dataOff); break; } off+=8+sz; }
+  const pcm=new Int16Array(buf.slice(dataOff,dataOff+dataLen-(dataLen%2))); const enc=new lamejs.Mp3Encoder(1,rate,64); const out=[];
+  for(let i=0;i<pcm.length;i+=1152){ const m=enc.encodeBuffer(pcm.subarray(i,i+1152)); if(m.length) out.push(new Uint8Array(m)); }
+  const end=enc.flush(); if(end.length) out.push(new Uint8Array(end));
+  return new Blob(out,{type:"audio/mpeg"});
+}
+async function fillAudio(lesson, onP=()=>{}, log=()=>{}){
+  const slides=lesson.slides, uid=session.user.id; const groups={};
+  slides.forEach((s,i)=>{ const k=s.sec??0; (groups[k]=groups[k]||[]).push(i); });
+  const keys=Object.keys(groups).map(Number).sort((a,b)=>a-b); let missing=0;
+  for(let n=0;n<keys.length;n++){
+    const idx=groups[keys[n]]; if(idx.every(i=>slides[i].audio)) continue;
+    onP(n,keys.length);
+    const parts=idx.map(i=>(slides[i].narration||slides[i].title||"").trim());
+    try{
+      const blob=await ai("tts",{ text: parts.join("\n\n"), voice: lesson.voice||"nova" });
+      const mp3 = blob.type.includes("wav") ? wavToMp3(await blob.arrayBuffer()) : blob;
+      const path=`${uid}/${lesson.id}/s${keys[n]}-${Date.now()}.mp3`;
+      const up=await sb.storage.from("audio").upload(path, mp3, { contentType:"audio/mpeg", upsert:true }); if(up.error) throw up.error;
+      const url=sb.storage.from("audio").getPublicUrl(path).data.publicUrl;
+      const w=parts.map(p=>Math.max(4,p.split(/\s+/).length)); const tot=w.reduce((a,b)=>a+b,0); let acc=0;
+      idx.forEach((i,j)=>{ slides[i].audio=url; slides[i].a0=acc/tot; acc+=w[j]; slides[i].a1=acc/tot; });
+      await sb.from("lessons").update({ slides }).eq("id", lesson.id);
+      log(`صوت القسم ${n+1}`);
+    }catch(e){
+      if(/الحد|429|limit/i.test(e.message)){ missing=keys.length-n; log("توقف تسجيل الصوت: "+e.message); break; }
+      throw e;
+    }
+  }
+  return { missing };
+}
+
+/* ================= Player ================= */
+function slideHTML(s, i, n){
+  const b = (s.bullets||[]).filter(Boolean);
+  let body="";
+  switch(s.layout){
+    case "definition": body = `<div class="defn">${esc(s.definition||b.join(" "))}</div>${b.length&&s.definition?`<ul style="margin-top:12px">${b.map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul>`:""}`; break;
+    case "steps": body = `<ol class="steps">${b.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`; break;
+    case "compare": { const c=s.compare||{}; body = `<div class="cmp"><div><b>${esc(c.a||"")}</b><ul>${(c.a_points||[]).map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul></div><div><b>${esc(c.b||"")}</b><ul>${(c.b_points||[]).map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul></div></div>`; break; }
+    case "quote": body = `<div class="quote">${esc(b[0]||s.definition||"")}</div>${b.length>1?`<ul style="margin-top:12px">${b.slice(1).map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul>`:""}`; break;
+    default: body = `<ul>${b.map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul>`;
+  }
+  return `<div class="slide"><div><div class="sec">${esc(s.section||"")} · الشريحة ${i+1} من ${n}</div><h2>${esc(s.title)}</h2><div class="uline"></div>${body}</div>${ico(SLIDE_ICONS.includes(s.icon)?s.icon:"bulb","ico")}</div>`;
+}
+// لا نستخدم صوت المتصفح إطلاقاً: الشريحة التي لم يُسجَّل صوتها تُعرض صامتة بقدر زمن قراءتها
+function browserSay(text, onend){
+  setTimeout(onend, Math.max(4000, String(text||"").split(/\s+/).length*400)); return true;
+}
+function mountPlayer(el, lesson, {publicMode=false}={}){
+  const slides = lesson.slides||[]; let i=0, audio=null, playing=false, timers=[], tts=false;
+  el.innerHTML = `<div class="player"><div class="board" id="pBoard"></div><div class="controls"><button class="btn sm" id="pPrev" aria-label="السابقة">السابقة</button><button class="btn sm gold" id="pPlay" aria-label="تشغيل">${ico("play")}</button><button class="btn sm" id="pNext" aria-label="التالية">التالية</button><div class="track" id="pTrack"><i></i></div><span id="pTime" class="small">0:00</span></div></div>
+   <div class="dots" id="pDots">${slides.map((_,k)=>`<button type="button" data-k="${k}" aria-label="الشريحة ${k+1}">${k+1}</button>`).join("")}</div>
+   <div class="card ask"><h3>اسأل عن هذه الشريحة</h3><div class="row"><input id="askTxt" placeholder="اكتب سؤالك أو اضغط الميكروفون" style="flex:1"><button class="btn" id="askBtn" type="button">اسأل</button><span id="askMic"></span></div><div id="askOut" class="stack"></div></div>`;
+  const board=el.querySelector("#pBoard"), playB=el.querySelector("#pPlay"), bar=el.querySelector("#pTrack i"), time=el.querySelector("#pTime");
+  const fmt = t => `${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,"0")}`;
+  const span = s => { const d=audio?.duration||0; return [ (s.a0??0)*d, (s.a1??1)*d ]; };
+  function setPlay(v){ playing=v; playB.innerHTML=v?ico("pause"):ico("play"); }
+  function reveal(sec){ timers.forEach(clearTimeout); timers=[]; const lis=[...board.querySelectorAll("li")]; if(!playing||!sec){ lis.forEach(l=>l.classList.add("show")); return; } lis.forEach((l,k)=>timers.push(setTimeout(()=>l.classList.add("show"), (k+0.4)/(lis.length+0.4)*sec*800))); }
+  function draw(k){ i=Math.max(0,Math.min(slides.length-1,k)); board.innerHTML=slideHTML(slides[i],i,slides.length); el.querySelectorAll("#pDots button").forEach((b,j)=>b.classList.toggle("on",j===i)); }
+  function show(k, autoplay){
+    draw(k); const s=slides[i]; window.speechSynthesis?.cancel(); tts=false;
+    if(!s.audio){ if(audio){ audio.pause(); } setPlay(!!autoplay); reveal(autoplay?8:0); if(autoplay){ tts=true; if(!browserSay(s.narration||s.title, ()=>{ if(playing&&tts) next(); })) setPlay(false); } return; }
+    if(!audio || audio.dataset.src!==s.audio){ if(audio){ audio.pause(); audio.ontimeupdate=null; } audio=new Audio(s.audio); audio.dataset.src=s.audio; audio.preservesPitch=true; audio.defaultPlaybackRate=audio.playbackRate=+vset().rate||1; audio.preload="auto"; curAudio=audio; audio.ontimeupdate=tick; audio.onended=()=>{ if(i<slides.length-1) show(i+1,true); else setPlay(false); }; }
+    const go=()=>{ const [a]=span(s); if(Math.abs(audio.currentTime-a)>0.4) audio.currentTime=a; if(autoplay){ setPlay(true); audio.play().catch(()=>{ setPlay(false); reveal(0); }); const [x,y]=span(s); reveal(y-x); } else { setPlay(false); reveal(0); } };
+    if(audio.readyState>=1) go(); else audio.onloadedmetadata=go;
+  }
+  function tick(){ const s=slides[i]; if(!audio?.duration) return; const [a,b]=span(s); const t=audio.currentTime;
+    bar.style.width=Math.min(100,(t-a)/Math.max(0.1,b-a)*100)+"%"; time.textContent=fmt(Math.max(0,t-a));
+    if(playing && t>=b-0.05 && i<slides.length-1 && slides[i+1].audio===s.audio){ draw(i+1); const [x,y]=span(slides[i]); reveal(y-x); } }
+  function next(){ if(i<slides.length-1) show(i+1,true); else setPlay(false); }
+  playB.onclick=()=>{ const s=slides[i];
+    if(playing){ setPlay(false); audio?.pause(); window.speechSynthesis?.cancel(); tts=false; return; }
+    if(!s.audio){ show(i,true); return; }
+    if(!audio||audio.dataset.src!==s.audio){ show(i,true); return; }
+    setPlay(true); audio.play().catch(()=>toast("تعذّر تشغيل الصوت",true)); const [,b]=span(s); reveal(b-audio.currentTime); };
+  el.querySelector("#pPrev").onclick=()=>show(i-1,playing);
+  el.querySelector("#pNext").onclick=()=>show(i+1,playing);
+  el.querySelector("#pDots").onclick=e=>{ const b=e.target.closest("[data-k]"); if(b) show(+b.dataset.k,playing); };
+  el.querySelector("#pTrack").onclick=e=>{ if(!audio?.duration||!slides[i].audio) return; const r=e.currentTarget.getBoundingClientRect(); const [a,b]=span(slides[i]); audio.currentTime=a+((r.right-e.clientX)/r.width)*(b-a); };
+  const out=el.querySelector("#askOut");
+  async function ask(question, file){
+    if(playing){ audio?.pause(); window.speechSynthesis?.cancel(); setPlay(false); }
+    const qEl=document.createElement("div"); qEl.className="bubble me"; qEl.textContent=question||"سؤال صوتي…"; out.prepend(qEl);
+    const aEl=document.createElement("div"); aEl.className="bubble"; aEl.textContent="جارٍ التفكير…"; qEl.after(aEl);
+    try{
+      if(publicMode){
+        const d = file ? await aiForm({action:"ask_public", lessonId:lesson.id, slideIndex:i, file}) : await ai("ask_public",{lessonId:lesson.id, slideIndex:i, question});
+        qEl.textContent=d.question; aEl.textContent=d.answer;
+        if(d.audio){ const bin=atob(d.audio), u8=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) u8[k]=bin.charCodeAt(k); playUrl(URL.createObjectURL(new Blob([u8],{type:d.mime||"audio/wav"}))); } else browserSay(d.answer);
+      } else {
+        if(file){ const { text } = await aiForm({action:"stt", file}); question=text; qEl.textContent=text; }
+        const ctx = slides.map((s,k)=>`${k+1}. ${s.title}: ${(s.bullets||[]).join("، ")}`).join("\n");
+        const ans = await chat(SYS+" أجب في 2 إلى 5 جمل مبسطة.", `المحاضرة: ${lesson.title}\n${ctx}\n\nالشريحة الحالية: ${slides[i].title} — ${slides[i].narration||""}\n\nالسؤال: ${question}`, {maxTokens:600, temperature:0.4});
+        aEl.textContent=ans; speak(ans, lesson.voice||"nova").catch(()=>browserSay(ans));
+      }
+    }catch(e){ aEl.textContent="تعذّرت الإجابة: "+e.message; }
+  }
+  el.querySelector("#askBtn").onclick=()=>{ const q=el.querySelector("#askTxt").value.trim(); if(!q) return; el.querySelector("#askTxt").value=""; ask(q); };
+  el.querySelector("#askTxt").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); el.querySelector("#askBtn").click(); } };
+  el.querySelector("#askMic").replaceWith(micButton(f=>ask("",f)));
+  if(slides.length) show(0,false); else board.innerHTML=`<div class="slide"><div><h2>لا توجد شرائح</h2></div></div>`;
+}
+
+/* ===== تصدير MP4: رسم الشرائح على لوحة canvas وتسجيلها مع الصوت ===== */
+function wrapLines(ctx, text, maxW){ const words=String(text||"").split(/\s+/); const lines=[]; let cur="";
+  for(const w of words){ const t=cur?cur+" "+w:w; if(ctx.measureText(t).width>maxW && cur){ lines.push(cur); cur=w; } else cur=t; } if(cur) lines.push(cur); return lines; }
+function iconImage(k){ return new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null);
+  im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240" fill="none" stroke="${VS.bg==="navy"?"#e2c271":"#2f6db5"}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${P[k]||P.bulb}</svg>`); }); }
+// إعدادات الفيديو (تُحفظ على هذا الجهاز): الشعار، لون الخلفية، سرعة الكلام
+const VSET_DEF={logo:true,bg:"center",rate:1,showName:false,name:""};
+const VBGS={center:["خلفية المركز (التدرّج)",""],white:["أبيض","#ffffff"],cream:["كريمي","#f7f1e6"],sky:["أزرق فاتح","#e6eef9"],gray:["رمادي فاتح","#eef1f5"],navy:["كحلي","#0b2a5b"]};
+function vset(){ try{ return {...VSET_DEF, ...JSON.parse(localStorage.getItem("st_vset")||"{}")}; }catch{ return {...VSET_DEF}; } }
+function saveVset(o){ try{ localStorage.setItem("st_vset", JSON.stringify(o)); }catch{} VS=vset(); }
+let VS=vset();
+// خلفية الفيديو: صورة التدرّج المعتمدة للمركز
+const VBG=new Image(); VBG.src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wgARCAFoAoADASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAECB//EABcBAQEBAQAAAAAAAAAAAAAAAAABAgP/2gAMAwEAAhADEAAAAeqAAAAAAAAAAAAAAAAAAAAAAARQIEAAAAACCoLAACFiqgqUAooAAAAAAAAAAAgqCoLBAAAAAAAUAAIEKgqCwAlBBFoAABCgBFitCgAAAAAACCwAAAAAAAQQqCoKgqFUEAIAEKgqUElqBYLCAAAAKgUoDQ1kAAAAQsFAABABCoLAAAAAAAAJVAIiwFgAAJZRCoioFQqCpQAAACoNjeQABCwAAACCwAABCoKgAAAAAABQAggAACUASKgqCoKgoAFgqUJQDY3kQsAAQqCwAACCwAAAAABCoKgqCwLABQglCCwgFEKSKgqUlgqJaCoKlQKAWU0N5AELAAAELAAAJRLBYKgAAAAAAILLBYAlAILCACVSIqUEWkipQCoKlQFqWxYNjeSAAAQsAAQsAAAAAgqCwAoAAAIEKBLFCBCoiwUAIABbCAFgqUAqUJaFTQ3kQqCwACAAAAQqKAAEKQoABCoKgWCwgACBaiBIsFssKlggWUIloCUAqCgWKoTaN5AAELCgglqVAAAQqABYAAAAAACUELLIASgSWwAlAACAAlAAWCgWCpaWE2N5AQoAgWCwACAAAAAQqCoCqiwAACAAEsgsLBSWAhBbAWWCCygiWgAAopZQlTZOmbAAQAABCwAABCoAoAAAEAAAJVSogAACIsJQAgFACALAKAFgsUAWDY6ZELAAAQAABCwAoAAEIKgsAAAAFBAlAIKiAAlACBChRCiFgoAFgqWgNk3kAAQAAAIoAAEILAAAAAAAJRKJYAAAlAACAlAAlIBQQFWCpQBZUFWjeRAAAQVKBACBYAACCyggqAAAAAAAAAAJUCoAioWpYEKlBIoFgoAFiqDRNQAASgAQQAAAQCwqAAASqlCCoKgqCoKgsIqAAAFLICCghaSKlAAFgoBQCjUAEoAEEAABABYAAogEKhLEKgqKqCoKiKgtzSoWoigABQgBZSWIoAAUUAWEoKKEoAEIACCoAABKsAQsEJCoqyCoCCoKgqDSCoNM2NM0qFoioKlAAlWUlgKAFlgKqWAFl0QQQAAQAABAKBEBEqyCxCpCoLIKiqgqCoLcjSIqUtyNXNipSpVCLFAAKFCALKJQWCgsLAIABLAABAEqhEQQpELIBCwsILIKgqCoKgtyNILYKllqDVzS3Ni2ChRYJRQAFJSUAUJQLEsAAIABCgEBBESkBELCxELELEKgqKIKg0zYqDTNLc0tzS3NLc2W2DVzS3Ni2FohYKlALFAFgqVSEAQLAELAEqwBEZspARAixARCxLLIKyKgrI0yNILcjVzS3NLc2W2C2DVzZbYLZS2WAVYKCpYAWUAqUgAIABACoALJAkBAkLECQELICCoCAAAAoKCiLQUltBQtJVC0KAJaBQCAKAD/xAAUEAEAAAAAAAAAAAAAAAAAAACw/9oACAEBAAEFAmEP/8QAFBEBAAAAAAAAAAAAAAAAAAAAkP/aAAgBAwEBPwFmP//EABQRAQAAAAAAAAAAAAAAAAAAAJD/2gAIAQIBAT8BZj//xAAUEAEAAAAAAAAAAAAAAAAAAACw/9oACAEBAAY/AmEP/8QAHRABAAEDBQAAAAAAAAAAAAAAEQAQIDBAUGBwoP/aAAgBAQABPyHwCvsIY6JjvTgaMYxjGjG96HbnSO+veDjeFPOf/9oADAMBAAIAAwAAABAAAAAAAAAAAAAAAAAAAAAAABgIb7+3EE013n+00kEAAAAAAAAAAAAwwx3333333DzBKc0137uTDDATbe0AAAAAAAAxzzjDAAAEU000iBz7vU0kYihfvPP86DAEEEEEVzzCEEU1333nHHHEiA56nHEoQ4ed/vPN/c4EEEV/vMM1HEEU0/8A/wD+9+VIAjv8cgBjjzzQUYSS1wRX+5z28wz3/wDPMMMc88993AIo1PIQYcm37IItH2v/APHf7jHf/wAy17y9/wAtMNM9e3oI1uEh8kRarIZvImUM/uMd/ud//OMM89/3331O8FTKU9CjPVRL64pIpjnvc9OM/wDzjHJ951lBBFNNlbrB4GncULNpOCa+OSkRP/jHdzJlxplP/qzyCCCCKEW7RWdigwvViy+uyuIv7DZ5ttRBv/7zCGOOw088SiAX3QLDecqPROCy+4ILFZxd5jHe6iGO88wwxRRRIS+9xfe9z6Q2/XxBhdzvhFdzCe6iHe8wgBNNd99/w9CCNP8A2lYxwFPrgk7iFB/4x4sgjPMATXfc4wwwy07ffetgAwgAYwg9LCFK8v5v4hpNcTbcUz0zzvvvvvizw8QnjPzChSV84w97XRvghPIRfcw39zvstCDAAAADHj/ffNv8zBiAfbQ+lvohPIRf4x/7vsCNK1/wQQQx6RHk8XPvKbw1fONDXYhPISczz/shEJkz6WcffffUcXz3Ni+cbqrMFSyS16HZfYX/AP6bANtV1UaJ7yBDyzLu2Nvj5vH0R75LewhlH2Nf/wC6EDD5XbmZ5dyjD3t1laXhv186bh15iC6OhV7D/qYAa7R7eRVWW+A80K+Kqppu3BvkCGbdZ1tINzff+eECDRKCpbWRdPz/AH876Yap9QpsY0rECl6wSfw//ggPgQfAnX/gY4Y/4nv33XwfgYQvAQXnAPvw/wD/xAAbEQEAAQUBAAAAAAAAAAAAAAARAAEgMECAYP/aAAgBAwEBPxDqqnIjY67GMY6Tlc7Hzn//xAAeEQEAAQQCAwAAAAAAAAAAAAARIAAQMEABYFBwgP/aAAgBAgEBPxDpr8a8+gzwB0QxlixskSxEoogb5EosUbxhNIgTIESJqlyBA3CxRYxmTjEafMv/xAAfEAADAQEBAQEAAwEAAAAAAAAAAREQIDAxIUBBYVD/2gAIAQEAAT8Q/wCc30z6Pbnwp9HlG8pSlKXLrKff+PcvTd7b7eu8sn/Y+i27c+nwuXi5MpSlKUuTL/KpfKlKUpSlKUo2JlKXin0sKUpd+5Sl8KUv8il6pSl9rxdpRF5+ZSj96J/wr3fKlKUpSlKUT/SlG9/vIN7SlLvwpcuUpSly7T6L3vVL3Sl9aL7zcrKXbxSn3ilIQhCHzLvwvreaXmlL40pSlKUpSlKNoo9+H1j2lyn97Sn5tKUvgh+V5vNL3SlL53X84pSlLzcomhiZ9Phebz8KIvjebxS9UvlSlKUpS5SiHt6pcu0pebxS5d+93i80vNL1SlL/AAWL8RSlLqPuUpeKxPil4vKxC5peLzS9UvlSlKUpSlL4IpRsTW3KXaUuQh8EylyixPbxeLzeaXulKXxe0Q9pSl35xebC5MuKUm3F+Yi8Xi83m9UvjSlKUo2UomUvX962XV0svN4osouLt5vFLzS9UpfJi7sKUoz5xS8PLxeaUgnBOjFl4vF4peKXmlL4UpSlKNlKXLj6bKUXLeIZS8XhPUWiLt4vFLxS8UvdKXxfLEMpSn5j1fMuvEx7ebysT28Xi8Xm9UvlSlKUTKUbGLl43+FxcUeIf0vF8E8WXbxeLzeaXqlL5LFjEUpeHjEy8Moh/dvF1aii4vF283il5pfGlKUpSlLx/fTeMXzaUeL543iixPbdvF4vjS93+HeGLxRMvF4X7q/OLt7vFLxer4/hSlKNlKUusXzr5sEy68T/AAfkhd3bxeLxeb3S+L6ZaWFyDWPLwi8LtFxC1dXu8Xm80vlSlGUvTJqeIe3YITHqe0t1auLt28XbzeKXqlL43mlPpd+Y+rxRZMhCCyi4X723t4vF4vVL4UpSlKUqPzJzSiH1MvCfF26shZ1dvd4pbxS80pS+f9Z+l6+5d+4hogmXbxdTLi/MS5b1vu8Xi80vhSlKUpS8Pi584uwpT6QvdyC/C4j4Xbrevu8Xm9Uvqyl6RfBoWTPwhMhBahiP71vW+rxeLvwvN8aUpS8vm3x+H0mJ8wgulw3035N8Xi9UpfaifH0+H3bwin0gnC6nqZcRcWN7devu7fGl6qKUpf8ASlKUqKuqTJihOWhcIhBE5Wrp635Xi8XKUbKUpSlKUpSlKUpSlEylTP1FKPL5rpNavK7dvd4uUpS5SlKUpSlKUpSlKUpSlL+atuPEXJkyl2Zc+H3zvldpS5cpSlKUpSl/0pSlL/pSlKUpS5S4mUu3HxWXil1fmMThB69fh86o3xRsbLo2UpSlKUpSlKUpcWFLlE8mJl6/H4KIuIh+cPX2j5zSl2lKN4bKUpSjeL2Bf8whS5RMTxbiYnkEyiFxCEyZCCLn0nFxv816+qXlso2NlKUo2UpXlKUpSlKUuVlKJ5RMTKJlEy4hifknqxPhvwfTZeWxspSlw2XKXDZSlKUpSlKJlLtyiCZcTE+rq8FqfL82702NjKNjY2UpSlGy4pSlKUpSlKUTKJl1CExPU8mwThcT5sIQRCY+W/BvlsbGxsbKUbGylGylZSlKUpSlKUpSlKJlEy5S5RMomJieJ6uVkFzS49ePi9UbGxsbGUbGxspSlGxspSlGylKUpSlKJlKUTEyiYmXExMTEylE+KLU/zKXLi14/nVx58LjGxjKNjY2N42NjZRsbG5ilKUpSlKXCYmUomJlxMomJiYhCYsuUTKUpRPUQXD18t8t62NjY8bg3jZRsbxspSlKX/SlxSlL/AKUuUomJlEyieJiYmJiExMWLIQgiE1dPl43rLw2NlGxsbGxjZRso2NjY2UpRspSlKUpRMpSiZRMTExMomITExMTKIT4TFqeLlZ//2Q==";
+function drawSlideCanvas(ctx, W, H, s, i, n, shown, icons, logo){
+  const D=VS.bg==="navy";
+  const C={title:D?"#ffffff":"#0b2a5b", body:D?"#eef2f9":"#1e2b45", sec:D?"#e2c271":"#a8812a", panel:D?"rgba(255,255,255,.08)":"rgba(255,255,255,.75)", stroke:D?"rgba(255,255,255,.22)":"rgba(11,42,91,.12)"};
+  const bgc=(VBGS[VS.bg]||VBGS.center)[1];
+  if(bgc){ ctx.fillStyle=bgc; ctx.fillRect(0,0,W,H); }
+  else { ctx.fillStyle="#fbfcfe"; ctx.fillRect(0,0,W,H); if(VBG.complete&&VBG.naturalWidth){ ctx.imageSmoothingQuality="high"; ctx.drawImage(VBG,0,0,W,H); } }
+  ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="alphabetic";
+  const R=W-90, iconW=210, textW=W-90-90-iconW-40;
+  ctx.fillStyle=C.sec; ctx.font="600 24px Cairo, sans-serif"; ctx.fillText(`${s.section||""} · الشريحة ${i+1} من ${n}`, R, 100);
+  ctx.fillStyle=C.title; ctx.font="700 50px Cairo, sans-serif"; let y=170; for(const l of wrapLines(ctx,s.title,textW).slice(0,2)){ ctx.fillText(l,R,y); y+=62; }
+  ctx.fillStyle="#c9a13b"; ctx.fillRect(R-170,y-30,170,6); y+=24;
+  const b=(s.bullets||[]).filter(Boolean);
+  ctx.font="500 32px Cairo, sans-serif";
+  const item=(txt,k,x,w,num)=>{ if(k>=shown) return; const ls=wrapLines(ctx,txt,w-44); ctx.fillStyle="#c9a13b";
+    if(num){ ctx.beginPath(); ctx.arc(x-16,y-11,18,0,7); ctx.fill(); ctx.fillStyle=D?"#0b2a5b":"#fff"; ctx.font="700 20px Cairo"; ctx.textAlign="center"; ctx.fillText(String(num),x-16,y-4); ctx.textAlign="right"; ctx.font="500 32px Cairo, sans-serif"; }
+    else { ctx.beginPath(); ctx.arc(x-8,y-11,7,0,7); ctx.fill(); }
+    ctx.fillStyle=C.body; ls.forEach((l,j)=>{ ctx.fillText(l,x-44,y); y+=46; }); y+=10; };
+  if(s.layout==="compare"){ const c=s.compare||{}; const colW=(textW-30)/2; const y0=y;
+    [[c.a,c.a_points,R],[c.b,c.b_points,R-colW-30]].forEach(([h,pts,x],ci)=>{ y=y0; ctx.fillStyle=C.panel; ctx.fillRect(x-colW,y-40,colW,H-y0-60); ctx.strokeStyle=C.stroke; ctx.lineWidth=2; ctx.strokeRect(x-colW,y-40,colW,H-y0-60); ctx.fillStyle=C.title; ctx.font="700 32px Cairo"; ctx.fillText(h||"",x-18,y); y+=52; ctx.font="500 28px Cairo"; (pts||[]).forEach((p,k)=>{ if(k+ci*3<shown||shown>=99){ ctx.fillStyle=C.body; wrapLines(ctx,"• "+p,colW-36).forEach(l=>{ ctx.fillText(l,x-18,y); y+=40; }); y+=6; } }); });
+  } else if(s.layout==="definition"){ const ls=wrapLines(ctx,s.definition||b.join(" "),textW-40); ctx.fillStyle=C.panel; ctx.fillRect(R-textW,y-40,textW,ls.length*46+30); ctx.strokeStyle="#c9a13b"; ctx.lineWidth=3; ctx.strokeRect(R-textW,y-40,textW,ls.length*46+30); ctx.fillStyle=C.body; ls.forEach(l=>{ ctx.fillText(l,R-20,y); y+=46; }); y+=30; b.forEach((t,k)=>item(t,k,R,textW));
+  } else if(s.layout==="quote"){ ctx.fillStyle="#c9a13b"; ctx.fillRect(R-6,y-40,6,120); ctx.fillStyle=C.title; ctx.font="600 38px Cairo"; wrapLines(ctx,b[0]||s.definition||"",textW-30).forEach(l=>{ ctx.fillText(l,R-24,y); y+=54; }); ctx.font="500 32px Cairo"; y+=14; b.slice(1).forEach((t,k)=>item(t,k,R,textW));
+  } else b.forEach((t,k)=>item(t,k,R,textW,s.layout==="steps"?k+1:0));
+  const im=icons[s.icon]||icons.bulb; if(im) ctx.drawImage(im,100,H/2-iconW/2+40,iconW,iconW);
+  // الشعار الدائري أعلى يسار الشاشة (اختياري)
+  // اسم المحاضر مع لقبه العلمي أسفل يسار الشاشة (اختياري)
+  if(VS.showName && VS.name){ ctx.save(); ctx.direction="rtl"; ctx.textAlign="left"; ctx.font="700 28px Cairo, sans-serif"; const tw=ctx.measureText(VS.name).width; ctx.fillStyle=D?"rgba(255,255,255,.1)":"rgba(255,255,255,.8)"; ctx.fillRect(34,H-82,tw+44,52); ctx.fillStyle="#c9a13b"; ctx.fillRect(34,H-82,6,52); ctx.fillStyle=C.title; ctx.fillText(VS.name,56,H-46); ctx.restore(); }
+  if(logo && VS.logo){ const d=128; ctx.save(); ctx.shadowColor="rgba(11,42,91,.18)"; ctx.shadowBlur=18; ctx.shadowOffsetY=4; ctx.beginPath(); ctx.arc(40+d/2,30+d/2,d/2,0,7); ctx.fillStyle="#fff"; ctx.fill(); ctx.restore(); ctx.drawImage(logo,40,30,d,d); }
+}
+async function exportVideo(lesson, onP){
+  if(!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) throw new Error("المتصفح لا يدعم تسجيل الفيديو. استخدم Chrome أو Edge على الكمبيوتر.");
+  VS=vset(); const RATE=+VS.rate||1;
+  const slides=lesson.slides||[]; const W=1280,H=720; const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const ctx=cv.getContext("2d");
+  await Promise.all(["700 50px Cairo","400 32px Cairo","500 24px Cairo"].map(f=>document.fonts.load(f).catch(()=>{})));
+  const icons={}; for(const k of new Set([...slides.map(s=>s.icon),"bulb"])) if(P[k]) icons[k]=await iconImage(k);
+  const logo=await new Promise(r=>{ const im=new Image(); im.onload=()=>r(im); im.onerror=()=>r(null); im.src="./icon-512.png"; });
+  const ac=new (window.AudioContext||window.webkitAudioContext)(); const dest=ac.createMediaStreamDestination();
+  const bufs={}; let k=0; const urls=[...new Set(slides.map(s=>s.audio).filter(Boolean))];
+  for(const u of urls){ onP(`تحميل الصوت ${++k} من ${urls.length}`,0); const ab=await (await fetch(u)).arrayBuffer(); bufs[u]=await ac.decodeAudioData(ab); }
+  // جدول زمني: كل شريحة لها بداية ومدة
+  const plan=[]; let t=0, lastUrl=null;
+  slides.forEach(s=>{ if(s.audio&&bufs[s.audio]){ const d=bufs[s.audio].duration; if(s.audio!==lastUrl){ plan.push({buf:bufs[s.audio], url:s.audio, at:t, from:(s.a0??0)*d}); lastUrl=s.audio; } const dur=((s.a1??1)-(s.a0??0))*d/RATE; s._t0=t; s._t1=t+dur; t+=dur; } else { lastUrl=null; s._t0=t; s._t1=t+6; t+=6; } });
+  const total=t+0.8;
+  const types=["video/mp4;codecs=avc1.42E01E,mp4a.40.2","video/mp4;codecs=avc1.42E01E,opus","video/mp4;codecs=avc1,opus","video/mp4;codecs=vp9,opus","video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"]; const mime=types.find(x=>MediaRecorder.isTypeSupported(x))||"";
+  const stream=new MediaStream([...cv.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+  const rec=new MediaRecorder(stream, mime?{mimeType:mime, videoBitsPerSecond:2_500_000}:undefined); const chunks=[]; rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+  drawSlideCanvas(ctx,W,H,slides[0],0,slides.length,0,icons,logo);
+  rec.start(1000); const start=ac.currentTime+0.4;
+  if(RATE===1) plan.forEach(p=>{ const src=ac.createBufferSource(); src.buffer=p.buf; src.connect(dest); src.start(start+p.at, p.from); });
+  else for(const p of plan){ const el=new Audio(); el.crossOrigin="anonymous"; el.preload="auto"; el.src=p.url; el.preservesPitch=true; el.defaultPlaybackRate=el.playbackRate=RATE; ac.createMediaElementSource(el).connect(dest); p.el=el; }
+  await new Promise(res=>{ const iv=setInterval(()=>{ const now=ac.currentTime-start; let j=slides.findIndex(s=>now>=s._t0&&now<s._t1); if(j<0) j=now<0?0:slides.length-1; const s=slides[j];
+      if(RATE!==1) plan.forEach(p=>{ if(!p.go && now>=p.at){ p.go=1; p.el.currentTime=p.from; p.el.playbackRate=RATE; p.el.play().catch(()=>{}); } });
+      const nb=Math.max((s.bullets||[]).length, s.layout==="compare"?6:0); const frac=(now-s._t0)/Math.max(0.5,s._t1-s._t0); const shown=Math.min(99, Math.floor(frac*1.25*(nb+0.5)+0.5));
+      drawSlideCanvas(ctx,W,H,s,j,slides.length,shown,icons,logo); onP(`تسجيل الفيديو ${Math.round(Math.max(0,now)/total*100)}٪ — أبقِ هذه الصفحة ظاهرة`, Math.max(0,now)/total);
+      if(now>=total){ clearInterval(iv); res(); } }, 1000/30); });
+  await new Promise(r=>{ rec.onstop=r; rec.stop(); }); ac.close();
+  const type=(mime||"video/webm").split(";")[0]; const blob=new Blob(chunks,{type}); const ext=type.includes("mp4")?"mp4":"webm";
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`${lesson.title.replace(/[\\/:*?"<>|]/g,"").slice(0,60)}.${ext}`; document.body.append(a); a.click(); a.remove();
+  let drive=null; try{ drive=await saveToDrive(blob, a.download, type, onP); }catch(err){ drive={error:err.message}; }
+  return {ext, drive, blob, name:a.download, type};
+}
+
+// حفظ الفيديو تلقائياً في مجلد «فيديوهات المدرب الذكي» على Google Drive (لحساب المدير، عبر Apps Script المركز)
+async function saveToDrive(blob, name, type, onP){
+  const tok=(await sb.auth.getSession()).data.session?.access_token; if(!tok) return null;
+  const g=await (await fetch(SB_URL+"/functions/v1/drive",{method:"POST",headers:{Authorization:"Bearer "+tok,apikey:SB_KEY}})).json();
+  if(g.error) throw new Error(g.error);
+  if(!g.configured) return {skipped:true};
+  if(!g.allowed || !g.token) return null;
+  onP("جارٍ حفظ الفيديو في Google Drive…",1);
+  const init=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,webViewLink",{method:"POST",
+    headers:{Authorization:"Bearer "+g.token,"Content-Type":"application/json; charset=UTF-8","X-Upload-Content-Type":type,"X-Upload-Content-Length":String(blob.size)},
+    body:JSON.stringify({name, parents:[g.folder], mimeType:type})});
+  if(!init.ok) throw new Error("Google Drive "+init.status+": "+(await init.text()).slice(0,160));
+  const loc=init.headers.get("Location"); if(!loc) throw new Error("لم يُرجع Google رابط الرفع");
+  const up=await fetch(loc,{method:"PUT",headers:{"Content-Type":type},body:blob});
+  if(!up.ok) throw new Error("Google Drive "+up.status+": "+(await up.text()).slice(0,160));
+  const f=await up.json();
+  // مشاركة الفيديو لكل من لديه الرابط، ليُرسل للمتدرّبين مباشرة
+  try{ await fetch(`https://www.googleapis.com/drive/v3/files/${f.id}/permissions?supportsAllDrives=true`,{method:"POST",headers:{Authorization:"Bearer "+g.token,"Content-Type":"application/json"},body:JSON.stringify({role:"reader",type:"anyone"})}); }catch(_){}
+  f.webViewLink=f.webViewLink||`https://drive.google.com/file/d/${f.id}/view`;
+  return f;
+}
+
+async function vPlay(id){
+  const { data: l, error } = await sb.from("lessons").select("*").eq("id",id).single();
+  if(error||!l){ $("#main").innerHTML=`<div class="empty">المحاضرة غير موجودة.</div>`; return; }
+  const link = `${location.origin}${location.pathname}#lesson-${l.id}`;
+  const missing=(l.slides||[]).filter(s=>!s.audio).length;
+  const vName = l.voice==="clone" ? (profile?.cloned_voice_name||"صوتي") : VOICES.find(v=>v.id===l.voice)?.n;
+  $("#main").innerHTML = `<div class="head"><div><a href="#lessons" class="small">← محاضراتي</a><h1 style="margin-top:6px">${esc(l.title)}</h1><p class="muted">${esc([l.subject,l.level,(l.duration_min||"")+" دقيقة",vName].filter(Boolean).join(" · "))}</p></div>
+   <div class="row"><label class="row" style="color:var(--ink);font-weight:500"><input type="checkbox" id="pubT" ${l.is_public?"checked":""}> منشورة للمتدرّبين</label><button class="btn sm ghost" id="copyL">نسخ رابط المتدرّبين</button><button class="btn sm ghost" id="reA" title="يعيد تسجيل صوت المحاضرة كاملة">إعادة تسجيل الصوت</button><button class="btn sm gold" id="mp4">تحميل فيديو MP4</button><button class="btn sm ghost" id="mkExam">اختبار من هذه المحاضرة</button></div></div>
+   ${missing?`<div class="card row" style="border-color:#ead9a6;background:#fffaf0;justify-content:space-between"><span><b>${num(missing)} شريحة بلا صوت مسجّل.</b> <span class="muted">تُعرض حالياً بلا صوت، ولن يُصدَّر الفيديو قبل اكتمال صوتها. أكمل التسجيل عندما يتجدد الحد اليومي.</span></span><button class="btn sm" id="fillA">أكمل تسجيل الصوت</button></div>`:""}
+   <div class="card stack" id="linkBox"><b>روابط المحاضرة</b><span class="small" style="font-weight:600">رابط المنصة (للمتدرّبين)</span><div class="row" style="gap:8px"><input id="linkTxt" dir="ltr" readonly value="${esc(link)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="copyL2">نسخ</button>${navigator.share?`<button class="btn sm" type="button" id="shareL">مشاركة</button>`:""}</div><span class="small muted" id="linkNote">${l.is_public?"المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط.":"المحاضرة غير منشورة بعد: عند النسخ أو المشاركة تُنشر تلقائياً."}</span><span class="small" style="font-weight:600;margin-top:6px">رابط الفيديو على Google Drive</span><div class="row" style="gap:8px" id="dRow">${l.video_url?`<input id="vLinkTxt" dir="ltr" readonly value="${esc(l.video_url)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="vCopy">نسخ</button><a class="btn sm ghost" href="${esc(l.video_url)}" target="_blank" rel="noopener">فتح</a>`:`<span class="small muted">يظهر هنا بعد تصدير الفيديو وحفظه في Drive.</span>`}</div></div>
+   <details class="card" id="vsBox"><summary style="cursor:pointer;font-weight:600">إعدادات الفيديو والصوت</summary><div class="stack" style="margin-top:12px">
+     <label class="row" style="gap:8px;color:var(--ink)"><input type="checkbox" id="vsLogo" ${vset().logo?"checked":""}> إظهار شعار المركز أعلى يسار الفيديو</label>
+     <label class="row" style="gap:8px;color:var(--ink)"><input type="checkbox" id="vsShowName" ${vset().showName?"checked":""}> إظهار اسم المحاضر في الفيديو</label>
+     <label for="vsName">الاسم كما يظهر (مع اللقب العلمي)<input id="vsName" value="${esc(vset().name||profile?.full_name||"")}" placeholder="مثال: أ.د. طه حسين قاضي"></label>
+     <label for="vsBg">لون خلفية الشرائح<select id="vsBg">${Object.entries(VBGS).map(([k,[n]])=>`<option value="${k}" ${vset().bg===k?"selected":""}>${n}</option>`).join("")}</select></label>
+     <label for="vsRate">سرعة الكلام<select id="vsRate">${[[0.85,"أبطأ"],[0.93,"أبطأ قليلاً"],[1,"عادية"],[1.08,"أسرع قليلاً"],[1.15,"أسرع"]].map(([v,n])=>`<option value="${v}" ${(+vset().rate||1)===v?"selected":""}>${n}</option>`).join("")}</select></label>
+     <label for="vsVoice">صوت المحاضرة (يُستخدم عند «إعادة تسجيل الصوت»)<select id="vsVoice">${voiceList().map(v=>`<option value="${v.id}" ${v.id===(l.voice||"nova")?"selected":""}>${esc(v.n)} — ${esc(v.d)}</option>`).join("")}</select></label>
+     <span class="small muted">الشعار والخلفية والسرعة تُطبَّق على الفيديو عند تصديره، والسرعة أيضاً على التشغيل هنا. لتغيير الصوت اختره ثم اضغط «إعادة تسجيل الصوت».</span></div></details>
+   <div class="card stack hidden" id="vidBox"><b id="vidStep">تجهيز الفيديو…</b><div class="prog"><div class="bar"><i id="vidBar"></i></div></div><span class="small muted">يُسجَّل الفيديو بالسرعة الطبيعية للمحاضرة، فمحاضرة من 5 دقائق تحتاج 5 دقائق تقريباً، ثم يظهر زر حفظه على جهازك.</span></div>
+   <div id="pl"></div>
+   <details class="card"><summary style="cursor:pointer;font-weight:600">نص الشرح الكامل</summary><div class="stack" style="margin-top:12px">${(l.slides||[]).map((s,k)=>`<div><b>${k+1}. ${esc(s.title)}</b><p class="muted">${esc(s.narration||"")}</p></div>`).join("")}</div></details>`;
+  mountPlayer($("#pl"), l);
+  $("#pubT").onchange=async e=>{ const v=e.target.checked; const { error } = await sb.from("lessons").update({is_public:v}).eq("id",l.id); if(error) return toast(error.message,true); l.is_public=v; $("#linkNote").textContent=v?"المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط.":"المحاضرة غير منشورة بعد: عند النسخ أو المشاركة تُنشر تلقائياً."; toast(v?"المحاضرة منشورة الآن لمن يملك الرابط":"أُلغي نشر المحاضرة"); };
+  const ensurePub=async()=>{ if(l.is_public) return; const { error } = await sb.from("lessons").update({is_public:true}).eq("id",l.id); if(error) throw error; l.is_public=true; $("#pubT").checked=true; $("#linkNote").textContent="المحاضرة منشورة: يفتحها أي متدرّب لديه الرابط."; };
+  const copyLink=async()=>{ try{ await ensurePub(); }catch(err){ return toast(err.message,true); } try{ await navigator.clipboard.writeText(link); toast("نُسخ رابط المتدرّبين"); }catch{ const t=$("#linkTxt"); t.focus(); t.select(); try{ document.execCommand("copy"); toast("نُسخ رابط المتدرّبين"); }catch{ toast("حدّد الرابط وانسخه يدوياً",true); } } };
+  $("#copyL").onclick=copyLink; $("#copyL2").onclick=copyLink;
+  $("#vCopy")?.addEventListener("click",()=>copy($("#vLinkTxt").value));
+  $("#shareL")?.addEventListener("click",async()=>{ try{ await ensurePub(); await navigator.share({title:l.title, text:"محاضرة: "+l.title, url:link}); }catch(_){} });
+  const vsSave=()=>{ saveVset({logo:$("#vsLogo").checked, bg:$("#vsBg").value, rate:+$("#vsRate").value, showName:$("#vsShowName").checked, name:$("#vsName").value.trim()}); if(curAudio){ curAudio.playbackRate=VS.rate; } toast("حُفظت إعدادات الفيديو"); };
+  $("#vsLogo").onchange=vsSave; $("#vsShowName").onchange=vsSave; $("#vsName").onchange=vsSave; $("#vsBg").onchange=vsSave; $("#vsRate").onchange=vsSave;
+  $("#reA").onclick=async e=>{ const b=e.currentTarget; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد إعادة التسجيل"; return; } busy(b,true,"جارٍ التسجيل…"); l.voice=$("#vsVoice").value||l.voice; (l.slides||[]).forEach(s=>{ delete s.audio; delete s.a0; delete s.a1; }); try{ await sb.from("lessons").update({ slides:l.slides, voice:l.voice }).eq("id",l.id); const r=await fillAudio(l,(k,n)=>b.textContent=`القسم ${k+1} من ${n}…`); toast(r.missing?"سُجّل جزء، والباقي بعد تجدد الحد":"أُعيد تسجيل الصوت", !!r.missing); vPlay(l.id); }catch(err){ toast(err.message,true); busy(b,false); } };
+  $("#mkExam").onclick=()=>{ examPrefill={ topic:l.title, source:(l.slides||[]).map(s=>`${s.title}: ${(s.bullets||[]).join("، ")}. ${s.narration||""}`).join("\n") }; location.hash="exams"; };
+  $("#fillA")?.addEventListener("click", async e=>{ const b=e.currentTarget; busy(b,true,"جارٍ التسجيل…"); try{ const r=await fillAudio(l,(k,n)=>b.textContent=`القسم ${k+1} من ${n}…`); toast(r.missing?"سُجّل جزء، والباقي بعد تجدد الحد اليومي":"اكتمل الصوت", !!r.missing); vPlay(l.id); }catch(err){ toast(err.message,true); busy(b,false); } });
+  $("#mp4").onclick=async e=>{ const b=e.currentTarget; if(curAudio) curAudio.pause(); busy(b,true,"جارٍ إنشاء الفيديو…"); $("#vidBox").classList.remove("hidden");
+    try{ if((l.slides||[]).some(s=>!s.audio)){ $("#vidStep").textContent="تسجيل الصوت الناقص أولاً…";
+        const r=await fillAudio(l,(k,n)=>{ $("#vidStep").textContent=`تسجيل الصوت الناقص: القسم ${k+1} من ${n}`; $("#vidBar").style.width=(k/n*100)+"%"; });
+        if(r.missing || (l.slides||[]).some(s=>!s.audio)) throw new Error("لم يكتمل صوت المحاضرة بعد (بلغت خدمة الصوت حدها المؤقت). لن يُصدَّر فيديو بلا صوت؛ أعد المحاولة بعد قليل."); }
+      const {ext,drive,blob:vb,name:vn,type:vt}=await exportVideo(l,(t,p)=>{ $("#vidStep").textContent=t; $("#vidBar").style.width=(p*100)+"%"; }); $("#vidBar").style.width="100%";
+      const vurl=URL.createObjectURL(vb); const vf=new File([vb],vn,{type:vt}); const canShare=!!(navigator.canShare&&navigator.canShare({files:[vf]}));
+      $("#vidBox").insertAdjacentHTML("beforeend",`<div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn gold" href="${vurl}" download="${esc(vn)}">حفظ الفيديو على الجهاز</a>${canShare?`<button class="btn" type="button" id="vShare">مشاركة / حفظ في المعرض</button>`:""}</div>`);
+      $("#vShare")?.addEventListener("click",()=>navigator.share({files:[vf],title:l.title}).catch(()=>{}));
+      $("#vidStep").innerHTML= esc(ext==="mp4"?"اكتمل الفيديو (MP4). إن لم يبدأ التنزيل تلقائياً فاضغط «حفظ الفيديو على الجهاز».":"اكتمل الفيديو بصيغة WebM لأن هذا المتصفح لا يدعم MP4. اضغط «حفظ الفيديو على الجهاز».") + (drive?.id?` وحُفظ في مجلد «فيديوهات المدرب الذكي» على Google Drive.<div class="row" style="gap:8px;margin-top:8px"><input id="dLink" dir="ltr" readonly value="${esc(drive.webViewLink)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="dCopy">نسخ رابط الفيديو</button><a class="btn sm ghost" href="${esc(drive.webViewLink)}" target="_blank" rel="noopener">فتح</a></div>`: drive?.error?` <span style="color:#b42318">لم يُحفظ في Drive: ${esc(drive.error)}</span>`: drive?.skipped?` <span class="muted">الحفظ التلقائي في Google Drive غير مفعّل بعد؛ يحتاج ربط Apps Script (ملف Code.gs).</span>`:"");
+      $("#dCopy")?.addEventListener("click",()=>copy($("#dLink").value));
+      if(drive?.error) logErr("drive-upload","الحفظ في Google Drive",drive.error,drive.error,{ lesson:l.id, title:l.title });
+      if(drive?.id){ l.video_url=drive.webViewLink; sb.from("lessons").update({video_url:drive.webViewLink}).eq("id",l.id).then(()=>{});
+        $("#dRow").innerHTML=`<input id="vLinkTxt" dir="ltr" readonly value="${esc(drive.webViewLink)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="vCopy">نسخ</button><a class="btn sm ghost" href="${esc(drive.webViewLink)}" target="_blank" rel="noopener">فتح</a>`;
+        $("#vCopy").addEventListener("click",()=>copy($("#vLinkTxt").value)); } }
+    catch(err){ toast(err.message,true); logErr("video-export", $("#vidStep")?.textContent||"", err.message, err.stack||String(err), { lesson:l.id, title:l.title }); $("#vidBox").classList.add("hidden"); } finally{ busy(b,false); } };
+}
+
+async function showPublic(id){
+  $("#appView").classList.add("hidden"); $("#authView").classList.add("hidden"); $("#publicView").classList.remove("hidden");
+  const { data: l } = await sb.from("lessons").select("id,title,subject,level,duration_min,voice,slides").eq("id",id).eq("is_public",true).maybeSingle();
+  const body=$("#pubBody");
+  if(!l){ body.innerHTML=`<div class="empty">هذه المحاضرة غير متاحة. تأكد من الرابط أو اطلبه من المدرّب.</div>`; return; }
+  body.innerHTML=`<div class="head" style="margin-bottom:14px"><div><h1>${esc(l.title)}</h1><p class="muted">${esc([l.subject,l.level,(l.duration_min||"")+" دقيقة"].filter(Boolean).join(" · "))}</p></div></div><div id="ppl"></div>`;
+  mountPlayer($("#ppl"), l, {publicMode:true});
+}
+
+/* ================= Lessons list ================= */
+async function vLessons(){
+  $("#main").innerHTML=`<div class="head"><div><h1>محاضراتي</h1><p class="muted">كل المحاضرات المتحركة التي أنشأتها.</p></div><a class="btn gold" href="#studio">محاضرة جديدة</a></div><div class="list" id="ll"><div class="empty">جارٍ التحميل…</div></div>`;
+  const { data } = await sb.from("lessons").select("id,title,subject,duration_min,created_at,is_public,slides").order("created_at",{ascending:false});
+  const ll=$("#ll");
+  ll.innerHTML = (data||[]).length ? data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${esc(x.subject||"")} · ${num(x.duration_min)} دقيقة · ${num((x.slides||[]).length)} شريحة · ${fmtDate(x.created_at)}</span> ${x.is_public?`<span class="pill green">منشور</span>`:""} ${(x.slides||[]).length && !(x.slides||[]).every(s=>s.audio)?`<span class="pill red">غير مكتمل</span>`:""}</div><div class="row"><a class="btn sm" href="#play-${x.id}">${ico("play")} تشغيل</a><button class="btn sm danger" data-del="${x.id}">حذف</button></div></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد. ابدأ من «استوديو المحاضرة».</div>`;
+  ll.onclick=async e=>{ const b=e.target.closest("[data-del]"); if(!b) return; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } const id=b.dataset.del; const { data: files } = await sb.storage.from("audio").list(`${session.user.id}/${id}`); if(files?.length) await sb.storage.from("audio").remove(files.map(f=>`${session.user.id}/${id}/${f.name}`)); await sb.from("lessons").delete().eq("id",id); toast("حُذفت المحاضرة"); vLessons(); };
+}
+
+/* ================= Voice assistant ================= */
+async function vAssistant(){
+  $("#main").innerHTML=`<div class="head"><div><h1>المساعد الصوتي</h1><p class="muted">قل ما تريد بصوتك، مثل: «اعمل اختبار عشرة أسئلة عن مضادات التخثر للمستوى المتقدم» أو «أنشئ محاضرة من خمس دقائق عن الإنسولين».</p></div></div>${pending()}
+   <div class="grid2" style="align-items:start"><div class="card stack"><div class="row" id="asRow"><input id="asTxt" placeholder="أو اكتب الأمر هنا" style="flex:1"><button class="btn" id="asGo" type="button">نفّذ</button></div><div class="stack" id="asLog"></div></div>
+   <div class="card stack"><h2>أصوات المنصة</h2><p class="muted small">استمع لكل صوت، أو جرّب جملة من عندك.</p>${voicePicker("nova")}<textarea id="vTest" placeholder="اكتب جملة لتسمعها بالصوت المختار">يعمل الأسبرين على تثبيط إنزيم السيكلوأوكسيجيناز (COX) بشكل غير عكوس.</textarea><button class="btn ghost" id="vSay" type="button">${ico("play")} استمع</button></div></div>`;
+  bindVoicePicker();
+  $("#vSay").onclick=async e=>{ const b=e.currentTarget; busy(b,true); try{ await speak($("#vTest").value.trim()||"مرحباً", pickedVoice()); }catch(err){ toast(err.message,true);} finally{ busy(b,false);} };
+  $("#asRow").append(micButton(async f=>{ const { text } = await aiForm({action:"stt", file:f}); await runCommand(text); }));
+  $("#asGo").onclick=()=>{ const t=$("#asTxt").value.trim(); if(t){ $("#asTxt").value=""; runCommand(t).catch(e=>toast(e.message,true)); } };
+  $("#asTxt").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#asGo").click(); } };
+}
+async function runCommand(text){
+  const logEl=$("#asLog"); logEl.insertAdjacentHTML("afterbegin", `<div class="bubble me">${esc(text)}</div>`);
+  const r = await chat(SYS, `أمر المدرّب: «${text}»\nحدّد الإجراء وأعد JSON:\n{"action":"create_lesson|create_exam|tool|open|answer","params":{"title":"","description":"","subject":"","level":"مبتدئ|متوسط|متقدم","duration":5,"topic":"","count":10,"difficulty":"","tool":"assignment|slides|script|rewrite|course|summary","input":"","page":"dash|lessons|kb|exams|tools|coursechat"},"missing":"سؤال قصير إن كانت معلومة أساسية ناقصة وإلا فارغ","reply":"رد قصير منطوق بالفصحى يؤكد ما ستفعله أو يجيب"}`, {json:true, maxTokens:600, temperature:0.2});
+  logEl.insertAdjacentHTML("afterbegin", `<div class="bubble">${esc(r.reply||"")}</div>`);
+  speak(r.reply||"حسناً", pickedVoice()).catch(()=>{});
+  if (r.missing) return;
+  const p=r.params||{};
+  await sleep(1200);
+  if (r.action==="create_lesson"){ studioPrefill={ title:p.title||p.topic, description:p.description, subject:p.subject, level:p.level, duration:Math.max(1,Math.min(60,+p.duration||5)), autostart:false }; location.hash="studio"; }
+  else if (r.action==="create_exam"){ examPrefill={ topic:p.topic||p.title, count:p.count, difficulty:p.difficulty||p.level, autostart:true }; location.hash="exams"; }
+  else if (r.action==="tool"){ toolPrefill={ tool:p.tool, input:p.input||p.topic, autostart:true }; location.hash="tools"; }
+  else if (r.action==="open" && p.page){ location.hash=p.page; }
+}
+
+/* ================= Knowledge base ================= */
+async function vKb(){
+  $("#main").innerHTML=`<div class="head"><div><h1>قاعدة المعرفة</h1><p class="muted">ارفع المراجع والبروتوكولات والأوراق البحثية (PDF أو نص). تعتمد عليها المحاضرات والاختبارات ومحادثة الدورة.</p></div></div>${pending()}
+   <div class="grid2" style="align-items:start"><form class="card stack" id="kbForm"><label for="kbFile">الملف (PDF · Word · PowerPoint · صورة · نص)<input id="kbFile" type="file"></label><label for="kbUrl">أو رابط ملف من Google Drive<input id="kbUrl" dir="ltr" inputmode="url" placeholder="https://drive.google.com/file/d/…"></label><div class="grid2"><label for="kbTitle">اسم المرجع<input id="kbTitle" placeholder="يؤخذ من اسم الملف"></label><label for="kbFolder">المجلد<input id="kbFolder" value="عام" list="kbFolders"><datalist id="kbFolders"></datalist></label></div><label for="kbNote">أو الصق نصاً / ملاحظات<textarea id="kbNote" placeholder="ملاحظات المحاضرة، بروتوكول، ملخص…"></textarea></label><button class="btn gold" id="kbBtn" type="submit">أضف إلى قاعدة المعرفة</button><div class="prog hidden" id="kbProg"><div class="bar"><i id="kbBar"></i></div><span class="small" id="kbStep"></span></div><p class="small muted">الصفحات المصوّرة (الممسوحة ضوئياً) والصور تُقرأ تلقائياً بالذكاء الاصطناعي، حتى 30 صفحة لكل ملف. رابط Drive يجب أن يكون مشاركاً «لأي شخص لديه الرابط»، أو من حسابك بعد ربط Apps Script.</p></form>
+   <div class="card stack"><h2>ابحث في مراجعك</h2><div class="row"><input id="kbQ" placeholder="مثال: آلية السعال مع مثبطات ACE" style="flex:1"><button class="btn" id="kbS" type="button">ابحث</button></div><div id="kbRes" class="stack"></div></div></div>
+   <div class="card stack"><h2>الملفات</h2><div class="list" id="kbList"></div></div>`;
+  async function list(){ const docs=await kbDocs(true); $("#kbFolders").innerHTML=[...new Set(docs.map(d=>d.folder))].map(f=>`<option value="${esc(f)}">`).join("");
+    $("#kbList").innerHTML = docs.length ? docs.map(d=>`<div class="item"><div><h3>${esc(d.title)}</h3><span class="small muted">${esc(d.folder)} · ${d.pages?num(d.pages)+" صفحة · ":""}${num(d.chars)} حرف · ${fmtDate(d.created_at)}</span></div><button class="btn sm danger" data-del="${d.id}">حذف</button></div>`).join("") : `<div class="empty">لا توجد ملفات بعد.</div>`; }
+  list();
+  $("#kbList").onclick=async e=>{ const b=e.target.closest("[data-del]"); if(!b) return; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } await sb.from("kb_docs").delete().eq("id",b.dataset.del); toast("حُذف الملف"); list(); };
+  // يبدأ الرفع تلقائياً بمجرد اختيار الملف من الهاتف
+  $("#kbFile").addEventListener("change", ()=>{ if($("#kbFile").files[0]) $("#kbForm").requestSubmit(); });
+  $("#kbForm").addEventListener("submit", async e=>{
+    e.preventDefault(); const btn=$("#kbBtn"); let file=$("#kbFile").files[0]; const note=$("#kbNote").value.trim(); const durl=$("#kbUrl").value.trim();
+    if(!file && !note && !durl) return toast("اختر ملفاً أو ضع رابط Google Drive أو الصق نصاً", true);
+    busy(btn,true); $("#kbProg").classList.remove("hidden");
+    const setP=(p,t)=>{ $("#kbBar").style.width=p+"%"; $("#kbStep").textContent=t; };
+    try{
+      if(!file && durl){ setP(3,"جلب الملف من Google Drive…"); file=await driveFetch(durl); }
+      let pages=[];
+      if(file) pages = await extractFile(file, setP);
+      if(note) pages.push({page:null,text:note});
+      const total = pages.reduce((a,p)=>a+p.text.length,0); if(total<20) throw new Error("لم يُستخرج نص كافٍ من الملف");
+      const title=$("#kbTitle").value.trim()||file?.name.replace(/\.[^.]+$/,"")||"ملاحظات";
+      const { data: doc, error } = await sb.from("kb_docs").insert({ title, folder:$("#kbFolder").value.trim()||"عام", pages: pages.length>1&&pages[0].page?pages.length:null, chars: total }).select().single(); if(error) throw error;
+      const chunks=[]; for(const p of pages){ const t=p.text.replace(/\s+/g," ").trim(); for(let k=0;k<t.length;k+=1100){ const c=t.slice(Math.max(0,k-150),k+1100); if(c.trim().length>40) chunks.push({page:p.page, content:c}); } }
+      for(let k=0;k<chunks.length;k+=40){ setP(60+Math.round(k/chunks.length*38), `فهرسة المقاطع ${k+1}–${Math.min(k+40,chunks.length)} من ${chunks.length}`);
+        const part=chunks.slice(k,k+40); let vectors;
+        for(let tr=0;;tr++){ try{ ({ vectors } = await ai("embed",{ texts: part.map(c=>c.content) })); break; }catch(err){ if(tr<4 && /الحد|429/.test(err.message)){ for(let w=60;w>0;w--){ setP(60+Math.round(k/chunks.length*38), `الحد المجاني للدقيقة: استئناف بعد ${w} ث`); await sleep(1000); } } else throw err; } }
+        const { error: e2 } = await sb.from("kb_chunks").insert(part.map((c,j)=>({ doc_id:doc.id, page:c.page, content:c.content, embedding:vectors[j] }))); if(e2) throw e2; }
+      setP(100,"تمت الإضافة"); toast("أُضيف المرجع إلى قاعدة المعرفة"); $("#kbForm").reset(); $("#kbFolder").value="عام"; list();
+    }catch(err){ toast(err.message,true); } finally{ busy(btn,false); setTimeout(()=>$("#kbProg")?.classList.add("hidden"),1500); }
+  });
+  $("#kbS").onclick=async e=>{ const q=$("#kbQ").value.trim(); if(!q) return; const b=e.currentTarget; busy(b,true); try{ const docs=await kbDocs(); const res=await retrieve(q, docs.map(d=>d.id), 6); const t=Object.fromEntries(docs.map(d=>[d.id,d.title])); $("#kbRes").innerHTML = res.length? res.map(r=>`<div class="bubble"><span class="pill">${esc(t[r.doc_id])}${r.page?` · ص ${r.page}`:""}</span><p style="margin-top:6px">${esc(r.content.slice(0,420))}…</p></div>`).join("") : `<div class="empty">لا نتائج.</div>`; }catch(err){ toast(err.message,true);} finally{ busy(b,false);} };
+  $("#kbQ").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#kbS").click(); } };
+}
+// ملفات من Google Drive وملفات Office والصور
+async function driveFetch(url){
+  const tok=(await sb.auth.getSession()).data.session?.access_token;
+  const r=await fetch(SB_URL+"/functions/v1/drive",{method:"POST",headers:{Authorization:"Bearer "+tok,apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({action:"fetch",url})});
+  if(!r.ok){ let m="تعذّر جلب الملف من Google Drive"; try{ m=(await r.json()).error||m; }catch(_){} throw new Error(m); }
+  const name=decodeURIComponent(r.headers.get("x-file-name")||"drive-file"); const blob=await r.blob();
+  return new File([blob], name, {type: (blob.type||"").split(";")[0]});
+}
+let _zipLib;
+function loadZip(){ if(window.JSZip) return Promise.resolve(window.JSZip); return _zipLib ||= new Promise((ok,no)=>{ const s=document.createElement("script"); s.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; s.onload=()=>ok(window.JSZip); s.onerror=()=>{ _zipLib=null; no(new Error("تعذّر تحميل قارئ ملفات Office")); }; document.head.append(s); }); }
+const xmlText = x => x.replace(/<\/w:p>|<\/a:p>/g,"\n").replace(/<w:tab\/>/g," ").replace(/<[^>]+>/g,"").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,"&").replace(/\n{3,}/g,"\n\n").trim();
+async function imgToJpeg(file,max){ const bm=await createImageBitmap(file); const k=Math.min(1,max/Math.max(bm.width,bm.height)); const c=document.createElement("canvas"); c.width=Math.round(bm.width*k); c.height=Math.round(bm.height*k); c.getContext("2d").drawImage(bm,0,0,c.width,c.height); return c.toDataURL("image/jpeg",0.85); }
+async function extractFile(file, setP){
+  // يتعرّف على نوع الملف من محتواه أيضاً، لأن بعض الهواتف ترسل الملف بلا امتداد أو نوع
+  const n=(file.name||"").toLowerCase(), t=file.type||"";
+  const h=new Uint8Array(await file.slice(0,12).arrayBuffer());
+  const isPdf=h[0]===0x25&&h[1]===0x50&&h[2]===0x44&&h[3]===0x46, isZip=h[0]===0x50&&h[1]===0x4B;
+  const isImg=(h[0]===0xFF&&h[1]===0xD8)||(h[0]===0x89&&h[1]===0x50&&h[2]===0x4E)||(h[0]===0x47&&h[1]===0x49&&h[2]===0x46)||(h[0]===0x52&&h[1]===0x49&&h[8]===0x57&&h[9]===0x45);
+  if(isPdf||n.endsWith(".pdf")||t==="application/pdf") return readPdf(file,setP);
+  if(isZip||/\.(docx|pptx)$/.test(n)||/wordprocessingml|presentationml/.test(t)){
+    setP(20,"قراءة ملف Office…"); const z=await (await loadZip()).loadAsync(await file.arrayBuffer());
+    if(z.file("word/document.xml")) return [{page:null,text:xmlText(await z.file("word/document.xml").async("string"))}];
+    const sl=Object.keys(z.files).filter(k=>/^ppt\/slides\/slide\d+\.xml$/.test(k)).sort((a,b)=>+a.match(/\d+/)[0]-+b.match(/\d+/)[0]);
+    if(sl.length){ const out=[]; for(const [i,k] of sl.entries()){ const tx=xmlText(await z.file(k).async("string")); if(tx) out.push({page:i+1,text:tx}); } return out; }
+    throw new Error("هذا الملف المضغوط ليس Word أو PowerPoint");
+  }
+  if(isImg||t.startsWith("image/")||/\.(jpe?g|png|webp|gif|bmp)$/.test(n)){ setP(25,"قراءة الصورة بالذكاء الاصطناعي…"); const url=await imgToJpeg(file,1800);
+    const { text } = await ai("chat",{ messages:[{role:"user", content:[{type:"text", text:"استخرج كل النص من هذه الصورة كما هو، بالعربية والإنجليزية، دون تعليق."},{type:"image_url", image_url:{url}}]}], maxTokens:3000, temperature:0 }); return [{page:1,text}]; }
+  if(h[0]===0xD0&&h[1]===0xCF || /\.(doc|ppt|xls|xlsx)$/.test(n)) throw new Error("صيغة Office القديمة غير مدعومة. احفظ الملف بصيغة PDF أو .docx أو .pptx ثم ارفعه.");
+  const text=await file.text();
+  if(/[\u0000-\u0008\u000E-\u001F]/.test(text.slice(0,2000))) throw new Error("لم أتعرّف على صيغة الملف «"+(file.name||"بدون اسم")+"». ارفعه بصيغة PDF أو Word أو PowerPoint أو صورة.");
+  return [{page:1,text}];
+}
+async function readPdf(file, setP){
+  if(!window.pdfjsLib) throw new Error("تعذّر تحميل قارئ PDF");
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise; const out=[]; let ocr=0;
+  for(let n=1;n<=pdf.numPages;n++){
+    setP(Math.round(n/pdf.numPages*55), `قراءة الصفحة ${n} من ${pdf.numPages}`);
+    const page=await pdf.getPage(n); const tc=await page.getTextContent(); let text=tc.items.map(i=>i.str).join(" ").trim();
+    if(text.length<60 && ocr<30){ ocr++; setP(Math.round(n/pdf.numPages*55), `قراءة صفحة مصوّرة ${n} بالذكاء الاصطناعي`);
+      const vp=page.getViewport({scale:1.6}); const c=document.createElement("canvas"); c.width=vp.width; c.height=vp.height; await page.render({canvasContext:c.getContext("2d"), viewport:vp}).promise;
+      const { text: t } = await ai("chat",{ messages:[{role:"user", content:[{type:"text", text:"استخرج كل النص من هذه الصفحة كما هو، بالعربية والإنجليزية، دون تعليق."},{type:"image_url", image_url:{url:c.toDataURL("image/jpeg",0.75)}}]}], maxTokens:2500, temperature:0 }); text=t; }
+    if(text) out.push({page:n, text});
+  }
+  return out;
+}
+
+/* ================= Exams ================= */
+let examPrefill=null, curExam=null;
+async function vExams(){
+  const p=examPrefill||{}; examPrefill=null;
+  $("#main").innerHTML=`<div class="head"><div><h1>منشئ الاختبارات وبنك الأسئلة</h1><p class="muted">أنشئ اختباراً من موضوع أو من مراجعك، راجعه وعدّله، ثم احفظه أو جرّبه.</p></div></div>${pending()}
+   <div class="grid2" style="align-items:start"><form class="card stack" id="exForm"><label for="exTopic">الموضوع<input id="exTopic" value="${esc(p.topic||"")}" placeholder="مثال: مضادات التخثر الفموية"></label>
+   <div class="grid3"><label for="exCount">عدد الأسئلة<input id="exCount" type="number" min="3" max="40" value="${+p.count||10}"></label><label for="exDiff">الصعوبة<select id="exDiff">${["سهل","متوسط","صعب","متقدم"].map(x=>`<option ${x===p.difficulty?"selected":""}>${x}</option>`).join("")}</select></label><label for="exType">النوع<select id="exType"><option value="mcq">اختيار من متعدد</option><option value="tf">صح أو خطأ</option><option value="mix">مزيج</option><option value="case">حالات سريرية</option></select></label></div>
+   <div class="stack"><span class="small muted" style="font-weight:500">من ملفات قاعدة المعرفة (اختياري)</span>${kbPicker("exKb")}</div>
+   ${p.source?`<p class="small muted">سيُبنى الاختبار من محتوى المحاضرة المحددة.</p>`:""}
+   <button class="btn gold" id="exGo" type="submit">أنشئ الأسئلة</button></form>
+   <div class="card stack"><h2>الاختبارات المحفوظة</h2><div class="list" id="exList"></div></div></div>
+   <div id="exWork"></div>`;
+  fillKbPicker("exKb");
+  const source=p.source||"";
+  async function list(){ const { data } = await sb.from("exams").select("id,title,questions,created_at").order("created_at",{ascending:false}); $("#exList").innerHTML=(data||[]).length? data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${num((x.questions||[]).length)} سؤال · ${fmtDate(x.created_at)}</span></div><div class="row"><button class="btn sm ghost" data-open="${x.id}">فتح</button><button class="btn sm danger" data-del="${x.id}">حذف</button></div></div>`).join(""):`<div class="empty">لا توجد اختبارات محفوظة.</div>`; }
+  list();
+  $("#exList").onclick=async e=>{ const o=e.target.closest("[data-open]"), d=e.target.closest("[data-del]");
+    if(o){ const { data } = await sb.from("exams").select("*").eq("id",o.dataset.open).single(); curExam=data; renderExam(); }
+    if(d){ if(d.dataset.c!=="1"){ d.dataset.c="1"; d.textContent="تأكيد"; return; } await sb.from("exams").delete().eq("id",d.dataset.del); list(); } };
+  async function gen(){
+    const topic=$("#exTopic").value.trim(); if(!topic && !source) return toast("اكتب الموضوع", true);
+    const btn=$("#exGo"); busy(btn,true,"جارٍ كتابة الأسئلة…");
+    try{
+      let ctx=source; const ids=pickedDocs("exKb"); if(ids.length){ const docs=await kbDocs(); ctx=ctxText(await retrieve(topic,ids,10),docs); }
+      const type={mcq:"اختيار من متعدد بأربعة خيارات",tf:"صح أو خطأ (خياران: صح، خطأ)",mix:"مزيج من اختيار من متعدد وصح أو خطأ",case:"أسئلة حالات سريرية قصيرة باختيار من متعدد"}[$("#exType").value];
+      const n=Math.max(3,Math.min(40,+$("#exCount").value||10));
+      const r=await chat(SYS, `اكتب ${n} سؤالاً عن «${topic}» بمستوى ${$("#exDiff").value}، من نوع: ${type}.${ctx?`\nاعتمد فقط على هذا المحتوى:\n${ctx}`:""}\nأعد JSON: {"title":"","questions":[{"q":"","options":["",""],"answer":0,"explanation":"شرح قصير لسبب صحة الإجابة"}]} حيث answer رقم الخيار الصحيح بدءاً من 0. نوّع مواضع الإجابة الصحيحة.`, {json:true, maxTokens:Math.min(8000,400+n*260), temperature:0.5});
+      curExam={ title:r.title||`اختبار: ${topic}`, settings:{topic, difficulty:$("#exDiff").value}, questions:(r.questions||[]).filter(q=>q.q&&q.options?.length) };
+      renderExam(); toast(`كُتب ${curExam.questions.length} سؤالاً`);
+    }catch(err){ toast(err.message,true);} finally{ busy(btn,false); }
+  }
+  $("#exForm").addEventListener("submit",e=>{ e.preventDefault(); gen(); });
+  if(p.autostart||source) gen();
+}
+function renderExam(take=false){
+  const ex=curExam, w=$("#exWork"); if(!ex) return;
+  w.innerHTML=`<div class="card stack"><div class="head"><div><h2 contenteditable="${!take}" id="exTitle">${esc(ex.title)}</h2><p class="small muted">${take?"اختر إجابة لكل سؤال ثم اضغط «النتيجة».":"اضغط على أي نص لتعديله. حدّد الإجابة الصحيحة بالدائرة."}</p></div><div class="row">${take?`<button class="btn" id="exScore">النتيجة</button><button class="btn ghost" id="exBack">رجوع للتعديل</button>`:`<button class="btn gold" id="exSave">${ex.id?"حفظ التعديلات":"احفظ في بنك الأسئلة"}</button><button class="btn ghost" id="exTake">جرّب الاختبار</button><button class="btn ghost" id="exCopy">نسخ كنص</button>`}</div></div>
+   <div class="stack" id="qs">${ex.questions.map((q,k)=>`<div class="q" data-k="${k}"><div class="row" style="justify-content:space-between"><b>سؤال ${k+1}</b>${take?"":`<button class="btn sm danger" data-rm="${k}" type="button">حذف</button>`}</div><div ${take?"":`contenteditable="true"`} data-f="q">${esc(q.q)}</div><div class="opts">${q.options.map((o,j)=>`<label class="opt" style="color:var(--ink);font-weight:400"><input type="radio" name="q${k}" value="${j}" ${!take&&j===q.answer?"checked":""}><span ${take?"":`contenteditable="true"`} data-o="${j}">${esc(o)}</span></label>`).join("")}</div><div class="small muted ${take?"hidden":""}" data-exp ${take?"":`contenteditable="true"`}>${esc(q.explanation||"")}</div></div>`).join("")}</div></div>`;
+  const sync=()=>{ ex.title=$("#exTitle").textContent.trim(); w.querySelectorAll(".q").forEach(el=>{ const q=ex.questions[+el.dataset.k]; q.q=el.querySelector("[data-f=q]").textContent.trim(); el.querySelectorAll("[data-o]").forEach(s=>q.options[+s.dataset.o]=s.textContent.trim()); const c=el.querySelector("input:checked"); if(c) q.answer=+c.value; q.explanation=el.querySelector("[data-exp]").textContent.trim(); }); };
+  if(take){
+    $("#exBack").onclick=()=>renderExam(false);
+    $("#exScore").onclick=()=>{ let s=0; w.querySelectorAll(".q").forEach(el=>{ const q=ex.questions[+el.dataset.k]; const c=el.querySelector("input:checked"); el.querySelectorAll(".opt").forEach((o,j)=>{ o.classList.toggle("right",j===q.answer); o.classList.toggle("wrong",!!c&&+c.value===j&&j!==q.answer); }); if(c&&+c.value===q.answer) s++; el.querySelector("[data-exp]").classList.remove("hidden"); }); toast(`النتيجة: ${s} من ${ex.questions.length}`); };
+    return;
+  }
+  w.querySelector("#qs").onclick=e=>{ const r=e.target.closest("[data-rm]"); if(r){ sync(); ex.questions.splice(+r.dataset.rm,1); renderExam(); } };
+  $("#exTake").onclick=()=>{ sync(); renderExam(true); };
+  $("#exCopy").onclick=()=>{ sync(); copy(ex.title+"\n\n"+ex.questions.map((q,k)=>`${k+1}. ${q.q}\n${q.options.map((o,j)=>`   ${"أبجد"[j]||j+1}) ${o}`).join("\n")}\nالإجابة: ${q.options[q.answer]}`).join("\n\n")); };
+  $("#exSave").onclick=async e=>{ sync(); const b=e.currentTarget; busy(b,true); const row={title:ex.title, settings:ex.settings||{}, questions:ex.questions}; const res= ex.id? await sb.from("exams").update(row).eq("id",ex.id).select().single() : await sb.from("exams").insert(row).select().single(); busy(b,false); if(res.error) return toast(res.error.message,true); curExam=res.data; toast("حُفظ الاختبار"); vExams().then(()=>{ curExam=res.data; renderExam(); }); };
+}
+
+/* ================= Content tools ================= */
+let toolPrefill=null;
+const TOOLS = {
+  assignment:{t:"مولّد التكليفات", ph:"موضوع التكليف أو محتوى المحاضرة", p:i=>`اكتب تكليفاً تطبيقياً للمتدرّبين عن: ${i}\nيشمل: الهدف، 4 إلى 6 مهام أو أسئلة متدرّجة (منها حالة سريرية)، معايير التقييم، والموعد المقترح.`},
+  slides:{t:"مولّد الشرائح", ph:"موضوع المحاضرة", p:i=>`اكتب محتوى عرض تقديمي لمحاضرة عن: ${i}\nمن 8 إلى 12 شريحة. لكل شريحة: رقم وعنوان و3 إلى 5 نقاط وملاحظة للمحاضر.`},
+  script:{t:"سكربت فيديو", ph:"موضوع الفيديو ومدته", p:i=>`اكتب سكربت تصوير فيديو تعليمي عن: ${i}\nمقسّماً إلى مشاهد. لكل مشهد: المدة التقريبية، ما يظهر على الشاشة، والنص المنطوق.`},
+  rewrite:{t:"تبسيط وإعادة صياغة", ph:"الصق الفقرة التي تريد تبسيطها", p:i=>`أعد صياغة النص التالي بلغة أوضح وأبسط مع الحفاظ على الدقة العلمية والمصطلحات، ثم أضف مثالاً تطبيقياً قصيراً:\n${i}`},
+  course:{t:"مساعد الدورة", ph:"اسم الدورة وجمهورها", p:i=>`صمّم مخططاً لدورة تدريبية: ${i}\nيشمل: وصفاً تسويقياً قصيراً، الجمهور المستهدف، 4 إلى 6 أهداف تعلم قابلة للقياس، الوحدات ودروس كل وحدة مع مددها، وطريقة التقييم.`},
+  summary:{t:"ملخص مراجعة", ph:"الموضوع أو النص المراد تلخيصه", p:i=>`اكتب ملخص مراجعة مركّزاً عن: ${i}\nبنقاط واضحة، وجدول مقارنة إن لزم، و5 أسئلة مراجعة سريعة مع إجاباتها.`}
+};
+async function vTools(){
+  const p=toolPrefill||{}; toolPrefill=null; const cur=TOOLS[p.tool]?p.tool:"assignment";
+  $("#main").innerHTML=`<div class="head"><div><h1>أدوات المحتوى</h1><p class="muted">تكليفات، شرائح، سكربتات فيديو، تبسيط، تصميم دورات، وملخصات مراجعة.</p></div></div>${pending()}
+   <div class="grid2" style="align-items:start"><form class="card stack" id="tlForm"><div class="row" id="tlPick">${Object.entries(TOOLS).map(([k,v])=>`<button type="button" class="btn sm ${k===cur?"":"ghost"}" data-t="${k}">${v.t}</button>`).join("")}</div>
+   <label for="tlIn" id="tlLab">${TOOLS[cur].ph}<textarea id="tlIn" style="min-height:150px">${esc(p.input||"")}</textarea></label>
+   <div class="stack"><span class="small muted" style="font-weight:500">استعن بملفات قاعدة المعرفة (اختياري)</span>${kbPicker("tlKb")}</div>
+   <button class="btn gold" id="tlGo" type="submit">أنشئ</button></form>
+   <div class="card stack"><div class="row" style="justify-content:space-between"><h2 id="tlOutT">النتيجة</h2><div class="row"><button class="btn sm ghost" id="tlCopy" type="button">نسخ</button><button class="btn sm ghost" id="tlSpeak" type="button">${ico("play")} استمع</button></div></div><div class="out" id="tlOut"><span class="muted">ستظهر النتيجة هنا.</span></div><h3>السابقة</h3><div class="list" id="tlHist"></div></div></div>`;
+  let tool=cur; fillKbPicker("tlKb");
+  $("#tlPick").onclick=e=>{ const b=e.target.closest("[data-t]"); if(!b) return; tool=b.dataset.t; $("#tlPick").querySelectorAll("button").forEach(x=>x.classList.toggle("ghost",x!==b)); $("#tlLab").firstChild.textContent=TOOLS[tool].ph; };
+  async function hist(){ const { data } = await sb.from("tool_outputs").select("*").order("created_at",{ascending:false}).limit(8); $("#tlHist").innerHTML=(data||[]).length? data.map(h=>`<div class="item" style="cursor:pointer" data-h="${h.id}"><div><b>${esc(TOOLS[h.tool]?.t||h.tool)}</b> <span class="small muted">${esc((h.input||"").slice(0,60))}</span></div><span class="small muted">${fmtDate(h.created_at)}</span></div>`).join(""):`<div class="small muted">لا شيء بعد.</div>`; $("#tlHist").onclick=e=>{ const it=e.target.closest("[data-h]"); const h=data.find(x=>x.id===it?.dataset.h); if(h){ $("#tlOut").textContent=h.output; } }; }
+  hist();
+  async function run(){ const input=$("#tlIn").value.trim(); if(!input) return toast("اكتب المدخلات",true); const b=$("#tlGo"); busy(b,true,"جارٍ الكتابة…");
+    try{ let ctx=""; const ids=pickedDocs("tlKb"); if(ids.length){ const docs=await kbDocs(); ctx=ctxText(await retrieve(input,ids,8),docs); }
+      const out=await chat(SYS, TOOLS[tool].p(input)+(ctx?`\n\nاعتمد على هذه المقتطفات من مراجع المدرّب:\n${ctx}`:"")+"\nاكتب نصاً منسقاً بعناوين ونقاط بسيطة دون رموز Markdown معقدة.", {maxTokens:3500});
+      $("#tlOut").textContent=out; await sb.from("tool_outputs").insert({tool, input, output:out}); hist();
+    }catch(err){ toast(err.message,true);} finally{ busy(b,false);} }
+  $("#tlForm").addEventListener("submit",e=>{ e.preventDefault(); run(); });
+  $("#tlCopy").onclick=()=>copy($("#tlOut").textContent);
+  $("#tlSpeak").onclick=async e=>{ const b=e.currentTarget; busy(b,true); try{ await speak($("#tlOut").textContent.slice(0,3500)); }catch(err){ toast(err.message,true);} finally{ busy(b,false);} };
+  if(p.autostart&&p.input) run();
+}
+
+/* ================= Course chat ================= */
+async function vCourseChat(){
+  $("#main").innerHTML=`<div class="head"><div><h1>محادثة الدورة</h1><p class="muted">اسأل بالكتابة أو بالصوت، والإجابة من المراجع التي تختارها مع ذكر المصدر والصفحة.</p></div></div>${pending()}
+   <div class="card stack"><span class="small muted" style="font-weight:500">المراجع المستخدمة</span>${kbPicker("ccKb")}<label class="row" style="color:var(--ink);font-weight:400"><input type="checkbox" id="ccVoice"> اقرأ الإجابات بصوت «نور»</label></div>
+   <div class="card stack"><div class="chat" id="ccLog"><div class="msg ai">مرحباً، اختر المراجع ثم اسأل عن أي شيء فيها.</div></div><div class="row" id="ccRow"><input id="ccIn" placeholder="اكتب سؤالك" style="flex:1"><button class="btn" id="ccGo" type="button">أرسل</button></div></div>`;
+  fillKbPicker("ccKb"); const hist=[];
+  const add=(cls,html)=>{ const d=document.createElement("div"); d.className="msg "+cls; d.innerHTML=html; $("#ccLog").append(d); $("#ccLog").scrollTop=1e6; return d; };
+  async function ask(q){ add("me",esc(q)); const a=add("ai","جارٍ البحث في المراجع…");
+    try{ const ids=pickedDocs("ccKb"); const docs=await kbDocs(); const ch=ids.length? await retrieve(q,ids,6):[];
+      const ans=await chat(SYS+(ch.length?" أجب من المقتطفات المرفقة فقط، واذكر رقم المقتطف بين قوسين مربعين مثل [2]. إن لم تجد الإجابة فيها فقل ذلك بوضوح.":" لا توجد مراجع مختارة، فأجب من معرفتك العامة باختصار ونبّه إلى ذلك."), `${ch.length?`المقتطفات:\n${ctxText(ch,docs)}\n\n`:""}السؤال: ${q}`, {history:hist.slice(-6), maxTokens:1200, temperature:0.3});
+      hist.push({role:"user",content:q},{role:"assistant",content:ans});
+      const t=Object.fromEntries(docs.map(d=>[d.id,d.title]));
+      a.innerHTML=esc(ans)+(ch.length?`<div class="src">${ch.map((c,i)=>`[${i+1}] ${esc(t[c.doc_id])}${c.page?` ص ${c.page}`:""}`).join(" · ")}</div>`:"");
+      if($("#ccVoice").checked) speak(ans).catch(()=>{});
+    }catch(err){ a.textContent="تعذّرت الإجابة: "+err.message; } }
+  $("#ccGo").onclick=()=>{ const q=$("#ccIn").value.trim(); if(q){ $("#ccIn").value=""; ask(q); } };
+  $("#ccIn").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#ccGo").click(); } };
+  $("#ccRow").append(micButton(async f=>{ const { text } = await aiForm({action:"stt", file:f}); if(text) ask(text); }));
+}
+
+/* تحويل أي تسجيل صوتي إلى WAV أحادي 24 كيلوهرتز (الصيغة الموصى بها لاستنساخ Gemini) */
+async function toWav24k(file, maxSec=30){
+  const ac=new (window.AudioContext||window.webkitAudioContext)(); const buf=await ac.decodeAudioData(await file.arrayBuffer()); ac.close();
+  const dur=Math.min(buf.duration,maxSec), rate=24000; const off=new OfflineAudioContext(1, Math.ceil(dur*rate), rate);
+  const src=off.createBufferSource(); src.buffer=buf; src.connect(off.destination); src.start(0); const out=await off.startRendering(); const ch=out.getChannelData(0);
+  const pcm=new DataView(new ArrayBuffer(44+ch.length*2)); const w=(o,s)=>[...s].forEach((c,i)=>pcm.setUint8(o+i,c.charCodeAt(0)));
+  w(0,"RIFF"); pcm.setUint32(4,36+ch.length*2,true); w(8,"WAVE"); w(12,"fmt "); pcm.setUint32(16,16,true); pcm.setUint16(20,1,true); pcm.setUint16(22,1,true); pcm.setUint32(24,rate,true); pcm.setUint32(28,rate*2,true); pcm.setUint16(32,2,true); pcm.setUint16(34,16,true); w(36,"data"); pcm.setUint32(40,ch.length*2,true);
+  let peak=0; for(const v of ch) peak=Math.max(peak,Math.abs(v)); const g=peak>0&&peak<0.5?0.9/peak:1;
+  for(let i=0;i<ch.length;i++){ const v=Math.max(-1,Math.min(1,ch[i]*g)); pcm.setInt16(44+i*2, v<0?v*0x8000:v*0x7fff, true); }
+  return new Blob([pcm.buffer],{type:"audio/wav"});
+}
+async function vSettings(){
+  $("#main").innerHTML=`<div class="head"><div><h1>حسابي</h1><p class="muted">استنساخ صوتك، وربط Alexa.</p></div></div>${pending()}
+   <div class="grid2" style="align-items:start">
+    <div class="card stack" id="cloneCard"><h2>صوتي المستنسخ</h2><p class="muted small">جارٍ التحقق…</p></div>
+    <div class="card stack" id="alexaCard"><h2>ربط Alexa</h2><p class="muted small">جارٍ التحقق…</p></div>
+   </div>`;
+  const [{ data: st }, cfg] = await Promise.all([ sb.rpc("my_settings"), ai("config").catch(()=>({})) ]);
+  const s=st?.[0]||{};
+  const cc=$("#cloneCard");
+  if(s.has_clone){
+    const exp = s.clone_created ? new Date(new Date(s.clone_created).getTime()+365*864e5) : null;
+    cc.innerHTML=`<h2>صوتي المستنسخ</h2><p><span class="pill green">مفعّل</span> <b>${esc(s.cloned_voice_name)}</b> <span class="pill">${s.clone_provider==="elevenlabs"?"ElevenLabs":"Gemini · مجاني"}</span></p>
+     <p class="muted small">يظهر صوتك في قائمة الأصوات عند إنشاء المحاضرة.${s.clone_provider==="gemini"&&exp?` يحتفظ Google بالصوت سنة (حتى ${fmtDate(exp)})، وتجدّده المنصة تلقائياً من تسجيلاتك المحفوظة قبل انتهائه، فلا تحتاج إلى إعادة التسجيل.`:""}</p>
+     <textarea id="clTest">مرحباً بكم في محاضرة اليوم. سنتناول المفهوم الأساسي، ثم نطبّقه على حالة سريرية.</textarea><div class="row"><button class="btn ghost" id="clSay">${ico("play")} استمع لصوتي</button><button class="btn danger" id="clDel">حذف الصوت المستنسخ</button></div><p class="small muted">للتبديل بين Gemini و ElevenLabs احذف الصوت الحالي ثم استنسخ من جديد بالخيار الآخر.</p>`;
+    $("#clSay").onclick=async e=>{ const b=e.currentTarget; busy(b,true); try{ await speak($("#clTest").value,"clone"); }catch(err){ toast(err.message,true);} finally{ busy(b,false);} };
+    $("#clDel").onclick=async e=>{ const b=e.currentTarget; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } await ai("delete_clone"); await loadProfile(); toast("حُذف الصوت المستنسخ"); vSettings(); };
+  } else {
+    const CONSENT = "أنا مالك هذا الصوت وأوافق على أن تستخدم Google هذا الصوت لإنشاء نموذج صوتي اصطناعي.";
+    cc.innerHTML=`<h2>صوتي المستنسخ</h2>
+     <div class="seg" id="clProv"><button type="button" class="on" data-p="g">Gemini · مجاني</button><button type="button" data-p="x">ElevenLabs · مدفوع</button></div>
+     <div class="stack" id="provG">
+     <p class="muted small">تسجيلان قصيران بنفس الهاتف وفي نفس المكان الهادئ. يُحفظ صوتك ويُجدَّد تلقائياً كل سنة.</p>
+     <div class="stack" style="border:1px solid var(--line);border-radius:14px;padding:14px">
+      <b>1. عيّنة صوتك (من 10 إلى 30 ثانية)</b>
+      <div class="bubble small">اقرأ بنبرتك الطبيعية في الشرح: «مرحباً بكم في محاضرة اليوم. سنتعرف على آلية عمل مثبطات الإنزيم المحوّل للأنجيوتنسين، وكيف تخفض ضغط الدم، ولماذا يسبب بعضها السعال الجاف. ثم ننتقل إلى حالة سريرية، ونناقش خيارات العلاج البديلة ومتابعة وظائف الكلى.»</div>
+      <div class="row"><span id="clMic1"></span><span id="clT1" class="muted">اضغط للتسجيل، ومرة أخرى للإيقاف</span></div>
+      <label for="clF1">أو ارفع تسجيلاً<input id="clF1" type="file" accept="audio/*"></label>
+     </div>
+     <div class="stack" style="border:1px solid var(--line);border-radius:14px;padding:14px">
+      <b>2. عبارة الموافقة (اقرأها كما هي حرفياً)</b>
+      <div class="bubble" style="font-size:17px;font-weight:600">«${CONSENT}»</div>
+      <div class="row"><span id="clMic2"></span><span id="clT2" class="muted">اضغط للتسجيل، ومرة أخرى للإيقاف</span></div>
+     </div>
+     </div>
+     <div class="stack hidden" id="provX">
+      ${cfg.eleven?`<p class="muted small">جودة عالية جداً للعربية، ويحتاج اشتراك ElevenLabs (خطة Starter أو أعلى). سجّل من دقيقة إلى دقيقتين.</p>
+      <div class="bubble small">نص مقترح: «مرحباً بكم في محاضرة اليوم. سنتعرف على آلية عمل مثبطات الإنزيم المحوّل للأنجيوتنسين، وكيف تخفض ضغط الدم، ولماذا يسبب بعضها السعال الجاف. ثم ننتقل إلى حالة سريرية لمريض في الثامنة والخمسين، ونناقش خيارات العلاج البديلة ومتابعة وظائف الكلى ومستوى البوتاسيوم.»</div>
+      <div class="row"><span id="clMic3"></span><span id="clT3" class="muted">اضغط للتسجيل، ومرة أخرى للإيقاف</span></div>
+      <label for="clF3">أو ارفع تسجيلاً<input id="clF3" type="file" accept="audio/*"></label>`:`<p class="muted small">غير مفعّل: أضف مفتاح ElevenLabs في Supabase باسم <code>ELEVENLABS_API_KEY</code> (يحتاج خطة Starter أو أعلى، وصلاحيتي Voices: Write و Text to Speech).</p>`}
+     </div>
+     <label for="clName">اسم الصوت<input id="clName" value="${esc(profile?.full_name||"صوتي")}"></label>
+     <label class="row" style="color:var(--ink);font-weight:400;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="clOk" style="margin-top:4px"> <span>أُقرّ بأن هذا صوتي، وأوافق على استنساخه واستخدامه في محاضراتي على المنصة.</span></label>
+     <button class="btn gold" id="clGo">استنسخ صوتي</button>`;
+    let prov="g";
+    $("#clProv").onclick=e=>{ const b=e.target.closest("[data-p]"); if(!b) return; prov=b.dataset.p; $("#clProv").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); $("#provG").classList.toggle("hidden",prov!=="g"); $("#provX").classList.toggle("hidden",prov!=="x"); };
+    const rec={1:null,2:null,3:null};
+    const mk=(k)=>{ const t=$("#clT"+k); let tv,s0; const m=micButton(async f=>{ clearInterval(tv); rec[k]=f; const sec=Math.round((Date.now()-s0)/1000); t.textContent=`تم التسجيل (${sec} ث)`+(k===1&&(sec<10||sec>30)?" — الأفضل بين 10 و30 ثانية":""); }, "اضغط للتسجيل، واضغط مرة أخرى للإيقاف");
+      m.addEventListener("click",()=>{ if(!m.classList.contains("rec")){ s0=Date.now(); clearInterval(tv); tv=setInterval(()=>t.textContent=`جارٍ التسجيل… ${Math.round((Date.now()-s0)/1000)} ث`,500); } }, true);
+      $("#clMic"+k).replaceWith(m); };
+    mk(1); mk(2); if(cfg.eleven) mk(3);
+    $("#clGo").onclick=async e=>{
+      if(prov==="x"){ if(!cfg.eleven) return toast("ElevenLabs غير مفعّل على الخادم",true); const f=$("#clF3").files[0]||rec[3]; if(!f) return toast("سجّل صوتك أو ارفع ملفاً",true); if(!$("#clOk").checked) return toast("يلزم الإقرار بالموافقة",true);
+        const b=e.currentTarget; busy(b,true,"جارٍ الاستنساخ…"); try{ await aiForm({action:"clone_voice", file:f, name:$("#clName").value.trim(), consent:"yes"}); await loadProfile(); toast("تم استنساخ صوتك عبر ElevenLabs"); vSettings(); }catch(err){ toast(err.message,true); busy(b,false);} return; }
+      const f1=$("#clF1").files[0]||rec[1], f2=rec[2];
+      if(!f1) return toast("سجّل عيّنة صوتك أو ارفعها",true); if(!f2) return toast("سجّل عبارة الموافقة",true); if(!$("#clOk").checked) return toast("يلزم الإقرار بالموافقة",true);
+      const b=e.currentTarget; busy(b,true,"جارٍ الاستنساخ…");
+      try{ const [w1,w2]=await Promise.all([toWav24k(f1,30),toWav24k(f2,20)]);
+        await aiForm({action:"clone_gemini", ref:new File([w1],"ref.wav",{type:"audio/wav"}), consent_audio:new File([w2],"consent.wav",{type:"audio/wav"}), name:$("#clName").value.trim(), consent:"yes"});
+        await loadProfile(); toast("تم استنساخ صوتك"); vSettings(); }
+      catch(err){ toast(err.message,true); busy(b,false); } };
+  }
+  const ep = SB_URL + "/functions/v1/alexa";
+  $("#alexaCard").innerHTML=`<h2>ربط Alexa</h2>
+   <p>${s.has_pin?`<span class="pill green">رمزك مضبوط</span>`:`<span class="pill gold">لم يُضبط رمز بعد</span>`} ${s.alexa_links?`<span class="pill">${num(s.alexa_links)} جهاز مرتبط</span>`:""}</p>
+   <div class="row"><input id="pin" inputmode="numeric" maxlength="8" placeholder="رمز من 4 إلى 8 أرقام" dir="ltr" style="max-width:220px"><button class="btn" id="pinGo">حفظ الرمز</button></div>
+   <p class="small muted">بعد تفعيل المهارة قل: «أليكسا، افتح المدرب الذكي» ثم «الرمز» وأرقامك مرة واحدة، فيرتبط الجهاز بحسابك. بعدها: «اعرض محاضراتي»، «أنشئ اختباراً عن مضادات التخثر»، «اسأل ما آلية عمل الأسبرين».</p>
+   <details><summary style="cursor:pointer;font-weight:600">إعداد المهارة على حساب Amazon (مرة واحدة)</summary>
+    <ol class="small" style="padding-inline-start:20px;display:grid;gap:6px;margin-top:8px">
+     <li>ادخل developer.amazon.com/alexa بحساب Amazon، وأنشئ مهارة Custom بلغة Arabic (SA) واسم «المدرب الذكي»، واختر Provision your own.</li>
+     <li>في Interaction Model ← JSON Editor الصق النموذج أدناه، ثم Save و Build.</li>
+     <li>في Endpoint اختر HTTPS وضع الرابط أدناه، واختر الخيار: My development endpoint is a sub-domain of a domain that has a wildcard certificate.</li>
+     <li>من Test فعّل Development وجرّب، والمهارة تعمل على أجهزة Alexa المسجّلة بنفس الحساب.</li>
+     <li>اختياري: ضع معرّف المهارة (Skill ID) في أسرار Supabase باسم <code>ALEXA_SKILL_ID</code> لقصر الوصول عليها.</li>
+    </ol>
+    <div class="row" style="margin-top:8px"><code style="direction:ltr;flex:1;min-width:0;overflow-wrap:anywhere;font-size:13px">${esc(ep)}</code><button class="btn sm ghost" id="cpEp">نسخ</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="cpModel">نسخ نموذج التفاعل (JSON)</button></div>
+   </details>`;
+  $("#pinGo").onclick=async()=>{ const pin=$("#pin").value.trim(); const { error } = await sb.rpc("set_alexa_pin",{pin}); toast(error?error.message:"حُفظ الرمز", !!error); if(!error) vSettings(); };
+  $("#cpEp").onclick=()=>copy(ep);
+  $("#cpModel").onclick=()=>copy(JSON.stringify(ALEXA_MODEL,null,2));
+}
+
+/* ================= Admin ================= */
+async function vAdmin(){
+  if(profile?.role!=="admin"){ location.hash="dash"; return; }
+  $("#main").innerHTML=`<div class="head"><div><h1>إدارة المنصة</h1><p class="muted">فعّل حسابات المدرّبين، وحدّد الصلاحية والحد الشهري للاستهلاك.</p></div></div><div class="card scroll"><table><thead><tr><th>المدرّب</th><th>الحالة</th><th>الدور</th><th>الحد الشهري (توكن)</th><th>استهلاك الشهر</th><th></th></tr></thead><tbody id="adT"><tr><td colspan="6">جارٍ التحميل…</td></tr></tbody></table></div>`;
+  const start=new Date(); start.setDate(1); start.setHours(0,0,0,0);
+  const [{ data: ps }, { data: us }] = await Promise.all([ sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,created_at").order("created_at"), sb.from("ai_usage").select("owner,tokens").gte("created_at", start.toISOString()) ]);
+  const used={}; (us||[]).forEach(u=>used[u.owner]=(used[u.owner]||0)+u.tokens);
+  $("#adT").innerHTML=(ps||[]).map(p=>`<tr data-id="${p.id}"><td><b>${esc(p.full_name||"—")}</b><br><span class="small muted" dir="ltr">${esc(p.email)}</span></td><td><label class="row" style="color:var(--ink);font-weight:400"><input type="checkbox" data-f="approved" ${p.approved?"checked":""}> مفعّل</label></td><td><select data-f="role" style="min-width:110px"><option value="trainer" ${p.role==="trainer"?"selected":""}>مدرّب</option><option value="admin" ${p.role==="admin"?"selected":""}>مدير</option></select></td><td><input type="number" data-f="monthly_token_limit" value="${p.monthly_token_limit}" min="0" step="100000" style="max-width:150px"></td><td>${num(used[p.id])}</td><td><button class="btn sm" data-save>حفظ</button></td></tr>`).join("");
+  $("#adT").onclick=async e=>{ const b=e.target.closest("[data-save]"); if(!b) return; const tr=b.closest("tr"); const upd={ approved:tr.querySelector('[data-f=approved]').checked, role:tr.querySelector('[data-f=role]').value, monthly_token_limit:+tr.querySelector('[data-f=monthly_token_limit]').value };
+    if(tr.dataset.id===session.user.id && (upd.role!=="admin"||!upd.approved)) return toast("لا يمكنك إلغاء صلاحية حسابك أنت", true);
+    const { error } = await sb.from("profiles").update(upd).eq("id",tr.dataset.id); toast(error?error.message:"حُفظ", !!error); };
+}
+
+}
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js");
+    });
+  }
+</script>
+</body>
+</html>
