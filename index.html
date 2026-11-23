@@ -486,7 +486,9 @@ $("#authForm").addEventListener("submit", async e=>{
 function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); }
 $("#logout").onclick=$("#logout2").onclick=async()=>{ await sb.auth.signOut(); };
 async function loadProfile(){
-  const { data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url,features").eq("id", session.user.id).single();
+  let { data, error } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url,features").eq("id", session.user.id).single();
+  // احتياط: إن تعذّرت قراءة الأعمدة الجديدة نقرأ الأساسية حتى لا يبدو الحساب غير مفعّل
+  if(error){ logErr("profile","تحميل الملف الشخصي",error.message,JSON.stringify(error)); ({ data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name").eq("id", session.user.id).single()); }
   profile = data || {role:"trainer", approved:false};
   $("#whoName").textContent = (profile.full_name||session.user.email) + (profile.role==="admin"?" · مدير":"");
   if(profile.role==="admin") syncAssets();
