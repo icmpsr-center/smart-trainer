@@ -723,7 +723,19 @@ async function chat(system, user, {json=false, maxTokens=3000, temperature=0.6, 
   const messages = [{role:"system", content:system}, ...history, {role:"user", content:user}];
   const { text } = await ai("chat", { messages, json, maxTokens, temperature, ...(fast?{fast:1}:{}) });
   if (!json) return text;
-  try { return JSON.parse(text); } catch { const m = text.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error("ردّ غير مفهوم من النموذج، أعد المحاولة"); }
+  let o = parseAIJSON(text); if (o !== undefined) return o;
+  // ردّ JSON معطوب (نادر): نعيد الطلب تلقائياً مرة واحدة بحرارة أقل
+  const r2 = await ai("chat", { messages, json, maxTokens, temperature: Math.min(temperature, 0.2), ...(fast?{fast:1}:{}) });
+  o = parseAIJSON(r2.text); if (o !== undefined) return o;
+  throw new Error("ردّ غير مفهوم من النموذج، أعد المحاولة");
+}
+function parseAIJSON(t){
+  t = String(t||"").trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"");
+  try { return JSON.parse(t); } catch(_){}
+  const m = t.match(/[\{\[][\s\S]*[\}\]]/); if (!m) return undefined;
+  const c = m[0].replace(/,\s*([\]\}])/g,"$1").replace(/[\u201C\u201D]/g,'\\"');
+  for (const x of [m[0], c]) { try { return JSON.parse(x); } catch(_){} }
+  return undefined;
 }
 const SYS = "أنت خبير تعليم طبي وصيدلاني في منصة المحاضر الذكية التابعة لقسم التدريب والتعليم المستمر بالمركز الدولي للدراسات والأبحاث الطبية والصيدلانية (ICMPSR). اكتب بالعربية الفصحى الواضحة، واحتفظ بالمصطلحات العلمية الإنجليزية بين قوسين عند الحاجة. التزم بالدقة العلمية والمراجع المعتمدة، ولا تخترع أرقاماً أو مصادر.";
 
