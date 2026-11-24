@@ -1565,7 +1565,6 @@ const alexaHidden=()=>{ try{ return localStorage.getItem("st_hide_alexa")==="1";
 async function alexaPanel(){
   const uid=session?.user?.id; if(!uid) return;
   const box=$("#alexaBox"); if(!box) return;
-  if(alexaHidden()){ box.innerHTML=""; return; }
   const [j,w,er]=await Promise.all([
     sb.from("alexa_jobs").select("id,kind,topic,status,state,error,created_at").eq("owner",uid).eq("dismissed",false).order("created_at",{ascending:false}).limit(3),
     sb.rpc("alexa_wait"),
@@ -1578,14 +1577,18 @@ async function alexaPanel(){
     const pr=x.status==="done"?100: st.phase==="audio"? 60+40*((st.si||0)/Math.max(1,secs)) : st.phase==="slides"? 15+45*((st.si||0)/Math.max(1,secs)) : 8;
     const detail=["done","error","audio_limit"].includes(x.status)? (x.error||"") : `${n>1?`المحاضرة ${li} من ${n} · `:""}${JOBPH[st.phase]||"البدء"}${secs&&st.phase!=="outline"?` · القسم ${Math.min((st.si||0)+1,secs)} من ${secs}`:""}`;
     return `<div class="item">${["done","error","audio_limit"].includes(x.status)?X("job",x.id):""}<div style="flex:1"><h3>${esc(x.topic)} <span class="small muted">· ${x.kind==="course"?"دورة":"محاضرة"}</span></h3><span class="small ${x.status==="error"?"":"muted"}" style="${x.status==="error"?"color:#b42318":""}">${JOBST[x.status]||x.status}${detail?" — "+esc(detail):""}</span><div class="meter" style="margin-top:6px"><i style="width:${Math.round(pr)}%"></i></div></div></div>`; };
-  box.innerHTML=`<div class="card stack"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0">${ico("voice")} طلبات أليكسا</h2><span class="row" style="gap:6px"><button type="button" class="btn sm ghost" id="axClear">مسح الكل</button><button type="button" class="btn sm ghost" id="axHide">إخفاء اللوحة</button></span></div>
+  const axOpen=(()=>{ try{ return localStorage.getItem("st_alexa_open")==="1"; }catch(_){ return false; } })();
+  const axN=jobs.length+wait.length+errs.length, axRun=jobs.filter(x=>!["done","error","audio_limit"].includes(x.status)).length;
+  box.innerHTML=`<details class="card fold" id="axCard"${axOpen||axRun?" open":""}><summary class="foldh"><span><b class="row" style="gap:8px">${ico("voice")}طلبات أليكسا</b><small class="muted">${num(axN)} إشعار${axRun?` · ${num(axRun)} قيد التنفيذ`:""}${errs.length?` · ${num(errs.length)} عطل`:""} — اضغط لعرض التفاصيل</small></span><span class="row" style="gap:8px">${errs.length?`<span class="pill red">${num(errs.length)}</span>`:wait.length?`<span class="pill gold">${num(wait.length)}</span>`:""}<span class="uchev" aria-hidden="true"></span></span></summary><div class="stack" style="margin-top:12px">
+    <div class="row" style="gap:6px;justify-content:flex-end"><button type="button" class="btn sm ghost" id="axClear">مسح الكل</button></div>
     ${jobs.map(jobRow).join("")}
     ${wait.map(x=>`<div class="item">${X("wait",x.id)}<div><h3>${esc(x.title)}</h3><span class="small muted">جاهزة — تنتظر تصدير الفيديو وحفظه في Drive</span></div><a class="btn sm gold" href="#play-${x.id}">تصدير الفيديو</a></div>`).join("")}
-    ${errs.map(e=>`<div class="item" style="border-color:#f3c7c2;background:#fff6f5">${X("err",e.id)}<div><h3 style="color:#b42318">عطل: ${esc(e.context?.topic||e.context?.title||e.stage||"")}</h3><span class="small">${esc(e.reason)}${e.stage?` · مرحلة ${esc(e.stage)}`:""} · ${fmtDate(e.created_at)}</span>${(()=>{ const g=guideMatch(e); return g?`<div class="small" style="margin-top:6px;line-height:1.8"><b>المعنى:</b> ${esc(g.mean)}<br><b>الحل:</b> ${esc(g.fix[0])}${g.fix[1]?" "+esc(g.fix[1]):""}</div>`:""; })()}${profile?.role==="admin"?`<a class="small" href="#trouble" data-trtab="log">التفاصيل في سجل الأعطال</a>`:""}</div></div>`).join("")}</div>`;
+    ${errs.map(e=>`<div class="item" style="border-color:#f3c7c2;background:#fff6f5">${X("err",e.id)}<div><h3 style="color:#b42318">عطل: ${esc(e.context?.topic||e.context?.title||e.stage||"")}</h3><span class="small">${esc(e.reason)}${e.stage?` · مرحلة ${esc(e.stage)}`:""} · ${fmtDate(e.created_at)}</span>${(()=>{ const g=guideMatch(e); return g?`<div class="small" style="margin-top:6px;line-height:1.8"><b>المعنى:</b> ${esc(g.mean)}<br><b>الحل:</b> ${esc(g.fix[0])}${g.fix[1]?" "+esc(g.fix[1]):""}</div>`:""; })()}${profile?.role==="admin"?`<a class="small" href="#trouble" data-trtab="log">التفاصيل في سجل الأعطال</a>`:""}</div></div>`).join("")}</div></details>`;
+  $("#axCard").addEventListener("toggle",e=>{ if(e.target.id!=="axCard") return; try{ localStorage.setItem("st_alexa_open",e.target.open?"1":"0"); }catch(_){} });
   const dis=async(t,id)=>{ if(t==="job") return sb.from("alexa_jobs").update({dismissed:true}).eq("id",id); if(t==="err") return sb.from("system_errors").update({owner_dismissed:true}).eq("id",id); if(t==="wait") return sb.from("lessons").update({export_dismissed:true}).eq("id",id); };
   box.onclick=async ev=>{ const b=ev.target.closest("[data-dis]"); if(b){ const [t,id]=b.dataset.dis.split(":"); b.closest(".item").remove(); await dis(t,id); if(!box.querySelector(".item")) box.innerHTML=""; return; }
     if(ev.target.closest("#axClear")){ await Promise.all([...jobs.filter(x=>["done","error","audio_limit"].includes(x.status)).map(x=>dis("job",x.id)), ...errs.map(e=>dis("err",e.id)), ...wait.map(x=>dis("wait",x.id))]); toast("مُسحت إشعارات أليكسا"); return alexaPanel(); }
-    if(ev.target.closest("#axHide")){ try{ localStorage.setItem("st_hide_alexa","1"); }catch(_){} box.innerHTML=""; toast("أُخفيت لوحة أليكسا. أعد إظهارها من «حسابي ← ربط Alexa»."); } };
+  };
   // فتح أول محاضرة جاهزة تلقائياً لتصديرها (مرة واحدة في الجلسة)
   const ready=wait.find(x=>{ try{ return !sessionStorage.getItem("st-ae-"+x.id); }catch(_){ return false; } });
   if(ready && location.hash.replace("#","") in {"":1,dash:1}){ toast(`محاضرة «${ready.title}» جاهزة — أفتحها لتصدير الفيديو تلقائياً…`); setTimeout(()=>{ if(["","#dash"].includes(location.hash)) location.hash="#play-"+ready.id; },2500); }
@@ -2564,7 +2567,6 @@ async function vSettings(){
   const ep = SB_URL + "/functions/v1/alexa";
   $("#alexaCard").innerHTML=`<h2>ربط Alexa</h2>
    <p>${s.has_pin?`<span class="pill green">رمزك مضبوط</span>`:`<span class="pill gold">لم يُضبط رمز بعد</span>`} ${s.alexa_links?`<span class="pill">${num(s.alexa_links)} جهاز مرتبط</span>`:""}</p>
-   <label class="chk" style="margin-bottom:8px"><input type="checkbox" id="axShow" ${alexaHidden()?"":"checked"} onchange="try{localStorage.setItem('st_hide_alexa',this.checked?'0':'1')}catch(e){}"> إظهار لوحة «طلبات أليكسا» في الرئيسية</label>
    <div class="row"><input id="pin" inputmode="numeric" maxlength="8" placeholder="رمز من 4 إلى 8 أرقام" dir="ltr" style="max-width:220px"><button class="btn" id="pinGo">حفظ الرمز</button></div>
    <p class="small muted">بعد تفعيل المهارة قل: «أليكسا، افتح المدرب الذكي» ثم «الرمز» وأرقامك مرة واحدة، فيرتبط الجهاز بحسابك. بعدها: «اعرض محاضراتي»، «أنشئ اختباراً عن مضادات التخثر»، «اسأل ما آلية عمل الأسبرين».</p>
    <details><summary style="cursor:pointer;font-weight:600">إعداد المهارة على حساب Amazon (مرة واحدة)</summary>
