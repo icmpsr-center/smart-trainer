@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v30" />
+<meta name="app-version" content="v31" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -350,6 +350,7 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .pubnews{max-width:1100px;margin:0 auto 28px;width:calc(100% - 32px)}.pubnews:empty{display:none}
 #newsBox:empty{display:none}
 @media(max-width:600px){.ncard{grid-template-columns:minmax(0,1fr)}.nimg{max-height:190px;min-height:0;aspect-ratio:16/9}.nbody{padding:0 12px 12px}.ncard:not(:has(.nimg)) .nbody{padding:12px}}
+.vmode{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#64748b}.vmode select{flex:1;min-width:0;padding:4px 8px;font-size:12.5px;height:auto}
 </style>
 </head>
 <body>
@@ -497,10 +498,10 @@ async function token(){ const { data } = await sb.auth.getSession(); return data
 async function ai(action, payload={}){
   // يعيد المحاولة تلقائياً عند انشغال الخدمة أو انقطاع الاتصال (حتى 3 مرات)
   for (let tr=0;;tr++){
-    let r;
+    let r; const lim=payload.fast?0:3;
     try{ r = await fetch(FN, { method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+await token(), apikey:SB_KEY }, body: JSON.stringify({ action, ...payload }) }); }
-    catch(e){ if(tr<3){ await sleep(5000); continue; } throw new Error("تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة."); }
-    if ([429,500,502,503,504,546].includes(r.status) && tr<3){ toast(`الخدمة مشغولة (رمز ${r.status})، إعادة المحاولة تلقائياً ${tr+1} من 3…`); await sleep(r.status===429?30000:8000); continue; }
+    catch(e){ if(tr<lim){ await sleep(5000); continue; } throw new Error("تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة."); }
+    if ([429,500,502,503,504,546].includes(r.status) && tr<lim){ toast(`الخدمة مشغولة (رمز ${r.status})، إعادة المحاولة تلقائياً ${tr+1} من 3…`); await sleep(r.status===429?30000:8000); continue; }
     if (action === "tts" && r.ok) return await r.blob();
     let d; try{ d = await r.json(); }catch{ throw new Error("تعذّر الاتصال بخادم الذكاء الاصطناعي (رمز "+r.status+")"); }
     if (r.status===546) throw new Error("تجاوز الخادم حدّ الموارد المجانية لهذا الطلب (رمز 546). أعد المحاولة بمدة محاضرة أقصر.");
@@ -515,9 +516,9 @@ async function aiForm(fields){
   if (!r.ok || d.error) throw new Error(d.error || ("خطأ "+r.status));
   return d;
 }
-async function chat(system, user, {json=false, maxTokens=3000, temperature=0.6, history=[]}={}){
+async function chat(system, user, {json=false, maxTokens=3000, temperature=0.6, history=[], fast=false}={}){
   const messages = [{role:"system", content:system}, ...history, {role:"user", content:user}];
-  const { text } = await ai("chat", { messages, json, maxTokens, temperature });
+  const { text } = await ai("chat", { messages, json, maxTokens, temperature, ...(fast?{fast:1}:{}) });
   if (!json) return text;
   try { return JSON.parse(text); } catch { const m = text.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error("ردّ غير مفهوم من النموذج، أعد المحاولة"); }
 }
@@ -570,16 +571,26 @@ function photoEditor(file){ return new Promise(async (resolve,reject)=>{
 /* زر التحدث العائم: المساعد الذكي بالصوت من أي صفحة */
 function vPanel(){ let p=$("#vpanel"); if(!p){ p=document.createElement("div"); p.id="vpanel"; p.className="vpanel"; p.dir="rtl";
   p.innerHTML=`<header><span>المساعد الذكي</span><span class="row" style="gap:4px"><button type="button" data-vstop title="إيقاف الصوت" aria-label="إيقاف الصوت">■</button><button type="button" data-vclose aria-label="إغلاق">×</button></span></header>
+   <div class="vmode"><span>صوت الرد:</span><select id="vpMode"><option value="device">صوت الجهاز (فوري)</option><option value="platform">صوت المنصة (أجود وأبطأ)</option><option value="off">بدون صوت</option></select></div>
    <form class="vpin" id="vpForm"><input id="vpTxt" placeholder="اكتب سؤالك أو أمرك…" autocomplete="off"><button class="btn sm" type="submit">أرسل</button></form>
    <div id="vpLog" class="stack" style="gap:8px"><div class="small muted">اسألني أي سؤال طبي أو صيدلاني أو عن طريقة استخدام المنصة، أو اطلب: «أنشئ محاضرة عن…»، «اعمل اختبار…»، «افتح قاعدة المعرفة».</div></div>`;
   p.querySelector("[data-vclose]").onclick=()=>{ stopTalk(); p.remove(); };
   p.querySelector("[data-vstop]").onclick=stopTalk;
+  const ms=p.querySelector("#vpMode"); ms.value=vMode(); ms.onchange=()=>{ try{ localStorage.setItem("st_vmode",ms.value); }catch(_){} if(ms.value==="off") stopTalk(); };
   p.querySelector("#vpForm").onsubmit=async e=>{ e.preventDefault(); const i=p.querySelector("#vpTxt"); const t=i.value.trim(); if(!t) return; i.value=""; try{ await runCommand(t); }catch(err){ toast(err.message,true); } };
   document.body.append(p); } return p.querySelector("#vpLog"); }
 function stopTalk(){ try{ curAudio?.pause(); }catch(_){} try{ speechSynthesis.cancel(); }catch(_){} }
-/* نطق الرد: صوت المنصة، وعند تعذّره (حد Gemini) صوت الجهاز */
-async function speakSmart(text){ const t=String(text||"").replace(/[*#_`>\[\]]/g,"").slice(0,1500); if(!t) return;
-  try{ await speak(t, pickedVoice()); }catch(_){ try{ const u=new SpeechSynthesisUtterance(t); u.lang=/[؀-ۿ]/.test(t)?"ar-SA":"en-US"; const v=speechSynthesis.getVoices().find(v=>v.lang.startsWith(u.lang.slice(0,2))); if(v) u.voice=v; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(__){} } }
+/* نطق رد المساعد: صوت الجهاز فوري ومجاني (الافتراضي)، أو صوت المنصة الأجود (أبطأ ويستهلك حد Gemini)، أو بدون صوت */
+const vMode=()=>{ try{ return localStorage.getItem("st_vmode")||"device"; }catch(_){ return "device"; } };
+let ARV=null; const arVoice=()=>{ try{ const vs=speechSynthesis.getVoices(); ARV=vs.find(v=>/^ar/i.test(v.lang)&&/google|natural|neural|online/i.test(v.name))||vs.find(v=>/^ar/i.test(v.lang))||null; }catch(_){ ARV=null; } return ARV; };
+try{ speechSynthesis.onvoiceschanged=arVoice; arVoice(); }catch(_){}
+function deviceSpeak(t){ return new Promise(res=>{ try{ const ar=/[؀-ۿ]/.test(t); const v=ar?(ARV||arVoice()):null; if(ar&&!v) return res(false);
+  speechSynthesis.cancel(); const parts=t.match(/[^.!؟?\n،]+[.!؟?\n،]?/g)||[t]; let i=0; // جمل قصيرة: يبدأ فوراً ولا يتوقف في المتصفحات التي تقطع النص الطويل
+  const next=()=>{ if(i>=parts.length) return res(true); const u=new SpeechSynthesisUtterance(parts[i++].trim()); u.lang=v?.lang||(ar?"ar-SA":"en-US"); if(v) u.voice=v; u.rate=1.02; u.onend=next; u.onerror=()=>res(true); speechSynthesis.speak(u); };
+  next(); }catch(_){ res(false); } }); }
+async function speakSmart(text){ const t=String(text||"").replace(/[*#_`>\[\]]/g,"").slice(0,1500); const m=vMode(); if(!t||m==="off") return;
+  if(m==="device" && await deviceSpeak(t)) return;
+  try{ const b=await ai("tts",{text:t, voice:pickedVoice(), fast:1}); playUrl(URL.createObjectURL(b)); }catch(_){ if(m!=="device") deviceSpeak(t); } }
 function mountVoiceFab(){
   if($("#vfab")||!can("voicefab")) return;
   const b=document.createElement("button"); b.id="vfab"; b.className="vfab"; b.type="button"; b.title="اسأل المساعد الذكي"; b.setAttribute("aria-label","اسأل المساعد الذكي"); b.innerHTML=ico("voice");
@@ -861,7 +872,7 @@ function appendHelp(id){
    ${id!=="trouble"?`<p class="hb-tip">لم تجد الحل؟ افتح <a href="#trouble" data-trtab="guide">دليل الأعطال</a> أو أرسل بلاغاً إلى <a href="#trouble" data-trtab="support">الدعم الفني</a>.</p>`:""}</details>`);
 }
 /* نص مختصر عن المنصة يُعطى للمساعد ليجيب عن أسئلة الاستخدام */
-const HELP_DIGEST=()=>Object.values(HELP).map(h=>`## ${h.t}\n${h.intro||""}\n${(h.parts||[]).flatMap(p=>p[1]).map(([n,d])=>`- ${n}: ${d}`).join("\n")}`).join("\n").slice(0,9000);
+const HELP_DIGEST=()=>Object.values(HELP).map(h=>`## ${h.t}\n${h.intro||""}\n${(h.parts||[]).flatMap(p=>p[1]).map(([n,d])=>`- ${n}: ${d}`).join("\n")}`).join("\n").slice(0,5000);
 
 /* ================= الأعطال والدعم الفني ================= */
 /* دليل الأعطال: c=الفئة، m=الرسالة، mean=المعنى، why=الأسباب، fix=خطوات الإصلاح، who=من يصلح */
@@ -1699,7 +1710,7 @@ ${HELP_DIGEST()}`;
   try{
     r = await chat(sys, `كلام المستخدم: «${text}»
 أعد JSON فقط:
-{"action":"answer|create_lesson|create_exam|tool|open","params":{"title":"","description":"","subject":"","level":"مبتدئ|متوسط|متقدم","duration":5,"topic":"","count":10,"difficulty":"","tool":"assignment|slides|script|rewrite|course|summary","input":"","page":"dash|studio|lessons|assistant|kb|exams|tools|coursechat|settings|admin|trouble"},"missing":"سؤال قصير فقط إن نقصت معلومة لا يمكن التنفيذ بدونها، وإلا فارغ","reply":"عند answer: الإجابة الكاملة. عند غيره: جملة قصيرة تؤكد ما ستفعله"}`, {json:true, maxTokens:1400, temperature:0.3, history:VHIST.slice(-8)});
+{"action":"answer|create_lesson|create_exam|tool|open","params":{"title":"","description":"","subject":"","level":"مبتدئ|متوسط|متقدم","duration":5,"topic":"","count":10,"difficulty":"","tool":"assignment|slides|script|rewrite|course|summary","input":"","page":"dash|studio|lessons|assistant|kb|exams|tools|coursechat|settings|admin|trouble"},"missing":"سؤال قصير فقط إن نقصت معلومة لا يمكن التنفيذ بدونها، وإلا فارغ","reply":"عند answer: الإجابة الكاملة. عند غيره: جملة قصيرة تؤكد ما ستفعله"}`, {json:true, maxTokens:900, temperature:0.3, history:VHIST.slice(-6), fast:true});
   }finally{ think.remove(); }
   const reply=(r.missing||r.reply||"حسناً").trim();
   VHIST.push({role:"user",content:text},{role:"assistant",content:reply}); if(VHIST.length>16) VHIST.splice(0,VHIST.length-16);
