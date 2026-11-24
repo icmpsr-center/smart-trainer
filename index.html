@@ -296,6 +296,18 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .seg2{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:5px;background:#e9eef6;padding:5px;border-radius:14px}
 .seg2 button{border:0;background:none;padding:10px 4px;border-radius:10px;font:700 13.5px Cairo,sans-serif;color:var(--navy);cursor:pointer;min-width:0}
 .seg2 button.on{background:var(--navy);color:#fff;box-shadow:0 3px 10px rgba(11,42,91,.25)}
+/* الفصول الذكية */
+.lvdays{display:flex;flex-wrap:wrap;gap:6px}.lvdays label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line,#dbe3ee);border-radius:999px;padding:6px 12px;font-weight:600;font-size:13.5px;cursor:pointer;background:#fff}
+.lvdays input{width:auto;margin:0;accent-color:var(--navy)}.lvdays label:has(input:checked){background:var(--navy);color:#fff;border-color:var(--navy)}
+.lvbar{display:flex;flex-wrap:wrap;gap:8px;align-items:end;justify-content:space-between;margin:10px 0 2px}.lvbar>input,.lvbar>select{flex:1;min-width:140px;width:auto}.lvbar label{display:flex;flex-direction:column;font-size:12px;gap:2px;min-width:130px}
+.lvtbl{width:100%;border-collapse:collapse;font-size:14px}.lvtbl th{background:#f1f5fb;color:var(--navy);text-align:right;padding:10px;white-space:nowrap;font-size:13px}.lvtbl td{padding:9px 10px;border-top:1px solid #edf1f7;vertical-align:middle}.lvtbl tr:hover td{background:#fafcff}
+.lvweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.lvday{background:#fff;border:1px solid #e3e9f2;border-radius:14px;padding:8px;min-height:130px;display:flex;flex-direction:column;gap:6px}
+.lvday.today{border-color:var(--gold,#d4a017);box-shadow:0 0 0 2px rgba(212,160,23,.25)}.lvdh{display:flex;justify-content:space-between;align-items:center;color:var(--navy);font-size:13px;border-bottom:1px dashed #e3e9f2;padding-bottom:5px}.lvdh span{font-weight:800;font-size:16px}
+.lvslot{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:1px;background:#eef3fb;border-inline-start:4px solid var(--navy);border-radius:9px;padding:6px 8px;font-size:12.5px;line-height:1.45}.lvslot span{font-weight:600;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.lvslot small{color:#64748b}
+.lvslot.green{border-color:#16a34a;background:#ecfdf3}.lvslot.gold{border-color:#d4a017;background:#fdf8e8}.lvnone{text-align:center;margin:auto}
+.lvkpi .card{display:flex;flex-direction:column;gap:2px;padding:12px 14px}.lvkpi b{font-size:24px;color:var(--navy)}
+.lvbarpc{height:7px;background:#eef2f7;border-radius:9px;overflow:hidden;min-width:70px}.lvbarpc i{display:block;height:100%}
+@media(max-width:800px){.lvweek{grid-template-columns:minmax(0,1fr)}.lvday{min-height:0}.lvnone{margin:0}}
 /* دليل الأعطال: بطاقات */
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:600 12.5px Cairo,sans-serif;color:var(--navy);cursor:pointer}
@@ -479,6 +491,8 @@ details.fold>summary.foldh span:first-child{display:flex;flex-direction:column;g
 details.fold>summary.foldh b{font-size:19px;color:var(--navy,#0b2a5b)}
 details.fold[open] .uchev{transform:rotate(180deg)}
 
+.tab.hot{background:linear-gradient(135deg,rgba(201,161,59,.32),rgba(201,161,59,.14));color:#fff;font-weight:700;border:1px solid rgba(226,194,113,.45)}
+.bnav a.hot{position:relative;color:#fff}.bnav a.hot svg{background:var(--gold);color:#1d1606;border-radius:12px;padding:5px;width:34px;height:34px;margin-top:-14px;box-shadow:0 4px 12px rgba(201,161,59,.5)}
 .portal{max-width:640px;margin:0 auto;display:grid;gap:14px}
 .portal .phead h1{color:var(--navy);font-size:28px}.portal .phead p{color:var(--muted)}
 .pcard{background:linear-gradient(160deg,#0f2550,#0a1c3f);color:#eef3fb;border:1px solid #1f3a6e;border-radius:22px;padding:20px;display:grid;gap:8px;box-shadow:0 10px 30px rgba(11,42,91,.25)}
@@ -526,7 +540,7 @@ details.fold[open] .uchev{transform:rotate(180deg)}
       </form>
     </div>
   </div>
-  <a class="portalcta" href="#portal"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-4v12l-6-4z"/></svg><span><b>بوابة المتدرّب</b><small>المحاضرات المباشرة المنشورة — انضم بكود الدخول</small></span><span aria-hidden="true">←</span></a>
+  <a class="portalcta" href="#portal"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-4v12l-6-4z"/></svg><span><b>بوابة المتدرّب</b><small>المحاضرات والدورات والورش المباشرة المنشورة</small></span><span aria-hidden="true">←</span></a>
   <section class="card stack pubnews" id="pubNews"></section>
 </div>
 
@@ -806,7 +820,7 @@ const FEATURES=[
   ["exams","منشئ الاختبارات","إنشاء الاختبارات، وزر «اختبار من هذه المحاضرة»","main"],
   ["tools","أدوات المحتوى","أدوات توليد المحتوى التعليمي","main"],
   ["coursechat","محادثة الدورة","محادثة المتدرّبين مع محتوى الدورة","main"],
-  ["live","المحاضرات المباشرة","جدولة محاضرات مباشرة محمية عبر Meet أو Zoom أو Teams","main"],
+  ["live","الفصول الذكية","فصول مباشرة محمية عبر Meet أو Zoom أو Teams، بجدول أسبوعي وملخص حضور","main"],
   ["live_meet","Google Meet","إنشاء المحاضرات المباشرة عبر Google Meet","live"],
   ["live_zoom","Zoom","إنشاء المحاضرات المباشرة عبر Zoom","live"],
   ["live_teams","Microsoft Teams","إنشاء المحاضرات المباشرة عبر Teams","live"],
@@ -1356,8 +1370,8 @@ async function vInbox(){
 const TABS = [
   {id:"dash", t:"لوحة التحكم", i:"dash"},
   {id:"studio", t:"استوديو المحاضرة", i:"studio"},
+  {id:"live", t:"الفصول الذكية", i:"live", hot:1},
   {id:"lessons", t:"محاضراتي", i:"lessons"},
-  {id:"live", t:"المحاضرات المباشرة", i:"live"},
   {id:"assistant", t:"المساعد الصوتي", i:"voice"},
   {id:"exams", t:"منشئ الاختبارات", i:"exam"},
   {id:"tools", t:"أدوات المحتوى", i:"tools"},
@@ -1370,12 +1384,12 @@ const TABS = [
 ];
 function renderTabs(cur){
   const vis=TABS.filter(t=>(!t.admin || profile?.role==="admin") && (!FEATURES.some(f=>f[0]===t.id) || can(t.id)));
-  $("#tabs").innerHTML = vis.map(t=>`<a class="tab ${t.id===cur?"on":""}" href="#${t.id}"${t.id==="inbox"?" data-inbox":""}>${ico(t.i)}${t.t}${t.id==="inbox"?'<i class="nbadge" hidden></i>':""}</a>`).join("");
+  $("#tabs").innerHTML = vis.map(t=>`<a class="tab ${t.id===cur?"on":""}${t.hot?" hot":""}" href="#${t.id}"${t.id==="inbox"?" data-inbox":""}>${ico(t.i)}${t.t}${t.id==="inbox"?'<i class="nbadge" hidden></i>':""}</a>`).join("");
   // شريط تنقّل سفلي ثابت للجوال: أهم 4 أقسام + «المزيد»
-  const SHORT={live:"المباشرة",inbox:"الرسائل",trouble:"الدعم الفني",dash:"الرئيسية",studio:"الاستوديو",lessons:"محاضراتي",settings:"حسابي",assistant:"المساعد",kb:"المعرفة",exams:"الاختبارات",tools:"الأدوات",coursechat:"المحادثة",admin:"الإدارة"};
-  const main=["dash","studio","lessons","assistant"].filter(id=>vis.some(t=>t.id===id)); const more=vis.filter(t=>!main.includes(t.id));
+  const SHORT={live:"الفصول",inbox:"الرسائل",trouble:"الدعم الفني",dash:"الرئيسية",studio:"الاستوديو",lessons:"محاضراتي",settings:"حسابي",assistant:"المساعد",kb:"المعرفة",exams:"الاختبارات",tools:"الأدوات",coursechat:"المحادثة",admin:"الإدارة"};
+  const main=["dash","studio","live","lessons"].filter(id=>vis.some(t=>t.id===id)); const more=vis.filter(t=>!main.includes(t.id));
   let nav=$("#bnav"); if(!nav){ nav=document.createElement("nav"); nav.id="bnav"; nav.className="bnav"; $("#appView").append(nav); }
-  nav.innerHTML=main.map(id=>{ const t=vis.find(x=>x.id===id); return `<a href="#${id}" class="${id===cur?"on":""}">${ico(t.i)}<span>${SHORT[id]||t.t}</span></a>`; }).join("")+(more.length?`<button type="button" class="${more.some(t=>t.id===cur)?"on":""}" id="bMore" data-inbox>${ico("dash")}<span>المزيد</span><i class="nbadge" hidden></i></button>`:"");
+  nav.innerHTML=main.map(id=>{ const t=vis.find(x=>x.id===id); return `<a href="#${id}" class="${id===cur?"on":""}${t.hot?" hot":""}">${ico(t.i)}<span>${SHORT[id]||t.t}</span></a>`; }).join("")+(more.length?`<button type="button" class="${more.some(t=>t.id===cur)?"on":""}" id="bMore" data-inbox>${ico("dash")}<span>المزيد</span><i class="nbadge" hidden></i></button>`:"");
   nav.style.gridTemplateColumns=`repeat(${main.length+(more.length?1:0)},1fr)`; setTimeout(setBadges,0);
   $("#bMore")?.addEventListener("click",()=>{ const sh=document.createElement("div"); sh.className="bsheet"; setTimeout(setBadges,0); sh.innerHTML=`<div><b>كل الأقسام</b>${more.map(t=>`<a href="#${t.id}" class="${t.id===cur?"on":""}"${t.id==="inbox"?" data-inbox":""}>${ico(t.i)}<span>${t.t}</span>${t.id==="inbox"?'<i class="nbadge" hidden></i>':""}</a>`).join("")}</div>`; sh.onclick=e=>{ const a=e.target.closest("a"); if(a){ e.preventDefault(); sh.remove(); history.replaceState(null,"",a.getAttribute("href")); route(); return; } if(e.target===sh){ sh.remove(); if(history.state?.bsheet) history.back(); } };
     document.body.append(sh); history.pushState({bsheet:1},""); });
@@ -1633,6 +1647,7 @@ async function live(action, payload={}, pub=false){
   let d; try{ d=await r.json(); }catch{ throw new Error("تعذّر الاتصال بخادم المحاضرات المباشرة (رمز "+r.status+")"); }
   if(!r.ok||d.error) throw new Error(d.error||("خطأ "+r.status)); return d;
 }
+const LKIND={lecture:"محاضرة",course:"دورة",workshop:"ورشة عمل",video:"فيديو متحرك"};
 const LSTAT={scheduled:["مجدولة",""],live:["جارية الآن","green"],ended:["انتهت","gold"],cancelled:["أُلغيت","red"]};
 const LREC={done:"التسجيل محفوظ في Drive",processing:"جارٍ تجهيز التسجيل في Google…",none:"لا يوجد تسجيل بعد",error:"تعذّرت مزامنة التسجيل"};
 const toLocalInput=d=>{ const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,16); };
@@ -1645,62 +1660,140 @@ function parsePeople(txt){ return txt.split(/\n+/).map(l=>l.trim()).filter(Boole
 
 async function vLive(){
   const main=$("#main");
-  main.innerHTML=`<div class="head"><div><h1>المحاضرات المباشرة</h1><p class="muted">جدول محاضرتك المباشرة وانشرها في بوابة المتدرّب. رابط الاجتماع لا يظهر لأحد؛ تدخل أنت من زر «ادخل كمحاضر»، ويدخل المتدرّبون من البوابة.</p></div></div><div id="lvBody" class="stack"><p class="small muted">جارٍ التحميل…</p></div>`;
+  main.innerHTML=`<div class="head"><div><h1>الفصول الذكية</h1><p class="muted">فصول مباشرة تُجدولها مرة أو أسبوعياً وتنشرها في بوابة المتدرّب، مع جدول أسبوعي وملخص حضور قابل للتصدير. رابط الاجتماع لا يظهر لأحد؛ تدخل أنت من «ادخل كمحاضر»، ويدخل المتدرّبون من البوابة.</p></div></div><div id="lvBody" class="stack"><p class="small muted">جارٍ التحميل…</p></div>`;
   let cfg; try{ cfg=await live("config"); }catch(e){ $("#lvBody").innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
   const can0=cfg.providers.length>0;
   $("#lvBody").innerHTML=`
-   <details class="card fold" id="lvNew"${can0?"":" hidden"}><summary class="foldh"><span><b class="row" style="gap:8px">${ico("live")}محاضرة مباشرة جديدة</b><small class="muted">اختر المنصة والموعد، وتُجهَّز الغرفة بالإعدادات الموحّدة للمركز</small></span><span class="uchev" aria-hidden="true"></span></summary>
+   <details class="card fold" id="lvNew"${can0?"":" hidden"} open><summary class="foldh"><span><b class="row" style="gap:8px">${ico("live")}إضافة فصل ذكي جديد</b><small class="muted">جلسة واحدة أو سلسلة أسبوعية، وتُجهَّز الغرفة بالإعدادات الموحّدة للمركز</small></span><span class="uchev" aria-hidden="true"></span></summary>
     <form class="stack" id="lvForm" style="margin-top:12px">
-     <label>عنوان المحاضرة<input id="lvT" maxlength="200" required placeholder="مثال: مناقشة حالات تشمع الكبد"></label>
+     <label>عنوان الفصل<input id="lvT" maxlength="200" required placeholder="مثال: مناقشة حالات تشمع الكبد"></label>
      <div class="grid2"><label>الموعد<input id="lvS" type="datetime-local" required value="${toLocalInput(Date.now()+3600e3).slice(0,14)}00"></label>
       <label>المدة (دقيقة)<input id="lvD" type="number" min="15" max="600" step="5" value="60"></label></div>
      <div class="grid2"><label>المنصة<select id="lvP">${cfg.providers.map(p=>`<option value="${p}">${esc(cfg.all[p]||p)}</option>`).join("")}</select></label>
       <label>بريدك في Google (لتدخل مضيفاً مشاركاً)<input id="lvC" type="email" dir="ltr" value="${esc(session.user.email||"")}"></label></div>
-     <label>الدورة أو البرنامج (اختياري)<input id="lvCourse" maxlength="200" placeholder="مثال: الصيدلة السريرية في العناية المركزة"></label>
+     <div class="grid2"><label>نوع الجلسة<select id="lvK"><option value="lecture">محاضرة</option><option value="course">ضمن دورة</option><option value="workshop">ورشة عمل</option><option value="video">مرتبطة بفيديو متحرك أنشأته</option></select></label>
+      <label id="lvCourseL">اسم الدورة أو الورشة<input id="lvCourse" maxlength="200" list="lvCourses" placeholder="مثال: الصيدلة السريرية في العناية المركزة"><datalist id="lvCourses"></datalist></label>
+      <label id="lvVidL" class="hidden">الفيديو المتحرك<select id="lvVid"><option value="">اختر المحاضرة المتحركة…</option></select></label></div>
      <label>وصف مختصر (اختياري)<textarea id="lvDesc" rows="2"></textarea></label>
-     <label class="chk"><input type="checkbox" id="lvPub" checked> نشر في بوابة المتدرّب فور التجهيز</label>
-     <p class="small muted" style="margin:0">الإعدادات الموحّدة: ${cfg.config.defaults?.auto_record!==false?"تسجيل تلقائي إلى Drive، ":""}فتح الدخول قبل الموعد بـ ${num(cfg.config.defaults?.window_before??15)} دقيقة، ورمز شخصي لكل متدرّب ${cfg.config.defaults?.one_device!==false?"على جهاز واحد":""}، وكل غريب يطرق الباب.</p>
-     <button class="btn gold" id="lvGo" type="submit">${ico("live")} جدولة المحاضرة</button></form></details>
+     <div class="grid2"><label>التكرار<select id="lvR"><option value="once">جلسة واحدة</option><option value="weekly">أسبوعياً (سلسلة فصول)</option></select></label>
+      <label id="lvWL" class="hidden">عدد الأسابيع<input id="lvW" type="number" min="1" max="16" value="4"></label></div>
+     <div id="lvDaysL" class="hidden stack" style="gap:6px"><span class="small"><b>أيام الفصل</b> (بنفس ساعة الموعد أعلاه)</span><div class="lvdays" id="lvDays">${LDAYS.map(([d,n])=>`<label><input type="checkbox" value="${d}"><span>${n}</span></label>`).join("")}</div><span class="small muted" id="lvRInfo"></span></div>
+
+     <p class="small muted" style="margin:0">الإعدادات الموحّدة: ${cfg.config.defaults?.auto_record!==false?"تسجيل تلقائي إلى Drive، ":""}فتح الدخول قبل الموعد بـ ${num(cfg.config.defaults?.window_before??15)} دقيقة، والدخول للمتدرّبين المسجّلين فقط، وكل غريب يطرق الباب.</p>
+     <p class="small muted" style="margin:0">بعد النشر تظهر الجلسة تلقائياً في حساب كل متدرّب مسجّل في هذه الدورة أو المحاضرة أو الورشة.</p>
+     <div class="row"><button class="btn gold" id="lvGo" type="submit" data-pub="1">${ico("live")} نشر في بوابة المتدرّب</button><button class="btn ghost" id="lvSave" type="submit" data-pub="0">حفظ دون نشر</button></div></form></details>
    ${can0?"":`<div class="card"><b>المحاضرات المباشرة غير متاحة لحسابك بعد.</b><p class="small muted">${cfg.connected?"لم يفعّل المدير أي منصة لحسابك.":"لم يُربط Google Meet بالمنصة بعد. يتم الربط من «إدارة المنصة ← المحاضرات المباشرة»."}</p></div>`}
    <div id="lvList" class="stack"></div>`;
-  if(can0) $("#lvForm").onsubmit=async e=>{ e.preventDefault(); const b=$("#lvGo"); busy(b,true,"جارٍ تجهيز الغرفة…");
-    try{ const r=await live("create",{title:$("#lvT").value, start_at:new Date($("#lvS").value).toISOString(), duration_min:+$("#lvD").value, provider:$("#lvP").value, cohost_email:$("#lvC").value.trim(), description:$("#lvDesc").value, course:$("#lvCourse").value.trim(), published:$("#lvPub").checked});
-      toast("جُهّزت المحاضرة المباشرة"+(r.warnings?.length?" — مع ملاحظات":"")); vLive(); }
-    catch(err){ toast(err.message,true); } finally{ busy(b,false); } };
+  if(can0){ const kk=()=>{ const k=$("#lvK").value; $("#lvVidL").classList.toggle("hidden",k!=="video"); $("#lvCourseL").classList.toggle("hidden",k==="video"); $("#lvCourseL").firstChild.textContent=k==="workshop"?"اسم الورشة":k==="course"?"اسم الدورة":"الدورة أو البرنامج (اختياري)"; }; $("#lvK").onchange=kk; kk();
+    sb.from("lessons").select("id,title").order("created_at",{ascending:false}).limit(100).then(({data})=>{ $("#lvVid").insertAdjacentHTML("beforeend",(data||[]).map(l=>`<option value="${l.id}">${esc(l.title)}</option>`).join("")); });
+    sb.from("live_sessions").select("course").not("course","is",null).limit(200).then(({data})=>{ $("#lvCourses").innerHTML=[...new Set((data||[]).map(x=>x.course))].map(c=>`<option value="${esc(c)}">`).join(""); });
+    $("#lvVid").onchange=()=>{ const o=$("#lvVid").selectedOptions[0]; if(o?.value&&!$("#lvT").value) $("#lvT").value="مناقشة مباشرة: "+o.textContent; };
+    const rr=()=>{ const w=$("#lvR").value==="weekly"; $("#lvWL").classList.toggle("hidden",!w); $("#lvDaysL").classList.toggle("hidden",!w);
+      if(w&&!$("#lvDays").querySelector("input:checked")){ const d=new Date($("#lvS").value); if(!isNaN(d)) $("#lvDays").querySelector(`input[value="${d.getDay()}"]`).checked=true; }
+      const n=w?seriesDates($("#lvS").value,[...$("#lvDays").querySelectorAll("input:checked")].map(x=>+x.value),+$("#lvW").value||1).length:1; $("#lvRInfo").textContent=w?`سيُنشأ ${fsl(n)}${n>=40?" (الحد الأقصى 40 في المرة الواحدة)":""}.`:""; };
+    ["#lvR","#lvW","#lvS"].forEach(q=>$(q).addEventListener("input",rr)); $("#lvR").onchange=rr; $("#lvDays").onchange=rr; rr();
+    try{ const pre=sessionStorage.getItem("st_lv_lesson"); if(pre){ sessionStorage.removeItem("st_lv_lesson"); $("#lvK").value="video"; kk(); const t=setInterval(()=>{ const o=$("#lvVid")?.querySelector(`option[value="${pre}"]`); if(o){ clearInterval(t); $("#lvVid").value=pre; $("#lvVid").onchange(); $("#lvT").focus(); } },150); setTimeout(()=>clearInterval(t),6000); } }catch(_){} }
+  if(can0) $("#lvForm").onsubmit=async e=>{ e.preventDefault(); const pub=e.submitter?.dataset.pub!=="0"; const b=e.submitter||$("#lvGo");
+    const kind=$("#lvK").value; if(kind==="video"&&!$("#lvVid").value) return toast("اختر الفيديو المتحرك المرتبط",true); if((kind==="course"||kind==="workshop")&&!$("#lvCourse").value.trim()) return toast(kind==="course"?"اكتب اسم الدورة":"اكتب اسم الورشة",true);
+    const weekly=$("#lvR").value==="weekly"; const dates=weekly?seriesDates($("#lvS").value,[...$("#lvDays").querySelectorAll("input:checked")].map(x=>+x.value),+$("#lvW").value||1):[new Date($("#lvS").value)];
+    if(!dates.length||isNaN(dates[0])) return toast(weekly?"اختر يوماً واحداً على الأقل، وتأكد أن المواعيد بعد الموعد المحدد":"حدّد الموعد",true);
+    const series=dates.length>1?crypto.randomUUID():null; let ok=0, warn=0;
+    busy(b,true,"جارٍ تجهيز الغرفة…");
+    try{ for(let i=0;i<dates.length;i++){ if(dates.length>1) b.innerHTML=`جارٍ تجهيز الفصل ${num(i+1)} من ${num(dates.length)}…`;
+        const r=await live("create",{title:$("#lvT").value, start_at:dates[i].toISOString(), duration_min:+$("#lvD").value, provider:$("#lvP").value, cohost_email:$("#lvC").value.trim(), description:$("#lvDesc").value, course:kind==="video"?($("#lvVid").selectedOptions[0]?.textContent||""):$("#lvCourse").value.trim(), kind, lesson_id:kind==="video"?$("#lvVid").value:null, published:pub, series, series_no:series?i+1:null, series_total:series?dates.length:null});
+        ok++; if(r.warnings?.length) warn++; }
+      toast((dates.length>1?`أُنشئت سلسلة من ${fsl(ok)}`:"أُنشئ الفصل")+(pub?" ونُشرت في بوابة المتدرّب":" دون نشر")+(warn?" — مع ملاحظات":"")); vLive(); }
+    catch(err){ toast((ok?`أُنشئ ${num(ok)} من ${num(dates.length)} ثم توقّف: `:"")+err.message,true); if(ok) vLive(); } finally{ busy(b,false); } };
   await drawLiveList(cfg);
 }
+const fsl=n=>num(n)+(n>=3&&n<=10?" فصول":n===1?" فصل":n===2?" فصلان":" فصلاً");
+const LDAYS=[[6,"السبت"],[0,"الأحد"],[1,"الاثنين"],[2,"الثلاثاء"],[3,"الأربعاء"],[4,"الخميس"],[5,"الجمعة"]];
+/* مواعيد سلسلة أسبوعية: الأيام المختارة لعدد من الأسابيع، بنفس الساعة، ابتداءً من الموعد المحدد */
+function seriesDates(start, days, weeks){ const s=new Date(start); if(isNaN(s)||!days.length) return []; const base=new Date(s); base.setHours(0,0,0,0); base.setDate(base.getDate()-((s.getDay()+1)%7));
+  const out=[]; for(let w=0;w<Math.min(16,Math.max(1,weeks));w++) for(let i=0;i<7;i++){ const d=new Date(base); d.setDate(base.getDate()+w*7+i); if(!days.includes(d.getDay())) continue; d.setHours(s.getHours(),s.getMinutes(),0,0); if(d.getTime()>=s.getTime()-60000) out.push(d); }
+  return out.slice(0,40); }
+function dlCSV(name, rows){ const c=rows.map(r=>r.map(v=>{ v=String(v??""); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(",")).join("\r\n");
+  const a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob(["\ufeff"+c],{type:"text/csv;charset=utf-8"})),download:name+".csv"}); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); }
+const ymd=d=>{ const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,10); };
+const hm=d=>new Date(d).toLocaleTimeString("ar-EG-u-nu-latn",{hour:"numeric",minute:"2-digit"});
+const attMin=x=>x.first&&x.last?Math.max(0,Math.round((new Date(x.last)-new Date(x.first))/60000)):0;
+function serTag(s){ return s.settings?.series_total>1?` · الفصل ${num(s.settings.series_no)} من ${num(s.settings.series_total)}`:""; }
+
 async function drawLiveList(cfg){
   const box=$("#lvList"); if(!box) return;
-  const { data: ss, error } = await sb.from("live_sessions").select("*").order("start_at",{ascending:false}).limit(60);
+  const { data: ss, error } = await sb.from("live_sessions").select("*").order("start_at",{ascending:false}).limit(300);
   if(error){ box.innerHTML=`<div class="card small">${esc(error.message)}</div>`; return; }
-  if(!ss?.length){ box.innerHTML=`<div class="empty">لا توجد محاضرات مباشرة بعد.</div>`; return; }
-  const ids=ss.map(s=>s.id);
-  const [{ data: att }, { data: joins }] = await Promise.all([ sb.from("live_attendees").select("*").in("session_id",ids).order("created_at"), sb.from("live_joins").select("session_id,attendee_id,role,ok,reason,created_at").in("session_id",ids).order("created_at",{ascending:false}).limit(500) ]);
+  if(!ss?.length){ box.innerHTML=`<div class="empty">لا توجد فصول ذكية بعد. أضف أول فصل من الأعلى.</div>`; return; }
+  const now=Date.now(); const recent=ss.filter(s=>Math.abs(new Date(s.start_at).getTime()-now)<21*864e5).slice(0,80).map(s=>s.id);
+  const [{ data: att }, { data: joins }] = await Promise.all([ recent.length?sb.from("live_attendees").select("*").in("session_id",recent).order("created_at"):{data:[]}, recent.length?sb.from("live_joins").select("session_id,attendee_id,role,ok,reason,created_at").in("session_id",recent).order("created_at",{ascending:false}).limit(500):{data:[]} ]);
   const OPEN=window.__lvOpen||(window.__lvOpen=new Set());
-  const now=Date.now(), up=ss.filter(s=>["scheduled","live"].includes(s.status)&&new Date(s.start_at).getTime()+s.duration_min*60000>now-3600e3).sort((a,b)=>new Date(a.start_at)-new Date(b.start_at)), past=ss.filter(s=>!up.includes(s));
+  const F=window.__lvF||(window.__lvF={mode:"list",view:"cards",q:"",k:"",st:"",from:"",to:"",wk:0,af:ymd(Date.now()-30*864e5),at:ymd(Date.now())});
   const card=s=>{ const A=(att||[]).filter(a=>a.session_id===s.id), J=(joins||[]).filter(j=>j.session_id===s.id); const [st,cl]=LSTAT[s.status]||[s.status,""];
     const inNow=J.filter(j=>j.ok&&j.role==="trainee"&&now-new Date(j.created_at)<3*3600e3); const bad=J.filter(j=>!j.ok).length;
-    return `<details class="ucard" data-ls="${s.id}"${OPEN.has(s.id)?" open":""}><summary class="uhead"><div class="uhinfo"><div><b style="font-size:16px">${esc(s.title)}</b> <span class="pill ${cl}">${st}</span>${s.published?' <span class="pill green">منشورة في البوابة</span>':' <span class="pill">غير منشورة</span>'}</div><span class="small muted">${s.course?esc(s.course)+" · ":""}${fmtDT(s.start_at)} · ${num(s.duration_min)} دقيقة · ${esc(cfg.all[s.provider]||s.provider)} ${isAdmin()?` · ${num(A.length)} رمز دخول`:""}${s.recording_url?" · 🎥 مسجّلة":""}</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody stack">
+    return `<details class="ucard" data-ls="${s.id}"${OPEN.has(s.id)?" open":""}><summary class="uhead"><div class="uhinfo"><div><b style="font-size:16px">${esc(s.title)}</b> <span class="pill ${cl}">${st}</span>${s.published?' <span class="pill green">منشورة في البوابة</span>':' <span class="pill">غير منشورة</span>'}</div><span class="small muted">${LKIND[s.kind]||"محاضرة"}${s.course?" · "+esc(s.course):""}${serTag(s)} · ${fmtDT(s.start_at)} · ${num(s.duration_min)} دقيقة · ${esc(cfg.all[s.provider]||s.provider)} ${s.recording_url?" · 🎥 مسجّلة":""}</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody stack">
       ${s.warning?`<div class="hb-tip small">⚠ ${esc(s.warning)}</div>`:""}
       <div class="ubtns">${["scheduled","live"].includes(s.status)?`<button class="btn gold sm" data-la="host">${ico("play")} ادخل كمحاضر</button>`:""}
        ${["scheduled","live"].includes(s.status)?`<button class="btn ghost sm" data-la="pub">${s.published?"إلغاء النشر من البوابة":"نشر في بوابة المتدرّب"}</button>`:""}
        ${isAdmin()?`<button class="btn ghost sm" data-la="adminlink">${ico("shield")} رابط Meet (للمدير)</button>`:""}
        ${["scheduled","live"].includes(s.status)?`<button class="btn ghost sm" data-la="end">إنهاء المحاضرة</button><button class="btn danger sm" data-la="cancel">إلغاء</button>`:`<button class="btn ghost sm" data-la="sync">تحديث التسجيل والحضور</button><button class="btn danger sm" data-la="delete">حذف</button>`}</div>
       <div class="small">${s.recording_url?`🎥 <a href="${esc(s.recording_url)}" target="_blank" rel="noopener">فتح التسجيل في Drive</a>${(s.settings?.recordings||[]).slice(1).map((r,i)=>` · <a href="${esc(r.url)}" target="_blank" rel="noopener">جزء ${i+2}</a>`).join("")}`:`<span class="muted">${s.status==="ended"?LREC[s.recording_status]||"سيُبحث عن التسجيل تلقائياً بعد انتهاء المحاضرة":"يبدأ التسجيل تلقائياً عند دخولك، ويُنقل إلى Drive بعد الانتهاء."}</span>`}</div>
-      ${isAdmin()?`<div class="stack lvadm" style="gap:8px"><b>${ico("shield")} رموز دخول المتدرّبين (للمدير فقط — إلى حين ربط حسابات بوابة المتدرّب)</b>
-       <textarea data-lp rows="3" placeholder="سطر لكل متدرّب: الاسم، رقم الجوال، البريد (اختياري)&#10;مثال: أحمد محمد، 0501234567"></textarea>
-       <div class="row"><button class="btn sm" data-la="add">إضافة وتوليد الرموز</button>${A.length?`<button class="btn ghost sm" data-la="copyall">نسخ كل الدعوات</button>`:""}</div>
-       ${A.length?`<div class="stack" style="gap:6px">${A.map(a=>`<div class="lvatt${a.revoked?" off":""}"><div class="lvatt-i"><b>${esc(a.name)}</b>${a.phone?` <span class="muted small" dir="ltr">${esc(a.phone)}</span>`:""}<br><span class="small ${a.joins?"":"muted"}">${a.revoked?"موقوف · ":""}${a.joins?`دخل ${num(a.joins)} مرة · آخرها ${fmtDT(a.last_join)}${a.device?" · مربوط بجهاز":""}`:"لم يدخل بعد"}</span></div><b class="lvcode" dir="ltr">${esc(a.code)}</b>
-        <div class="lvatt-b"><button class="btn ghost sm" data-lc="${a.id}">${ico("copy")} الدعوة</button>
-         <select class="lvop" data-lsel="${a.id}"><option value="">إجراء…</option>${a.revoked?'<option value="restore">إعادة التفعيل</option>':'<option value="revoke">إيقاف الرمز</option>'}<option value="reset">السماح بجهاز جديد</option><option value="newcode">إصدار رمز جديد</option><option value="delete">حذف المتدرّب</option></select></div></div>`).join("")}</div>`:`<span class="small muted">لم تُضف رموز بعد.</span>`}</div>`:""}
+
       ${inNow.length||bad?`<div class="small"><b>دخلوا عبر بوابة المتدرّب (اقبل هذه الأسماء فقط عند طرق الباب):</b> ${[...new Set(inNow.map(j=>j.reason))].map(n=>`<span class="ntag">${esc(n)}</span>`).join(" ")||"—"}${bad?`<br><span style="color:#b42318">محاولات دخول مرفوضة: ${num(bad)}</span>`:""}</div>`:""}
       ${s.attendance?.length?`<details><summary class="small" style="cursor:pointer;font-weight:700">تقرير الحضور من Meet (${num(s.attendance.length)})</summary><table class="small"><tr><th>الاسم</th><th>أول دخول</th><th>آخر خروج</th></tr>${s.attendance.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.first?fmtDT(x.first):"—"}</td><td>${x.last?fmtDT(x.last):"—"}</td></tr>`).join("")}</table></details>`:""}
      </div></details>`; };
-  box.innerHTML=`${up.length?`<h2 style="margin:4px 0 0">القادمة والجارية</h2><div class="stack" style="gap:8px">${up.map(card).join("")}</div>`:""}${past.length?`<h2 style="margin:10px 0 0">السابقة</h2><div class="stack" style="gap:8px">${past.map(card).join("")}</div>`:""}`;
-  box.querySelectorAll("details[data-ls]").forEach(d=>d.addEventListener("toggle",()=>d.open?OPEN.add(d.dataset.ls):OPEN.delete(d.dataset.ls)));
-  box.onchange=async e=>{ const sel=e.target.closest("[data-lsel]"); if(!sel||!sel.value) return; const op=sel.value; if(op==="delete"&&!confirm("حذف هذا المتدرّب ورمزه؟")){ sel.value=""; return; }
-    sel.disabled=true; try{ await live("attendee",{attendee_id:sel.dataset.lsel,op}); toast(op==="newcode"?"صدر رمز جديد — أرسله للمتدرّب":"تم"); drawLiveList(cfg); }catch(err){ toast(err.message,true); sel.disabled=false; sel.value=""; } };
-  box.onclick=async e=>{ const b=e.target.closest("button"); if(!b) return; if(b.dataset.cp) return copy(b.dataset.cp); const det=b.closest("[data-ls]"); const s=ss.find(x=>x.id===det?.dataset.ls); if(!s) return;
+  box.innerHTML=`<div class="seg2" id="lvSeg">${[["list","الفصول"],["week","الجدول الأسبوعي"],["att","ملخص الحضور"]].map(([k,t])=>`<button type="button" data-k="${k}">${t}</button>`).join("")}</div><div id="lvTools"></div><div id="lvOut" class="stack"></div>`;
+  const out=$("#lvOut"), tools=$("#lvTools");
+  const match=s=>(!F.q||(s.title+" "+(s.course||"")).toLowerCase().includes(F.q.toLowerCase()))&&(!F.k||(s.kind||"lecture")===F.k)&&(!F.st||s.status===F.st)&&(!F.from||ymd(s.start_at)>=F.from)&&(!F.to||ymd(s.start_at)<=F.to);
+  const prov=s=>cfg.all[s.provider]||s.provider;
+
+  function list(){
+    tools.innerHTML=`<div class="lvbar"><input id="lfQ" placeholder="بحث بالعنوان أو الدورة" value="${esc(F.q)}">
+      <select id="lfK"><option value="">كل الأنواع</option>${Object.entries(LKIND).map(([k,t])=>`<option value="${k}"${F.k===k?" selected":""}>${t}</option>`).join("")}</select>
+      <select id="lfS"><option value="">كل الحالات</option>${Object.entries(LSTAT).map(([k,[t]])=>`<option value="${k}"${F.st===k?" selected":""}>${t}</option>`).join("")}</select>
+      <label>من<input id="lfF" type="date" value="${F.from}"></label><label>إلى<input id="lfT" type="date" value="${F.to}"></label>
+      <div class="row" style="gap:6px"><button class="btn ghost sm" type="button" id="lfV">${F.view==="cards"?"عرض كجدول":"عرض كبطاقات"}</button><button class="btn ghost sm" type="button" id="lfX">تصدير إلى Excel</button></div></div>`;
+    const L=ss.filter(match);
+    const upd=()=>{ F.q=$("#lfQ").value; F.k=$("#lfK").value; F.st=$("#lfS").value; F.from=$("#lfF").value; F.to=$("#lfT").value; body(); };
+    ["#lfQ","#lfK","#lfS","#lfF","#lfT"].forEach(q=>$(q).addEventListener(q==="#lfQ"?"input":"change",upd));
+    $("#lfV").onclick=()=>{ F.view=F.view==="cards"?"table":"cards"; list(); };
+    $("#lfX").onclick=()=>dlCSV("الفصول_الذكية_"+ymd(Date.now()),[["العنوان","النوع","الدورة/الورشة","التاريخ","الوقت","المدة (دقيقة)","المنصة","الحالة","منشورة في البوابة","عدد الحضور","رابط التسجيل"],...ss.filter(match).map(s=>[s.title,LKIND[s.kind]||"محاضرة",s.course||"",ymd(s.start_at),hm(s.start_at),s.duration_min,prov(s),(LSTAT[s.status]||[s.status])[0],s.published?"نعم":"لا",(s.attendance||[]).length,s.recording_url||""])]);
+    function body(){ const L=ss.filter(match);
+      if(!L.length){ out.innerHTML=`<div class="empty">لا توجد فصول تطابق البحث.</div>`; return; }
+      if(F.view==="table"){ out.innerHTML=`<div class="card" style="padding:0;overflow:auto"><table class="lvtbl"><thead><tr><th>العنوان</th><th>وقت البدء</th><th>المدة</th><th>المنصة</th><th>الحالة</th><th>الحضور</th><th></th></tr></thead><tbody>${L.map(s=>{ const [st,cl]=LSTAT[s.status]||[s.status,""]; return `<tr><td><b>${esc(s.title)}</b><div class="small muted">${LKIND[s.kind]||"محاضرة"}${s.course?" · "+esc(s.course):""}${serTag(s)}</div></td><td>${fmtDT(s.start_at)}</td><td>${num(s.duration_min)}</td><td>${esc(prov(s))}</td><td><span class="pill ${cl}">${st}</span>${s.published?"":' <span class="pill">غير منشورة</span>'}</td><td>${num((s.attendance||[]).length)}</td><td><button class="btn ghost sm" type="button" data-goto="${s.id}">${ico("eye")} فتح</button></td></tr>`; }).join("")}</tbody></table></div>`; return; }
+      const up=L.filter(s=>["scheduled","live"].includes(s.status)&&new Date(s.start_at).getTime()+s.duration_min*60000>now-3600e3).sort((a,b)=>new Date(a.start_at)-new Date(b.start_at)), past=L.filter(s=>!up.includes(s));
+      out.innerHTML=`${up.length?`<h2 style="margin:4px 0 0">القادمة والجارية</h2><div class="stack" style="gap:8px">${up.map(card).join("")}</div>`:""}${past.length?`<h2 style="margin:10px 0 0">السابقة</h2><div class="stack" style="gap:8px">${past.map(card).join("")}</div>`:""}`;
+      out.querySelectorAll("details[data-ls]").forEach(d=>d.addEventListener("toggle",()=>d.open?OPEN.add(d.dataset.ls):OPEN.delete(d.dataset.ls))); }
+    body();
+  }
+
+  function week(){
+    const b0=new Date(); b0.setHours(0,0,0,0); b0.setDate(b0.getDate()-((b0.getDay()+1)%7)+F.wk*7); const days=[...Array(7)].map((_,i)=>{ const d=new Date(b0); d.setDate(b0.getDate()+i); return d; });
+    const e0=new Date(days[6]); e0.setDate(e0.getDate()+1);
+    tools.innerHTML=`<div class="lvbar"><b>${days[0].toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"long"})} – ${days[6].toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"long",year:"numeric"})}</b><div class="row" style="gap:6px"><button class="btn ghost sm" type="button" data-w="1">الأسبوع التالي ←</button><button class="btn ghost sm" type="button" data-w="0">هذا الأسبوع</button><button class="btn ghost sm" type="button" data-w="-1">→ السابق</button></div></div>`;
+    tools.querySelectorAll("[data-w]").forEach(x=>x.onclick=()=>{ const v=+x.dataset.w; F.wk=v===0?0:F.wk+v; week(); });
+    const W=ss.filter(s=>{ const t=new Date(s.start_at); return t>=b0&&t<e0&&s.status!=="cancelled"; }).sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+    const today=ymd(Date.now());
+    out.innerHTML=`<div class="lvweek">${days.map(d=>{ const L=W.filter(s=>ymd(s.start_at)===ymd(d)); return `<div class="lvday${ymd(d)===today?" today":""}"><div class="lvdh"><b>${LDAYS.find(x=>x[0]===d.getDay())[1]}</b><span>${d.getDate()}</span></div>${L.map(s=>{ const [st,cl]=LSTAT[s.status]||[s.status,""]; return `<button type="button" class="lvslot ${cl}" data-goto="${s.id}"><b>${hm(s.start_at)}</b><span>${esc(s.title)}</span><small>${num(s.duration_min)} د · ${st}</small></button>`; }).join("")||`<span class="small muted lvnone">—</span>`}</div>`; }).join("")}</div>
+      <p class="small muted">${W.length?`${fsl(W.length)} هذا الأسبوع · إجمالي ${num(W.reduce((a,s)=>a+s.duration_min,0))} دقيقة`:"لا توجد فصول في هذا الأسبوع."}</p>`;
+  }
+
+  function attend(){
+    tools.innerHTML=`<div class="lvbar"><label>من<input id="laF" type="date" value="${F.af}"></label><label>إلى<input id="laT" type="date" value="${F.at}"></label><select id="laK"><option value="">كل الدورات والفصول</option>${[...new Set(ss.map(s=>s.course).filter(Boolean))].map(c=>`<option${F.ac===c?" selected":""}>${esc(c)}</option>`).join("")}</select><button class="btn ghost sm" type="button" id="laX">تصدير إلى Excel</button></div>`;
+    const S=ss.filter(s=>s.status!=="cancelled"&&new Date(s.start_at).getTime()<=now&&ymd(s.start_at)>=F.af&&ymd(s.start_at)<=F.at&&(!F.ac||s.course===F.ac)).sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+    const M=new Map(); S.forEach(s=>(s.attendance||[]).forEach(x=>{ const k=(x.name||"").trim(); if(!k) return; const o=M.get(k)||{name:k,n:0,min:0,last:null,by:new Set()}; if(!o.by.has(s.id)){ o.by.add(s.id); o.n++; } o.min+=attMin(x); if(!o.last||new Date(s.start_at)>new Date(o.last)) o.last=s.start_at; M.set(k,o); }));
+    const R=[...M.values()].sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,"ar")); const N=S.length, withRep=S.filter(s=>s.attendance?.length).length;
+    ["#laF","#laT","#laK"].forEach(q=>$(q).onchange=()=>{ F.af=$("#laF").value; F.at=$("#laT").value; F.ac=$("#laK").value; attend(); });
+    $("#laX").onclick=()=>dlCSV("ملخص_الحضور_"+F.af+"_"+F.at,[["الاسم","عدد الفصول التي حضرها","من أصل","نسبة الحضور %","إجمالي دقائق الحضور","آخر حضور",...S.map(s=>ymd(s.start_at)+" "+s.title)],...R.map(o=>[o.name,o.n,N,N?Math.round(o.n/N*100):0,o.min,o.last?ymd(o.last):"",...S.map(s=>o.by.has(s.id)?"حاضر":"غائب")])]);
+    out.innerHTML=`<div class="grid3 lvkpi"><div class="card"><small class="muted">الفصول المنعقدة</small><b>${num(N)}</b></div><div class="card"><small class="muted">بتقرير حضور من Meet</small><b>${num(withRep)}</b></div><div class="card"><small class="muted">متدرّبون حضروا</small><b>${num(R.length)}</b></div></div>
+      ${R.length?`<div class="card" style="padding:0;overflow:auto"><table class="lvtbl"><thead><tr><th>الاسم</th><th>الحضور</th><th>النسبة</th><th>الدقائق</th><th>آخر حضور</th></tr></thead><tbody>${R.map(o=>{ const pc=N?Math.round(o.n/N*100):0; return `<tr><td><b>${esc(o.name)}</b></td><td>${num(o.n)} / ${num(N)}</td><td><div class="lvbarpc"><i style="width:${pc}%;background:${pc>=75?"#16a34a":pc>=50?"#d4a017":"#dc2626"}"></i></div><small>${num(pc)}%</small></td><td>${num(o.min)}</td><td>${o.last?fmtDate(o.last):"—"}</td></tr>`; }).join("")}</tbody></table></div>`
+      :`<div class="empty">${N?"لا توجد تقارير حضور بعد لهذه الفترة. يُجمع الحضور تلقائياً من تقارير Meet بعد انتهاء كل فصل (أو اضغط «تحديث التسجيل والحضور» في بطاقة الفصل).":"لا توجد فصول منعقدة في هذه الفترة."}</div>`}
+      <p class="small muted">الأسماء كما ظهرت في Meet. بعد تفعيل حسابات المتدرّبين (المرحلة الثانية) سيُربط الحضور بالحساب بدل الاسم.</p>`;
+  }
+
+  const show=k=>{ F.mode=k; $("#lvSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.k===k)); (k==="week"?week:k==="att"?attend:list)(); };
+  $("#lvSeg").onclick=e=>{ const b=e.target.closest("button"); if(b) show(b.dataset.k); };
+  show(F.mode);
+  out.onclick=async e=>{ const b=e.target.closest("button"); if(!b) return; if(b.dataset.goto){ OPEN.add(b.dataset.goto); F.view="cards"; F.q=""; F.k=""; F.st=""; F.from=""; F.to=""; show("list"); const d=out.querySelector(`[data-ls="${b.dataset.goto}"]`); d?.scrollIntoView({behavior:"smooth",block:"center"}); return; } if(b.dataset.cp) return copy(b.dataset.cp); const det=b.closest("[data-ls]"); const s=ss.find(x=>x.id===det?.dataset.ls); if(!s) return;
     const A=(att||[]).filter(a=>a.session_id===s.id);
     try{
       if(b.dataset.lc){ const a=A.find(x=>x.id===b.dataset.lc); return copy(liveInvite(s,a)); }
@@ -1726,7 +1819,7 @@ async function showPortal(){
   if(!L.length){ $("#pList").innerHTML=`<div class="pcard"><p class="pmuted">لا توجد محاضرات مباشرة منشورة حالياً.</p></div>`; return; }
   const when=x=>new Date(x).toLocaleString("ar-EG",{weekday:"long",day:"numeric",month:"long",hour:"numeric",minute:"2-digit"});
   const card=(x,i)=>`<div class="pcard">${i===0?`<div class="ptitle">${ico("live")}<b>${x.live?"الجلسة الجارية":"الجلسة القادمة"}</b></div>`:""}
-    <h2>${esc(x.title)}</h2><p class="pmuted">${esc([x.course,x.trainer].filter(Boolean).join(" · "))}</p><p>${when(x.start_at)} · ${num(x.duration_min)} دقيقة</p>
+    <h2>${esc(x.title)}</h2><p class="pmuted">${esc([LKIND[x.kind]||"محاضرة",x.course,x.trainer].filter(Boolean).join(" · "))}</p><p>${when(x.start_at)} · ${num(x.duration_min)} دقيقة</p>
     <div class="prow">${x.live?`<span class="plive">● مباشر الآن</span>`:x.open?`<span class="psoon">الدخول مفتوح</span>`:`<span class="psoon">يبدأ ${untilTxt(x.start_at)}</span>`}
      <a class="pjoin${x.open?"":" off"}" href="#live-${x.id}">${ico("live")} ${x.open?"انضم الآن":"التفاصيل"}</a></div></div>`;
   $("#pList").innerHTML=L.map(card).join("");
@@ -1738,26 +1831,17 @@ async function showLiveGate(id){
   $("#appView").classList.add("hidden"); $("#authView").classList.add("hidden"); $("#publicView").classList.remove("hidden");
   const body=$("#pubBody"); body.innerHTML=`<div class="card"><p class="muted">جارٍ التحميل…</p></div>`;
   let info; try{ info=await live("gate_info",{id},true); }catch(e){ body.innerHTML=`<div class="empty">${esc(e.message)}</div>`; return; }
-  const saved=(()=>{ try{ return localStorage.getItem("st_live_code_"+id)||""; }catch(_){ return ""; } })();
   body.innerHTML=`<div class="card stack" style="max-width:560px;margin:0 auto">
     <a href="#portal" class="small">→ بوابة المتدرّب</a><span class="pill" style="justify-self:start">${ico("live")} محاضرة مباشرة · ${esc(info.provider)}</span>${info.course?`<span class="small muted">${esc(info.course)}</span>`:""}
     <h1 style="font-size:26px">${esc(info.title)}</h1>
     ${info.trainer?`<p class="muted">المحاضر: <b>${esc(info.trainer)}</b></p>`:""}
     <p>${fmtDT(info.start_at)} · ${num(info.duration_min)} دقيقة</p>${info.description?`<p class="small muted">${esc(info.description)}</p>`:""}
     <div id="lgState" class="small"></div>
-    <label>رمز الدخول الشخصي<input id="lgCode" dir="ltr" autocomplete="one-time-code" maxlength="8" style="font-size:22px;letter-spacing:6px;text-align:center;text-transform:uppercase" value="${esc(saved)}" placeholder="XXXXXX"></label>
-    <button class="btn gold" id="lgGo">${ico("play")} دخول المحاضرة</button>
-    <div class="hb-tip small">الرمز خاص بك ويعمل على جهاز واحد فقط. إذا ظهر لك «طلب الانضمام» في Meet، اكتب اسمك كما سجّلته إدارة المركز حتى يقبلك المحاضر.</div></div>`;
+    <div class="hb-tip small">الدخول لهذه الجلسة من حسابك في بوابة المتدرّب، ويظهر زر «انضم الآن» تلقائياً للمتدرّبين المسجّلين في ${info.course?`«${esc(info.course)}»`:"هذه الجلسة"} عند فتح الدخول.</div></div>`;
   const st=$("#lgState");
   const tick=()=>{ const t=new Date(info.start_at).getTime()-Date.now(); st.innerHTML=info.window?.ok?`<span class="pill green">الدخول مفتوح الآن</span>`:`<span class="pill ${info.status==="cancelled"?"red":""}">${esc(info.window?.why||"")}</span>${t>0?` · يبدأ ${untilTxt(info.start_at)}`:""}`; };
   tick();
-  $("#lgGo").onclick=async e=>{ const b=e.currentTarget, code=$("#lgCode").value.trim(); if(!code) return toast("اكتب رمز الدخول",true);
-    const w=window.open("about:blank","_blank"); busy(b,true,"جارٍ التحقق…");
-    try{ const r=await live("gate_join",{id,code,device:liveDevice()},true); try{ localStorage.setItem("st_live_code_"+id,code.toUpperCase()); }catch(_){}
-      st.innerHTML=`<span class="pill green">أهلاً ${esc(r.name)} — جارٍ فتح المحاضرة</span><br>اكتب اسمك في Meet: <b>${esc(r.name)}</b>`;
-      if(w) w.location=r.url; else location.href=r.url; }
-    catch(err){ w?.close(); st.innerHTML=`<span style="color:#b42318">${esc(err.message)}</span>`; }
-    finally{ busy(b,false); } };
+
 }
 
 /* إعدادات الإدارة: المنصات المتاحة والإعدادات الموحّدة */
@@ -2463,8 +2547,8 @@ async function vLessons(){
   $("#main").innerHTML=`<div class="head"><div><h1>محاضراتي</h1><p class="muted">كل المحاضرات المتحركة التي أنشأتها.</p></div><a class="btn gold" href="#studio">محاضرة جديدة</a></div><div class="list" id="ll"><div class="empty">جارٍ التحميل…</div></div>`;
   const { data } = await sb.from("lessons").select("id,title,subject,duration_min,created_at,is_public,slides").order("created_at",{ascending:false});
   const ll=$("#ll");
-  ll.innerHTML = (data||[]).length ? data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${esc(x.subject||"")} · ${num(x.duration_min)} دقيقة · ${num((x.slides||[]).length)} شريحة · ${fmtDate(x.created_at)}</span> ${x.is_public?`<span class="pill green">منشور</span>`:""} ${(x.slides||[]).length && !(x.slides||[]).every(s=>s.audio)?`<span class="pill red">غير مكتمل</span>`:""}</div><div class="row"><a class="btn sm" href="#play-${x.id}">${ico("play")} تشغيل</a><button class="btn sm danger" data-del="${x.id}">حذف</button></div></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد. ابدأ من «استوديو المحاضرة».</div>`;
-  ll.onclick=async e=>{ const b=e.target.closest("[data-del]"); if(!b) return; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } const id=b.dataset.del; const { data: files } = await sb.storage.from("audio").list(`${session.user.id}/${id}`); if(files?.length) await sb.storage.from("audio").remove(files.map(f=>`${session.user.id}/${id}/${f.name}`)); await sb.from("lessons").delete().eq("id",id); toast("حُذفت المحاضرة"); vLessons(); };
+  ll.innerHTML = (data||[]).length ? data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${esc(x.subject||"")} · ${num(x.duration_min)} دقيقة · ${num((x.slides||[]).length)} شريحة · ${fmtDate(x.created_at)}</span> ${x.is_public?`<span class="pill green">منشور</span>`:""} ${(x.slides||[]).length && !(x.slides||[]).every(s=>s.audio)?`<span class="pill red">غير مكتمل</span>`:""}</div><div class="row"><a class="btn sm" href="#play-${x.id}">${ico("play")} تشغيل</a>${can("live")?`<button class="btn sm ghost" type="button" data-lv="${x.id}">${ico("live")} فصل ذكي</button>`:""}<button class="btn sm danger" data-del="${x.id}">حذف</button></div></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد. ابدأ من «استوديو المحاضرة».</div>`;
+  ll.onclick=async e=>{ const lv=e.target.closest("[data-lv]"); if(lv){ try{ sessionStorage.setItem("st_lv_lesson",lv.dataset.lv); }catch(_){} location.hash="#live"; return; } const b=e.target.closest("[data-del]"); if(!b) return; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } const id=b.dataset.del; const { data: files } = await sb.storage.from("audio").list(`${session.user.id}/${id}`); if(files?.length) await sb.storage.from("audio").remove(files.map(f=>`${session.user.id}/${id}/${f.name}`)); await sb.from("lessons").delete().eq("id",id); toast("حُذفت المحاضرة"); vLessons(); };
 }
 
 /* ================= Voice assistant ================= */
@@ -2899,7 +2983,7 @@ async function vAdmin0(){
       <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">${pws[p.id]?`<input readonly dir="ltr" value="${esc(pws[p.id].password)}" data-pwshow style="flex:1;min-width:0;max-width:220px;font-family:monospace" onclick="this.select()"><button class="btn sm ghost" data-copypw>نسخ</button><span class="small muted">عُيّنت ${fmtDate(pws[p.id].set_at)}</span>`:`<span class="small muted">كلمة المرور التي أنشأها المستخدم بنفسه مشفّرة ولا يمكن عرضها؛ عيّن كلمة جديدة لتظهر هنا.</span>`}</div>
       <input data-newpw dir="ltr" placeholder="كلمة جديدة، أو اتركها فارغة للتوليد التلقائي"><div class="ubtns"><button class="btn sm gold" data-setpw>تعيين كلمة المرور</button></div></div>
      <details ${off?"open":""}><summary style="cursor:pointer;font-weight:600">خصائص المنصة لهذا المستخدم</summary>
-      <div class="stack" style="gap:8px;margin-top:10px">${[["main","الأقسام الرئيسية"],["lesson","صفحة المحاضرة"],["live","منصّات المحاضرات المباشرة"]].map(([g,gt])=>`<b class="small" style="margin-top:6px">${gt}</b>`+FEATURES.filter(x=>x[3]===g).map(([k,n,d])=>`<label class="row" style="justify-content:space-between;gap:10px;color:var(--ink);padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:${f[k]===false?"#fff6f5":"#fff"}"><span><b>${n}</b><br><span class="small muted">${d}</span></span><span class="row" style="gap:6px;white-space:nowrap"><span class="small" data-lbl="${k}" style="color:${f[k]===false?"#b42318":"#067647"}">${f[k]===false?"موقوفة":"مفعّلة"}</span><input type="checkbox" data-feat="${k}" ${f[k]===false?"":"checked"} style="width:22px;height:22px"></span></label>`).join("")).join("")}
+      <div class="stack" style="gap:8px;margin-top:10px">${[["main","الأقسام الرئيسية"],["lesson","صفحة المحاضرة"],["live","منصّات الفصول الذكية"]].map(([g,gt])=>`<b class="small" style="margin-top:6px">${gt}</b>`+FEATURES.filter(x=>x[3]===g).map(([k,n,d])=>`<label class="row" style="justify-content:space-between;gap:10px;color:var(--ink);padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:${f[k]===false?"#fff6f5":"#fff"}"><span><b>${n}</b><br><span class="small muted">${d}</span></span><span class="row" style="gap:6px;white-space:nowrap"><span class="small" data-lbl="${k}" style="color:${f[k]===false?"#b42318":"#067647"}">${f[k]===false?"موقوفة":"مفعّلة"}</span><input type="checkbox" data-feat="${k}" ${f[k]===false?"":"checked"} style="width:22px;height:22px"></span></label>`).join("")).join("")}
        <div class="row" style="gap:8px"><button class="btn sm ghost" data-allon>تفعيل الكل</button><button class="btn sm ghost" data-alloff>إيقاف الكل</button></div></div></details>
     </div></details>`; };
   people.sort((a,b)=>((b.id===session.user.id)-(a.id===session.user.id))||((b.role==="admin")-(a.role==="admin"))||(a.approved-b.approved)||String(a.full_name||a.email).localeCompare(String(b.full_name||b.email),"ar"));
