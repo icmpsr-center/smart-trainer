@@ -460,6 +460,11 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 #boot #bootPct{font:700 14px Cairo,Tahoma,sans-serif;color:#0b2a5b;font-variant-numeric:tabular-nums}
 #boot.off{opacity:0;pointer-events:none}
 @keyframes bpop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+details.fold>summary.foldh{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
+details.fold>summary.foldh::-webkit-details-marker{display:none}
+details.fold>summary.foldh span:first-child{display:flex;flex-direction:column;gap:2px}
+details.fold>summary.foldh b{font-size:19px;color:var(--navy,#0b2a5b)}
+details.fold[open] .uchev{transform:rotate(180deg)}
 </style>
 </head>
 <body>
@@ -1391,6 +1396,7 @@ async function loadProfile(){
   // احتياط: إن تعذّرت قراءة الأعمدة الجديدة نقرأ الأساسية حتى لا يبدو الحساب غير مفعّل
   if(error){ logErr("profile","تحميل الملف الشخصي",error.message,JSON.stringify(error)); ({ data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name").eq("id", session.user.id).single()); }
   profile = data || {role:"trainer", approved:false};
+  if(data?.approved) loadSharedVoices();
   $("#whoName").textContent = (profile.full_name||session.user.email) + (profile.role==="admin"?" · مدير":"");
   if(profile.role==="admin") syncAssets();
   adminBanner();
@@ -1540,7 +1546,9 @@ async function alexaPanel(){
 }
 
 /* ================= Studio ================= */
-function voiceList(){ return [...VOICES, ...(profile?.cloned_voice_name?[{id:"clone", n:profile.cloned_voice_name, d:"صوتي المستنسخ", c:"#c9a13b"}]:[])]; }
+let SVOICES=[];
+async function loadSharedVoices(){ try{ const r=await ai("voices_list"); SVOICES=r.voices||[]; }catch(_){ } return SVOICES; }
+function voiceList(){ return [...VOICES, ...SVOICES.map(v=>({id:"sv:"+v.id, n:v.name, d:v.desc||"صوت خاص", c:"#7c3aed"})), ...(profile?.cloned_voice_name?[{id:"clone", n:profile.cloned_voice_name, d:"صوتي المستنسخ", c:"#c9a13b"}]:[])]; }
 function voicePicker(cur="nova"){
   return `<div class="voices" id="voicePick">${voiceList().map(v=>`<div class="voice ${v.id===cur?"on":""}" data-v="${v.id}" role="radio" tabindex="0" aria-checked="${v.id===cur}"><span class="av" style="background:${v.c}">${v.n[0]}</span><span><b>${v.n}</b><small>${v.d}</small></span><button type="button" class="pv" data-pv="${v.id}" aria-label="استمع إلى ${v.n}">${ico("play")}</button></div>`).join("")}</div>`;
 }
@@ -2013,7 +2021,7 @@ async function vPlay0(id){
   const link = `${location.origin}${location.pathname}#lesson-${l.id}`;
   const missing=(l.slides||[]).filter(s=>!s.audio).length;
   const EV = effVS(l);
-  const vName = l.voice==="clone" ? (profile?.cloned_voice_name||"صوتي") : VOICES.find(v=>v.id===l.voice)?.n;
+  const vName = l.voice==="clone" ? (profile?.cloned_voice_name||"صوتي") : voiceList().find(v=>v.id===l.voice)?.n;
   $("#main").innerHTML = `<div class="head"><div><a href="#lessons" class="small">← محاضراتي</a><h1 style="margin-top:6px">${esc(l.title)}</h1><p class="muted">${esc([l.subject,l.level,(l.duration_min||"")+" دقيقة",vName].filter(Boolean).join(" · "))}</p></div>
    <div class="row"><label class="row" style="color:var(--ink);font-weight:500;${can("publish")?"":"display:none"}"><input type="checkbox" id="pubT" ${l.is_public?"checked":""}> منشورة للمتدرّبين</label><button class="btn sm ghost" id="copyL"${hid("links")}>نسخ رابط المتدرّبين</button><button class="btn sm ghost"${hid("rerecord")} id="reA" title="يعيد تسجيل صوت المحاضرة كاملة">إعادة تسجيل الصوت</button>${can("video")?`<button class="btn sm gold" id="mp4">تحميل فيديو MP4</button>`:""}${can("exams")?`<button class="btn sm ghost" id="mkExam">اختبار من هذه المحاضرة</button>`:""}</div></div>
    ${missing?`<div class="card row" style="border-color:#ead9a6;background:#fffaf0;justify-content:space-between"><span><b>${num(missing)} شريحة بلا صوت مسجّل.</b> <span class="muted">تُعرض حالياً بلا صوت، ولن يُصدَّر الفيديو قبل اكتمال صوتها. أكمل التسجيل عندما يتجدد الحد اليومي.</span></span><button class="btn sm" id="fillA">أكمل تسجيل الصوت</button></div>`:""}
@@ -2439,11 +2447,12 @@ async function toWav24k(file, maxSec=30){
   return new Blob([pcm.buffer],{type:"audio/wav"});
 }
 async function vSettings(){
-  $("#main").innerHTML=`<div class="head"><div><h1>حسابي</h1><p class="muted">ملفك المهني، واستنساخ صوتك، وربط Alexa.</p></div></div>${pending()}${can("profile")?`<div id="profCard" class="card stack"><h2>الملف المهني للمحاضر</h2><p class="muted small">جارٍ التحميل…</p></div>`:""}
+  $("#main").innerHTML=`<div class="head"><div><h1>حسابي</h1><p class="muted">ملفك المهني، واستنساخ صوتك، وربط Alexa.</p></div></div>${pending()}${can("profile")?`<details class="card fold" id="profFold"${localStorage.getItem("st_prof_open")==="1"?" open":""}><summary class="foldh"><span><b>الملف المهني للمحاضر</b><small class="muted">سيرتك الذاتية وبيانات التواصل — اضغط للفتح</small></span><span class="uchev" aria-hidden="true"></span></summary><div id="profCard" class="stack" style="margin-top:12px"><p class="muted small">جارٍ التحميل…</p></div></details>`:""}
    <div class="grid2" style="align-items:start">
     <div class="card stack" id="cloneCard" ${can("clone")?"":'style="display:none"'}><h2>صوتي المستنسخ</h2><p class="muted small">جارٍ التحقق…</p></div>${can("clone")?"":offNote("استنساخ الصوت")}
     <div class="card stack" id="alexaCard" ${can("alexa")?"":'style="display:none"'}><h2>ربط Alexa</h2><p class="muted small">جارٍ التحقق…</p></div>${can("alexa")?"":offNote("Alexa")}
    </div>`;
+  $("#profFold")?.addEventListener("toggle",e=>{ try{ localStorage.setItem("st_prof_open",e.target.open?"1":"0"); }catch(_){} });
   if(can("profile")) mountProfile().catch(e=>{ toast(e.message,true); logErr("profile","الملف المهني",e.message,String(e)); });
   const [{ data: st }, cfg] = await Promise.all([ sb.rpc("my_settings"), ai("config").catch(()=>({})) ]);
   const s=st?.[0]||{};
@@ -2551,7 +2560,54 @@ function adminBanner(){ let b=$("#asAdminBar"); if(!asAdmin()){ b?.remove(); ret
   if(!b){ b=document.createElement("div"); b.id="asAdminBar"; b.style.cssText="position:sticky;top:0;z-index:50;background:#c9a13b;color:#0b2a5b;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-weight:600"; document.body.prepend(b); }
   b.innerHTML=`<span>أنت داخل حساب «${esc(profile?.full_name||"")}» بصفتك المدير — كل الخصائص متاحة لك هنا.</span><button class="btn sm" type="button" id="backAdm">العودة إلى حسابي</button>`; $("#backAdm").onclick=backToAdmin; }
 
-async function vAdmin(){ await vAdmin0(); if(profile?.role==="admin"){ await adminNews().catch(e=>console.error(e)); appendHelp("admin"); await adminTrouble().catch(e=>console.error(e)); } }
+
+/* ===== الأصوات الخاصة المشتركة (المدير يضيفها ويحدد من يستخدمها) ===== */
+async function adminVoices(){
+  const m=$("#main"); if(!m||m.querySelector("#adVoices")) return;
+  m.insertAdjacentHTML("beforeend",`<div class="card stack" id="adVoices"><h2 class="row" style="gap:8px;margin:0">${ico("voice")}الأصوات الخاصة</h2>
+   <p class="small muted">أضف صوتاً حقيقياً (مثل صوتك أو صوت أحد المحاضرين) من تسجيل واحد، فيظهر بجانب الأصوات الستة لمن تختارهم فقط، ولا يراه بقية المستخدمين.</p>
+   <details class="ucard nformbox" id="svBox"><summary class="uhead"><div class="uhinfo"><b id="svT">إضافة صوت خاص جديد</b><span class="small muted">تسجيل من 15 إلى 30 ثانية، واختيار من يستخدمه</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody stack">
+    <input type="hidden" id="svId">
+    <div class="grid2"><label for="svName">اسم الصوت<input id="svName" maxlength="40" placeholder="مثال: د. طه"></label><label for="svDesc">الوصف<input id="svDesc" maxlength="60" placeholder="مثال: ذكر، صوت حقيقي"></label></div>
+    <div class="stack" style="border:1px solid var(--line);border-radius:14px;padding:12px"><b id="svRefL">عيّنة الصوت</b>
+     <div class="bubble small">يقرأ صاحب الصوت بنبرته في الشرح: «مرحباً بكم في محاضرة اليوم. سنتعرف على آلية عمل مثبطات الإنزيم المحوّل للأنجيوتنسين، وكيف تخفض ضغط الدم، ولماذا يسبب بعضها السعال الجاف. ثم ننتقل إلى حالة سريرية، ونناقش خيارات العلاج البديلة.»</div>
+     <div class="row"><span id="svMic"></span><span id="svMT" class="muted small">اضغط للتسجيل، ومرة أخرى للإيقاف</span></div>
+     <label for="svFile">أو ارفع تسجيلاً (صوتي أو فيديو)<input id="svFile" type="file" accept="audio/*,video/*"></label></div>
+    <div class="stack"><b>من يستخدم هذا الصوت؟</b><input id="svQ" placeholder="ابحث بالاسم أو البريد"><div id="svUsers" class="list" style="max-height:260px;overflow:auto"></div></div>
+    <label class="row" style="color:var(--ink);font-weight:400;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="svOk" style="margin-top:4px"> <span>أُقرّ بأن صاحب الصوت وافق على استنساخه واستخدامه في المنصة.</span></label>
+    <div class="row"><button class="btn gold" id="svSave">حفظ الصوت</button><button class="btn ghost hidden" id="svCancel">إلغاء التعديل</button></div>
+   </div></details>
+   <div id="svList" class="stack"><p class="small muted">جارٍ التحميل…</p></div></div>`);
+  const { data: people } = await sb.from("profiles").select("id,full_name,email,role").order("full_name");
+  let pick=new Set([session.user.id]), rec=null;
+  const drawUsers=()=>{ const q=($("#svQ").value||"").trim().toLowerCase(); $("#svUsers").innerHTML=(people||[]).filter(p=>!q||`${p.full_name||""} ${p.email}`.toLowerCase().includes(q)).map(p=>`<label class="kbrow"><input type="checkbox" value="${p.id}"${pick.has(p.id)?" checked":""}><span class="kbt">${esc(p.full_name||p.email)}</span><span class="kbf">${p.role==="admin"?"مدير":"مدرّب"}</span></label>`).join(""); };
+  $("#svQ").oninput=drawUsers; $("#svUsers").onchange=e=>{ const c=e.target.closest("input"); if(!c) return; c.checked?pick.add(c.value):pick.delete(c.value); };
+  drawUsers();
+  const t=$("#svMT"); let tv,s0; const mic=micButton(async f=>{ clearInterval(tv); rec=f; const sec=Math.round((Date.now()-s0)/1000); t.textContent=`تم التسجيل (${sec} ث)`+(sec<15||sec>30?" — الأفضل بين 15 و30 ثانية":""); }, "اضغط للتسجيل، واضغط مرة أخرى للإيقاف");
+  mic.addEventListener("click",()=>{ if(!mic.classList.contains("rec")){ s0=Date.now(); clearInterval(tv); tv=setInterval(()=>t.textContent=`جارٍ التسجيل… ${Math.round((Date.now()-s0)/1000)} ث`,500); } }, true);
+  $("#svMic").replaceWith(mic);
+  const reset=()=>{ $("#svId").value=""; $("#svName").value=""; $("#svDesc").value=""; $("#svFile").value=""; rec=null; t.textContent="اضغط للتسجيل، ومرة أخرى للإيقاف"; pick=new Set([session.user.id]); drawUsers(); $("#svT").textContent="إضافة صوت خاص جديد"; $("#svRefL").textContent="عيّنة الصوت"; $("#svCancel").classList.add("hidden"); };
+  $("#svCancel").onclick=reset;
+  const draw=async()=>{ const list=await loadSharedVoices(); const nm=id=>{ const p=(people||[]).find(x=>x.id===id); return p?(p.full_name||p.email):"—"; };
+    $("#svList").innerHTML=list.length?list.map(v=>`<div class="item" style="align-items:center"><span class="av" style="background:#7c3aed;color:#fff;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700">${esc(v.name[0]||"ص")}</span><div style="flex:1;min-width:0"><b>${esc(v.name)}</b> <span class="small muted">${esc(v.desc||"")}</span><br><span class="small muted">يستخدمه: ${(v.users||[]).map(nm).map(esc).join("، ")||"المدير فقط"}</span></div>
+      <div class="row" style="gap:6px"><button class="btn ghost sm" data-svp="${v.id}">${ico("play")} استمع</button><button class="btn ghost sm" data-sve="${v.id}">تعديل</button><button class="btn danger sm" data-svd="${v.id}">حذف</button></div></div>`).join(""):`<p class="small muted">لا توجد أصوات خاصة بعد.</p>`;
+    $("#svList").onclick=async e=>{ const b=e.target.closest("button"); if(!b) return; const v=list.find(x=>x.id===(b.dataset.svp||b.dataset.sve||b.dataset.svd));
+      if(b.dataset.svp){ busy(b,true); try{ const a=await ai("tts",{voice:"sv:"+v.id,text:`مرحباً، أنا ${v.name}. سأشرح لكم درس اليوم خطوة بخطوة، ونبدأ بالمفهوم الأساسي ثم نطبّقه على حالة سريرية.`}); playUrl(URL.createObjectURL(a)); }catch(err){ toast(err.message,true);} finally{ busy(b,false);} }
+      if(b.dataset.sve){ $("#svId").value=v.id; $("#svName").value=v.name; $("#svDesc").value=v.desc||""; pick=new Set(v.users||[]); drawUsers(); $("#svT").textContent="تعديل: "+v.name; $("#svRefL").textContent="عيّنة الصوت (اتركها فارغة للإبقاء على التسجيل الحالي)"; $("#svCancel").classList.remove("hidden"); $("#svBox").open=true; $("#svBox").scrollIntoView({behavior:"smooth",block:"start"}); }
+      if(b.dataset.svd){ if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } await ai("voice_admin_delete",{id:v.id}); toast("حُذف الصوت"); draw(); } };
+  };
+  $("#svSave").onclick=async e=>{ const id=$("#svId").value, f=$("#svFile").files[0]||rec, name=$("#svName").value.trim();
+    if(!name) return toast("اكتب اسم الصوت",true); if(!id&&!f) return toast("سجّل عيّنة الصوت أو ارفعها",true); if(f&&!$("#svOk").checked) return toast("يلزم إقرار موافقة صاحب الصوت",true);
+    const b=e.currentTarget; busy(b,true,"جارٍ الحفظ والتجربة…");
+    try{ const fields={action:"voice_admin_save", id, name, desc:$("#svDesc").value.trim(), users:JSON.stringify([...pick])};
+      if(f){ const w=await toWav24k(f,30); fields.ref=new File([w],"ref.wav",{type:"audio/wav"}); }
+      const r=await aiForm(fields);
+      toast(r.test&&r.test!=="ok"?"حُفظ الصوت، لكن تجربة Fish Audio فشلت: "+r.test:"حُفظ الصوت وأصبح متاحاً لمن اخترتهم", !!(r.test&&r.test!=="ok"));
+      reset(); $("#svBox").open=false; draw(); }
+    catch(err){ toast(err.message,true); } finally{ busy(b,false); } };
+  draw();
+}
+async function vAdmin(){ await vAdmin0(); if(profile?.role==="admin"){ await adminNews().catch(e=>console.error(e)); await adminVoices().catch(e=>console.error(e)); appendHelp("admin"); await adminTrouble().catch(e=>console.error(e)); } }
 const ADOPEN=new Set();
 async function vAdmin0(){
   if(profile?.role!=="admin"){ location.hash="dash"; return; }
