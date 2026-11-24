@@ -473,11 +473,25 @@ details.fold>summary.foldh svg{width:22px;height:22px;flex:none}
 .lvatt.off{opacity:.55}
 .lvcode{font-size:17px;letter-spacing:3px;color:var(--navy);background:#f3f6fb;border-radius:8px;padding:4px 10px}
 .lvatt-b{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.pill svg{width:16px;height:16px;flex:none}
+.pill svg,.lvadm b svg{width:16px;height:16px;flex:none;vertical-align:middle}
 .lvop{width:auto;min-height:36px;padding:4px 8px;font-size:14px;border-radius:10px}
 details.fold>summary.foldh span:first-child{display:flex;flex-direction:column;gap:2px}
 details.fold>summary.foldh b{font-size:19px;color:var(--navy,#0b2a5b)}
 details.fold[open] .uchev{transform:rotate(180deg)}
+
+.portal{max-width:640px;margin:0 auto;display:grid;gap:14px}
+.portal .phead h1{color:var(--navy);font-size:28px}.portal .phead p{color:var(--muted)}
+.pcard{background:linear-gradient(160deg,#0f2550,#0a1c3f);color:#eef3fb;border:1px solid #1f3a6e;border-radius:22px;padding:20px;display:grid;gap:8px;box-shadow:0 10px 30px rgba(11,42,91,.25)}
+.pcard h2{color:#fff;font-size:21px;line-height:1.5}
+.pcard .pmuted,.portal .pmuted{color:#a9b8d6}
+.ptitle{display:flex;align-items:center;gap:10px;font-size:20px;color:#fff}.ptitle svg{width:26px;height:26px}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.plive{background:#4a1015;color:#ff8a8a;border-radius:999px;padding:6px 14px;font-weight:700}
+.psoon{background:#1b3263;color:#c9d6ec;border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px}
+.pjoin{display:inline-flex;align-items:center;gap:8px;background:#46d37f;color:#fff;font:700 17px Cairo,sans-serif;border-radius:14px;padding:12px 22px;text-decoration:none}
+.pjoin svg{width:22px;height:22px}.pjoin.off{background:#2a4a85}
+.portalcta{max-width:1100px;margin:0 auto 18px;width:calc(100% - 32px);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--navy),#123b7a);color:#fff;border-radius:16px;padding:14px 18px;text-decoration:none}
+.portalcta span:nth-child(2){flex:1;display:grid}.portalcta small{color:#c9d6ec;font-size:13px}
 </style>
 </head>
 <body>
@@ -512,6 +526,7 @@ details.fold[open] .uchev{transform:rotate(180deg)}
       </form>
     </div>
   </div>
+  <a class="portalcta" href="#portal"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-4v12l-6-4z"/></svg><span><b>بوابة المتدرّب</b><small>المحاضرات المباشرة المنشورة — انضم بكود الدخول</small></span><span aria-hidden="true">←</span></a>
   <section class="card stack pubnews" id="pubNews"></section>
 </div>
 
@@ -1369,6 +1384,7 @@ function route(){
   const h = location.hash.replace("#","");
   if (h.startsWith("lesson-")) return showPublic(h.slice(7));
   if (h.startsWith("live-")) return showLiveGate(h.slice(5));
+  if (h==="portal") return showPortal();
   if (!session) return showAuth();
   $("#publicView").classList.add("hidden"); $("#authView").classList.add("hidden"); $("#appView").classList.remove("hidden");
   const id = TABS.some(t=>t.id===h) ? h : (h.startsWith("play-") ? "lessons" : "dash");
@@ -1622,13 +1638,14 @@ const LREC={done:"التسجيل محفوظ في Drive",processing:"جارٍ ت�
 const toLocalInput=d=>{ const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,16); };
 const liveLink=id=>location.origin+location.pathname+"#live-"+id;
 const liveDevice=()=>{ try{ let d=localStorage.getItem("st_live_dev"); if(!d){ d=crypto.randomUUID(); localStorage.setItem("st_live_dev",d); } return d; }catch(_){ return ""; } };
-function liveInvite(s,a){ return `السلام عليكم ${a.name}،\nأنت مدعو لحضور المحاضرة المباشرة: «${s.title}»\nالموعد: ${fmtDT(s.start_at)} (${s.duration_min} دقيقة)\nرابط الدخول: ${liveLink(s.id)}\nرمز الدخول الشخصي: ${a.code}\n\nالرمز خاص بك وحدك ويعمل على جهاز واحد فقط؛ لا تشاركه.\n${location.hostname.includes("github")?"المركز الدولي للدراسات والأبحاث الطبية والصيدلانية":""}`; }
+function liveInvite(s,a){ return `السلام عليكم ${a.name}،\nأنت مدعو لحضور المحاضرة المباشرة: «${s.title}»\nالموعد: ${fmtDT(s.start_at)} (${s.duration_min} دقيقة)\nرابط الدخول: ${liveLink(s.id)}
+أو من بوابة المتدرّب: ${location.origin+location.pathname}#portal\nرمز الدخول الشخصي: ${a.code}\n\nالرمز خاص بك وحدك ويعمل على جهاز واحد فقط؛ لا تشاركه.\nالمركز الدولي للدراسات والأبحاث الطبية والصيدلانية`; }
 function parsePeople(txt){ return txt.split(/\n+/).map(l=>l.trim()).filter(Boolean).map(l=>{ const parts=l.split(/[,،\t;]+/).map(x=>x.trim()).filter(Boolean); const o={name:"",phone:"",email:""};
   for(const x of parts){ if(/@/.test(x)) o.email=x; else if(/^[+\d][\d\s-]{6,}$/.test(x)) o.phone=x.replace(/\s|-/g,""); else o.name=o.name?o.name+" "+x:x; } return o; }).filter(o=>o.name); }
 
 async function vLive(){
   const main=$("#main");
-  main.innerHTML=`<div class="head"><div><h1>المحاضرات المباشرة</h1><p class="muted">جدول محاضرة مباشرة، وأضف المتدرّبين برموز دخول شخصية. رابط الاجتماع الحقيقي لا يظهر لأحد؛ الدخول من المنصة فقط.</p></div></div><div id="lvBody" class="stack"><p class="small muted">جارٍ التحميل…</p></div>`;
+  main.innerHTML=`<div class="head"><div><h1>المحاضرات المباشرة</h1><p class="muted">جدول محاضرتك المباشرة وانشرها في بوابة المتدرّب. رابط الاجتماع لا يظهر لأحد؛ تدخل أنت من زر «ادخل كمحاضر»، ويدخل المتدرّبون من البوابة.</p></div></div><div id="lvBody" class="stack"><p class="small muted">جارٍ التحميل…</p></div>`;
   let cfg; try{ cfg=await live("config"); }catch(e){ $("#lvBody").innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
   const can0=cfg.providers.length>0;
   $("#lvBody").innerHTML=`
@@ -1639,13 +1656,15 @@ async function vLive(){
       <label>المدة (دقيقة)<input id="lvD" type="number" min="15" max="600" step="5" value="60"></label></div>
      <div class="grid2"><label>المنصة<select id="lvP">${cfg.providers.map(p=>`<option value="${p}">${esc(cfg.all[p]||p)}</option>`).join("")}</select></label>
       <label>بريدك في Google (لتدخل مضيفاً مشاركاً)<input id="lvC" type="email" dir="ltr" value="${esc(session.user.email||"")}"></label></div>
+     <label>الدورة أو البرنامج (اختياري)<input id="lvCourse" maxlength="200" placeholder="مثال: الصيدلة السريرية في العناية المركزة"></label>
      <label>وصف مختصر (اختياري)<textarea id="lvDesc" rows="2"></textarea></label>
+     <label class="chk"><input type="checkbox" id="lvPub" checked> نشر في بوابة المتدرّب فور التجهيز</label>
      <p class="small muted" style="margin:0">الإعدادات الموحّدة: ${cfg.config.defaults?.auto_record!==false?"تسجيل تلقائي إلى Drive، ":""}فتح الدخول قبل الموعد بـ ${num(cfg.config.defaults?.window_before??15)} دقيقة، ورمز شخصي لكل متدرّب ${cfg.config.defaults?.one_device!==false?"على جهاز واحد":""}، وكل غريب يطرق الباب.</p>
      <button class="btn gold" id="lvGo" type="submit">${ico("live")} جدولة المحاضرة</button></form></details>
    ${can0?"":`<div class="card"><b>المحاضرات المباشرة غير متاحة لحسابك بعد.</b><p class="small muted">${cfg.connected?"لم يفعّل المدير أي منصة لحسابك.":"لم يُربط Google Meet بالمنصة بعد. يتم الربط من «إدارة المنصة ← المحاضرات المباشرة»."}</p></div>`}
    <div id="lvList" class="stack"></div>`;
   if(can0) $("#lvForm").onsubmit=async e=>{ e.preventDefault(); const b=$("#lvGo"); busy(b,true,"جارٍ تجهيز الغرفة…");
-    try{ const r=await live("create",{title:$("#lvT").value, start_at:new Date($("#lvS").value).toISOString(), duration_min:+$("#lvD").value, provider:$("#lvP").value, cohost_email:$("#lvC").value.trim(), description:$("#lvDesc").value});
+    try{ const r=await live("create",{title:$("#lvT").value, start_at:new Date($("#lvS").value).toISOString(), duration_min:+$("#lvD").value, provider:$("#lvP").value, cohost_email:$("#lvC").value.trim(), description:$("#lvDesc").value, course:$("#lvCourse").value.trim(), published:$("#lvPub").checked});
       toast("جُهّزت المحاضرة المباشرة"+(r.warnings?.length?" — مع ملاحظات":"")); vLive(); }
     catch(err){ toast(err.message,true); } finally{ busy(b,false); } };
   await drawLiveList(cfg);
@@ -1661,38 +1680,57 @@ async function drawLiveList(cfg){
   const now=Date.now(), up=ss.filter(s=>["scheduled","live"].includes(s.status)&&new Date(s.start_at).getTime()+s.duration_min*60000>now-3600e3).sort((a,b)=>new Date(a.start_at)-new Date(b.start_at)), past=ss.filter(s=>!up.includes(s));
   const card=s=>{ const A=(att||[]).filter(a=>a.session_id===s.id), J=(joins||[]).filter(j=>j.session_id===s.id); const [st,cl]=LSTAT[s.status]||[s.status,""];
     const inNow=J.filter(j=>j.ok&&j.role==="trainee"&&now-new Date(j.created_at)<3*3600e3); const bad=J.filter(j=>!j.ok).length;
-    return `<details class="ucard" data-ls="${s.id}"${OPEN.has(s.id)?" open":""}><summary class="uhead"><div class="uhinfo"><div><b style="font-size:16px">${esc(s.title)}</b> <span class="pill ${cl}">${st}</span></div><span class="small muted">${fmtDT(s.start_at)} · ${num(s.duration_min)} دقيقة · ${esc(cfg.all[s.provider]||s.provider)} · ${num(A.length)} متدرّب${s.recording_url?" · 🎥 مسجّلة":""}</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody stack">
+    return `<details class="ucard" data-ls="${s.id}"${OPEN.has(s.id)?" open":""}><summary class="uhead"><div class="uhinfo"><div><b style="font-size:16px">${esc(s.title)}</b> <span class="pill ${cl}">${st}</span>${s.published?' <span class="pill green">منشورة في البوابة</span>':' <span class="pill">غير منشورة</span>'}</div><span class="small muted">${s.course?esc(s.course)+" · ":""}${fmtDT(s.start_at)} · ${num(s.duration_min)} دقيقة · ${esc(cfg.all[s.provider]||s.provider)} ${isAdmin()?` · ${num(A.length)} رمز دخول`:""}${s.recording_url?" · 🎥 مسجّلة":""}</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody stack">
       ${s.warning?`<div class="hb-tip small">⚠ ${esc(s.warning)}</div>`:""}
       <div class="ubtns">${["scheduled","live"].includes(s.status)?`<button class="btn gold sm" data-la="host">${ico("play")} ادخل كمحاضر</button>`:""}
-       <button class="btn ghost sm" data-la="copylink">${ico("copy")} نسخ رابط المتدرّبين</button>
+       ${["scheduled","live"].includes(s.status)?`<button class="btn ghost sm" data-la="pub">${s.published?"إلغاء النشر من البوابة":"نشر في بوابة المتدرّب"}</button>`:""}
+       ${isAdmin()?`<button class="btn ghost sm" data-la="adminlink">${ico("shield")} رابط Meet (للمدير)</button>`:""}
        ${["scheduled","live"].includes(s.status)?`<button class="btn ghost sm" data-la="end">إنهاء المحاضرة</button><button class="btn danger sm" data-la="cancel">إلغاء</button>`:`<button class="btn ghost sm" data-la="sync">تحديث التسجيل والحضور</button><button class="btn danger sm" data-la="delete">حذف</button>`}</div>
       <div class="small">${s.recording_url?`🎥 <a href="${esc(s.recording_url)}" target="_blank" rel="noopener">فتح التسجيل في Drive</a>${(s.settings?.recordings||[]).slice(1).map((r,i)=>` · <a href="${esc(r.url)}" target="_blank" rel="noopener">جزء ${i+2}</a>`).join("")}`:`<span class="muted">${s.status==="ended"?LREC[s.recording_status]||"سيُبحث عن التسجيل تلقائياً بعد انتهاء المحاضرة":"يبدأ التسجيل تلقائياً عند دخولك، ويُنقل إلى Drive بعد الانتهاء."}</span>`}</div>
-      <div class="stack" style="gap:8px"><b>المتدرّبون ورموز الدخول</b>
+      ${isAdmin()?`<div class="stack lvadm" style="gap:8px"><b>${ico("shield")} رموز دخول المتدرّبين (للمدير فقط — إلى حين ربط حسابات بوابة المتدرّب)</b>
        <textarea data-lp rows="3" placeholder="سطر لكل متدرّب: الاسم، رقم الجوال، البريد (اختياري)&#10;مثال: أحمد محمد، 0501234567"></textarea>
        <div class="row"><button class="btn sm" data-la="add">إضافة وتوليد الرموز</button>${A.length?`<button class="btn ghost sm" data-la="copyall">نسخ كل الدعوات</button>`:""}</div>
        ${A.length?`<div class="stack" style="gap:6px">${A.map(a=>`<div class="lvatt${a.revoked?" off":""}"><div class="lvatt-i"><b>${esc(a.name)}</b>${a.phone?` <span class="muted small" dir="ltr">${esc(a.phone)}</span>`:""}<br><span class="small ${a.joins?"":"muted"}">${a.revoked?"موقوف · ":""}${a.joins?`دخل ${num(a.joins)} مرة · آخرها ${fmtDT(a.last_join)}${a.device?" · مربوط بجهاز":""}`:"لم يدخل بعد"}</span></div><b class="lvcode" dir="ltr">${esc(a.code)}</b>
-        <div class="lvatt-b">${a.phone?`<a class="btn ghost sm" target="_blank" rel="noopener" href="https://wa.me/${esc(a.phone.replace(/^0/,"").replace(/\D/g,""))}?text=${encodeURIComponent(liveInvite(s,a))}">واتساب</a>`:""}<button class="btn ghost sm" data-lc="${a.id}">${ico("copy")} الدعوة</button>
-         <select class="lvop" data-lsel="${a.id}"><option value="">إجراء…</option>${a.revoked?'<option value="restore">إعادة التفعيل</option>':'<option value="revoke">إيقاف الرمز</option>'}<option value="reset">السماح بجهاز جديد</option><option value="newcode">إصدار رمز جديد</option><option value="delete">حذف المتدرّب</option></select></div></div>`).join("")}</div>`:`<span class="small muted">لم تُضف متدرّبين بعد. بدون رمز لا يستطيع أحد الدخول من المنصة.</span>`}</div>
-      ${inNow.length||bad?`<div class="small"><b>دخلوا عبر المنصة (اقبل هذه الأسماء فقط عند طرق الباب):</b> ${[...new Set(inNow.map(j=>j.reason))].map(n=>`<span class="ntag">${esc(n)}</span>`).join(" ")||"—"}${bad?`<br><span style="color:#b42318">محاولات دخول مرفوضة: ${num(bad)}</span>`:""}</div>`:""}
+        <div class="lvatt-b"><button class="btn ghost sm" data-lc="${a.id}">${ico("copy")} الدعوة</button>
+         <select class="lvop" data-lsel="${a.id}"><option value="">إجراء…</option>${a.revoked?'<option value="restore">إعادة التفعيل</option>':'<option value="revoke">إيقاف الرمز</option>'}<option value="reset">السماح بجهاز جديد</option><option value="newcode">إصدار رمز جديد</option><option value="delete">حذف المتدرّب</option></select></div></div>`).join("")}</div>`:`<span class="small muted">لم تُضف رموز بعد.</span>`}</div>`:""}
+      ${inNow.length||bad?`<div class="small"><b>دخلوا عبر بوابة المتدرّب (اقبل هذه الأسماء فقط عند طرق الباب):</b> ${[...new Set(inNow.map(j=>j.reason))].map(n=>`<span class="ntag">${esc(n)}</span>`).join(" ")||"—"}${bad?`<br><span style="color:#b42318">محاولات دخول مرفوضة: ${num(bad)}</span>`:""}</div>`:""}
       ${s.attendance?.length?`<details><summary class="small" style="cursor:pointer;font-weight:700">تقرير الحضور من Meet (${num(s.attendance.length)})</summary><table class="small"><tr><th>الاسم</th><th>أول دخول</th><th>آخر خروج</th></tr>${s.attendance.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.first?fmtDT(x.first):"—"}</td><td>${x.last?fmtDT(x.last):"—"}</td></tr>`).join("")}</table></details>`:""}
      </div></details>`; };
   box.innerHTML=`${up.length?`<h2 style="margin:4px 0 0">القادمة والجارية</h2><div class="stack" style="gap:8px">${up.map(card).join("")}</div>`:""}${past.length?`<h2 style="margin:10px 0 0">السابقة</h2><div class="stack" style="gap:8px">${past.map(card).join("")}</div>`:""}`;
   box.querySelectorAll("details[data-ls]").forEach(d=>d.addEventListener("toggle",()=>d.open?OPEN.add(d.dataset.ls):OPEN.delete(d.dataset.ls)));
   box.onchange=async e=>{ const sel=e.target.closest("[data-lsel]"); if(!sel||!sel.value) return; const op=sel.value; if(op==="delete"&&!confirm("حذف هذا المتدرّب ورمزه؟")){ sel.value=""; return; }
     sel.disabled=true; try{ await live("attendee",{attendee_id:sel.dataset.lsel,op}); toast(op==="newcode"?"صدر رمز جديد — أرسله للمتدرّب":"تم"); drawLiveList(cfg); }catch(err){ toast(err.message,true); sel.disabled=false; sel.value=""; } };
-  box.onclick=async e=>{ const b=e.target.closest("button"); if(!b) return; const det=b.closest("[data-ls]"); const s=ss.find(x=>x.id===det?.dataset.ls); if(!s) return;
+  box.onclick=async e=>{ const b=e.target.closest("button"); if(!b) return; if(b.dataset.cp) return copy(b.dataset.cp); const det=b.closest("[data-ls]"); const s=ss.find(x=>x.id===det?.dataset.ls); if(!s) return;
     const A=(att||[]).filter(a=>a.session_id===s.id);
     try{
       if(b.dataset.lc){ const a=A.find(x=>x.id===b.dataset.lc); return copy(liveInvite(s,a)); }
       if(b.dataset.lo){ const [op,id]=b.dataset.lo.split(":"); if(op==="delete"&&b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد"; return; } busy(b,true); await live("attendee",{attendee_id:id,op}); toast("تم"); return drawLiveList(cfg); }
       const a=b.dataset.la;
-      if(a==="copylink") return copy(liveLink(s.id));
+      if(a==="pub"){ busy(b,true); await live("publish",{id:s.id,published:!s.published}); toast(s.published?"أُلغي النشر من بوابة المتدرّب":"نُشرت في بوابة المتدرّب"); return drawLiveList(cfg); }
+      if(a==="adminlink"){ busy(b,true); const r=await live("admin_link",{id:s.id}); busy(b,false); if(!r.url) return toast("لا يوجد رابط بعد",true); const box2=det.querySelector(".lvlink")||det.querySelector(".ubody").insertAdjacentElement("afterbegin",Object.assign(document.createElement("div"),{className:"lvlink hb-tip small"})); box2.innerHTML=`رابط Meet (لا تشاركه): <b dir="ltr">${esc(r.url)}</b> <button class="btn ghost sm" type="button" data-cp="${esc(r.url)}">نسخ</button>`; return; }
       if(a==="copyall") return copy(A.filter(x=>!x.revoked).map(x=>liveInvite(s,x)).join("\n\n——————\n\n"));
       if(a==="host"){ const w=window.open("about:blank","_blank"); busy(b,true); try{ const r=await live("host_link",{id:s.id}); if(w) w.location=r.url; else location.href=r.url; } catch(err){ w?.close(); throw err; } finally{ busy(b,false); } return; }
       if(a==="add"){ const people=parsePeople(det.querySelector("[data-lp]").value); if(!people.length) return toast("اكتب اسماً واحداً على الأقل",true); busy(b,true); const r=await live("add_attendees",{id:s.id,people}); toast(`أُضيف ${num(r.added)} متدرّب برموز دخول`); return drawLiveList(cfg); }
       if(["end","cancel","delete"].includes(a)){ if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="اضغط للتأكيد"; return; } busy(b,true); await live(a,{id:s.id}); toast(a==="end"?"أُنهيت المحاضرة — سيُنقل التسجيل إلى Drive تلقائياً":a==="cancel"?"أُلغيت المحاضرة":"حُذفت"); return drawLiveList(cfg); }
       if(a==="sync"){ busy(b,true,"جارٍ البحث عن التسجيل…"); const r=await live("sync",{id:s.id}); toast(r.result?.recordings?.length?"حُفظ التسجيل في Drive":r.result?.state==="processing"?"Google ما زال يجهّز التسجيل، أعد المحاولة بعد دقائق":"لم يُعثر على تسجيل لهذه المحاضرة"); return drawLiveList(cfg); }
     }catch(err){ toast(err.message,true); busy(b,false); } };
+}
+
+
+/* بوابة المتدرّب: المحاضرات المباشرة المنشورة (بدون أي روابط) */
+async function showPortal(){
+  $("#appView").classList.add("hidden"); $("#authView").classList.add("hidden"); $("#publicView").classList.remove("hidden");
+  const body=$("#pubBody"); body.innerHTML=`<div class="portal"><div class="phead"><h1>بوابة المتدرّب</h1><p>المحاضرات المباشرة المنشورة من المركز</p></div><div id="pList" class="stack"><p class="pmuted">جارٍ التحميل…</p></div></div>`;
+  let d; try{ d=await live("portal_list",{},true); }catch(e){ $("#pList").innerHTML=`<p class="pmuted">${esc(e.message)}</p>`; return; }
+  const L=d.sessions||[];
+  if(!L.length){ $("#pList").innerHTML=`<div class="pcard"><p class="pmuted">لا توجد محاضرات مباشرة منشورة حالياً.</p></div>`; return; }
+  const when=x=>new Date(x).toLocaleString("ar-EG",{weekday:"long",day:"numeric",month:"long",hour:"numeric",minute:"2-digit"});
+  const card=(x,i)=>`<div class="pcard">${i===0?`<div class="ptitle">${ico("live")}<b>${x.live?"الجلسة الجارية":"الجلسة القادمة"}</b></div>`:""}
+    <h2>${esc(x.title)}</h2><p class="pmuted">${esc([x.course,x.trainer].filter(Boolean).join(" · "))}</p><p>${when(x.start_at)} · ${num(x.duration_min)} دقيقة</p>
+    <div class="prow">${x.live?`<span class="plive">● مباشر الآن</span>`:x.open?`<span class="psoon">الدخول مفتوح</span>`:`<span class="psoon">يبدأ ${untilTxt(x.start_at)}</span>`}
+     <a class="pjoin${x.open?"":" off"}" href="#live-${x.id}">${ico("live")} ${x.open?"انضم الآن":"التفاصيل"}</a></div></div>`;
+  $("#pList").innerHTML=L.map(card).join("");
+  clearTimeout(window.__pT); window.__pT=setTimeout(()=>{ if(location.hash==="#portal") showPortal(); },60000);
 }
 
 /* بوابة دخول المتدرّب: صفحة عامة لا تكشف رابط الاجتماع */
@@ -1702,14 +1740,14 @@ async function showLiveGate(id){
   let info; try{ info=await live("gate_info",{id},true); }catch(e){ body.innerHTML=`<div class="empty">${esc(e.message)}</div>`; return; }
   const saved=(()=>{ try{ return localStorage.getItem("st_live_code_"+id)||""; }catch(_){ return ""; } })();
   body.innerHTML=`<div class="card stack" style="max-width:560px;margin:0 auto">
-    <span class="pill" style="justify-self:start">${ico("live")} محاضرة مباشرة · ${esc(info.provider)}</span>
+    <a href="#portal" class="small">→ بوابة المتدرّب</a><span class="pill" style="justify-self:start">${ico("live")} محاضرة مباشرة · ${esc(info.provider)}</span>${info.course?`<span class="small muted">${esc(info.course)}</span>`:""}
     <h1 style="font-size:26px">${esc(info.title)}</h1>
     ${info.trainer?`<p class="muted">المحاضر: <b>${esc(info.trainer)}</b></p>`:""}
     <p>${fmtDT(info.start_at)} · ${num(info.duration_min)} دقيقة</p>${info.description?`<p class="small muted">${esc(info.description)}</p>`:""}
     <div id="lgState" class="small"></div>
     <label>رمز الدخول الشخصي<input id="lgCode" dir="ltr" autocomplete="one-time-code" maxlength="8" style="font-size:22px;letter-spacing:6px;text-align:center;text-transform:uppercase" value="${esc(saved)}" placeholder="XXXXXX"></label>
     <button class="btn gold" id="lgGo">${ico("play")} دخول المحاضرة</button>
-    <div class="hb-tip small">الرمز خاص بك ويعمل على جهاز واحد فقط. إذا ظهر لك «طلب الانضمام» في Meet، اكتب اسمك كما سجّله المحاضر حتى يقبلك.</div></div>`;
+    <div class="hb-tip small">الرمز خاص بك ويعمل على جهاز واحد فقط. إذا ظهر لك «طلب الانضمام» في Meet، اكتب اسمك كما سجّلته إدارة المركز حتى يقبلك المحاضر.</div></div>`;
   const st=$("#lgState");
   const tick=()=>{ const t=new Date(info.start_at).getTime()-Date.now(); st.innerHTML=info.window?.ok?`<span class="pill green">الدخول مفتوح الآن</span>`:`<span class="pill ${info.status==="cancelled"?"red":""}">${esc(info.window?.why||"")}</span>${t>0?` · يبدأ ${untilTxt(info.start_at)}`:""}`; };
   tick();
