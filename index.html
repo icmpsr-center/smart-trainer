@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v32" />
+<meta name="app-version" content="v33" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -365,7 +365,21 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .ubtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .ubtns .btn{width:100%;justify-content:center}
 @media(max-width:600px){.ugrid3>label:last-child{grid-column:1/-1}}
-.card[data-id]>details{border-top:1px solid var(--line);padding-top:12px}.card[data-id]>details>summary{color:var(--navy)}
+.ubody>details{border-top:1px solid var(--line);padding-top:12px}.ubody>details>summary{color:var(--navy)}
+
+/* قائمة المستخدمين المنسدلة */
+.ufilter{display:grid;gap:10px}
+.ucard{padding:0;overflow:hidden}
+.uhead{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:16px 18px}
+.uhead::-webkit-details-marker{display:none}
+.uhinfo{flex:1;min-width:0;display:grid;gap:4px;overflow-wrap:anywhere}
+.uhinfo b{color:var(--ink)}
+.uchev{flex:none;width:30px;height:30px;border-radius:50%;background:#eef3fb;position:relative;transition:transform .2s}
+.uchev::before{content:"";position:absolute;inset:0;margin:auto;width:8px;height:8px;border-right:2px solid var(--navy);border-bottom:2px solid var(--navy);transform:translateY(-2px) rotate(45deg)}
+.ubody>.usec:first-child{border-top:0}
+.ucard[open] .uchev{transform:rotate(180deg)}
+.ucard[open] .uhead{border-bottom:1px solid var(--line);background:#fafcff}
+.ubody{padding:4px 18px 18px}
 </style>
 </head>
 <body>
@@ -2045,10 +2059,12 @@ function adminBanner(){ let b=$("#asAdminBar"); if(!asAdmin()){ b?.remove(); ret
   b.innerHTML=`<span>أنت داخل حساب «${esc(profile?.full_name||"")}» بصفتك المدير — كل الخصائص متاحة لك هنا.</span><button class="btn sm" type="button" id="backAdm">العودة إلى حسابي</button>`; $("#backAdm").onclick=backToAdmin; }
 
 async function vAdmin(){ await vAdmin0(); if(profile?.role==="admin"){ await adminNews().catch(e=>console.error(e)); appendHelp("admin"); await adminTrouble().catch(e=>console.error(e)); } }
+const ADOPEN=new Set();
 async function vAdmin0(){
   if(profile?.role!=="admin"){ location.hash="dash"; return; }
   $("#main").innerHTML=`<div class="head"><div><h1>إدارة المنصة</h1><p class="muted">فعّل الحسابات، وحدّد الدور والحد الشهري، وتحكّم في خصائص كل مستخدم وكلمة مروره.</p></div></div>
-   <div class="stack" id="adList"><div class="card">جارٍ التحميل…</div></div>`;
+   <div class="card ufilter"><input id="adQ" type="search" placeholder="ابحث بالاسم أو البريد…"><div class="chips" id="adF"><button type="button" class="on" data-uf="">الكل</button><button type="button" data-uf="pending">بانتظار التفعيل</button><button type="button" data-uf="trainer">المدرّبون</button><button type="button" data-uf="admin">المدراء</button></div><span class="small muted" id="adCount"></span></div>
+   <div class="stack" id="adList" style="gap:10px"><div class="card">جارٍ التحميل…</div></div>`;
   const start=new Date(); start.setDate(1); start.setHours(0,0,0,0);
   const [{ data: ps }, { data: us }, { data: pw }] = await Promise.all([
     sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,created_at,features").order("created_at"),
@@ -2058,9 +2074,10 @@ async function vAdmin0(){
   const pws={}; (pw||[]).forEach(x=>pws[x.user_id]=x);
   const people=ps||[];
   const card=p=>{ const f=p.features||{}; const me=p.id===session.user.id; const off=FEATURES.filter(([k])=>f[k]===false).length;
-    return `<div class="card stack" data-id="${p.id}">
-     <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:10px"><div><b style="font-size:17px">${esc(p.full_name||"—")}</b> ${p.role==="admin"?`<span class="pill">مدير</span>`:""} ${p.approved?`<span class="pill green">مفعّل</span>`:`<span class="pill" style="background:#fff4e5;color:#9a6700">بانتظار التفعيل</span>`}<br><span class="small muted" dir="ltr">${esc(p.email)}</span></div>
-      <span class="small muted">استهلاك الشهر: <b>${num(used[p.id]||0)}</b> من ${num(p.monthly_token_limit)}${off?` · <b style="color:#b42318">${num(off)} ${off>2?"خصائص موقوفة":"خاصية موقوفة"}</b>`:""}</span></div>
+    return `<details class="card ucard" data-id="${p.id}"${ADOPEN.has(p.id)?" open":""}><summary class="uhead">
+     <div class="uhinfo"><div><b style="font-size:17px">${esc(p.full_name||"—")}</b> ${p.role==="admin"?`<span class="pill">مدير</span>`:""} ${p.approved?`<span class="pill green">مفعّل</span>`:`<span class="pill" style="background:#fff4e5;color:#9a6700">بانتظار التفعيل</span>`}<br><span class="small muted" dir="ltr">${esc(p.email)}</span></div>
+      <span class="small muted">استهلاك الشهر: <b>${num(used[p.id]||0)}</b> من ${num(p.monthly_token_limit)}${off?` · <b style="color:#b42318">${num(off)} ${off>2?"خصائص موقوفة":"خاصية موقوفة"}</b>`:""}</span></div><span class="uchev" aria-hidden="true"></span></summary>
+     <div class="stack ubody">
      <div class="usec"><h4>البيانات الشخصية</h4>
       <div class="ugrid2"><label>الاسم (مع اللقب)<input data-uname value="${esc(p.full_name||"")}"></label><label>البريد الإلكتروني<input data-uemail dir="ltr" value="${esc(p.email||"")}"></label></div>
       <div class="ubtns"><button class="btn sm" data-saveuser>حفظ الاسم والبريد</button></div></div>
@@ -2076,8 +2093,16 @@ async function vAdmin0(){
      <details ${off?"open":""}><summary style="cursor:pointer;font-weight:600">خصائص المنصة لهذا المستخدم</summary>
       <div class="stack" style="gap:8px;margin-top:10px">${[["main","الأقسام الرئيسية"],["lesson","صفحة المحاضرة"]].map(([g,gt])=>`<b class="small" style="margin-top:6px">${gt}</b>`+FEATURES.filter(x=>x[3]===g).map(([k,n,d])=>`<label class="row" style="justify-content:space-between;gap:10px;color:var(--ink);padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:${f[k]===false?"#fff6f5":"#fff"}"><span><b>${n}</b><br><span class="small muted">${d}</span></span><span class="row" style="gap:6px;white-space:nowrap"><span class="small" data-lbl="${k}" style="color:${f[k]===false?"#b42318":"#067647"}">${f[k]===false?"موقوفة":"مفعّلة"}</span><input type="checkbox" data-feat="${k}" ${f[k]===false?"":"checked"} style="width:22px;height:22px"></span></label>`).join("")).join("")}
        <div class="row" style="gap:8px"><button class="btn sm ghost" data-allon>تفعيل الكل</button><button class="btn sm ghost" data-alloff>إيقاف الكل</button></div></div></details>
-    </div>`; };
+    </div></details>`; };
+  people.sort((a,b)=>(a.approved-b.approved)||String(a.full_name||a.email).localeCompare(String(b.full_name||b.email),"ar"));
   $("#adList").innerHTML=people.map(card).join("")||`<div class="empty">لا يوجد مستخدمون.</div>`;
+  $("#adList").addEventListener("toggle",e=>{ const d=e.target; if(!d.matches?.(".ucard")) return; d.open?ADOPEN.add(d.dataset.id):ADOPEN.delete(d.dataset.id); },true);
+  let uf=""; const filt=()=>{ const q=$("#adQ").value.trim().toLowerCase(); let n=0;
+    people.forEach(p=>{ const el=$("#adList").querySelector(`[data-id="${p.id}"]`); if(!el) return;
+      const ok=(!q||`${p.full_name||""} ${p.email||""}`.toLowerCase().includes(q)) && (!uf||(uf==="pending"?!p.approved:p.role===uf)); el.style.display=ok?"":"none"; if(ok) n++; });
+    $("#adCount").textContent=`${num(n)} من ${num(people.length)} مستخدم`; };
+  $("#adQ").oninput=filt; $("#adF").onclick=e=>{ const b=e.target.closest("[data-uf]"); if(!b) return; uf=b.dataset.uf; $("#adF").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); filt(); };
+  filt();
   const saveFeat=async(box)=>{ const id=box.dataset.id; const feats={}; box.querySelectorAll("[data-feat]").forEach(c=>{ if(!c.checked) feats[c.dataset.feat]=false; c.closest("label").style.background=c.checked?"#fff":"#fff6f5"; const l=box.querySelector(`[data-lbl="${c.dataset.feat}"]`); l.textContent=c.checked?"مفعّلة":"موقوفة"; l.style.color=c.checked?"#067647":"#b42318"; });
     const { error } = await sb.from("profiles").update({features:feats}).eq("id",id); if(error) return toast(error.message,true);
     const p=people.find(x=>x.id===id); if(p) p.features=feats; if(id===session.user.id){ profile.features=feats; renderTabs("admin"); } toast("حُفظت خصائص المستخدم"); };
