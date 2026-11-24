@@ -213,6 +213,13 @@ a.stat:hover{border-color:var(--gold);transform:translateY(-1px)}
 .q .opts{display:grid;gap:6px}
 .q .opt{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;border:1px solid var(--line);cursor:pointer}
 .q .opt.right{border-color:var(--ok);background:#e6f5ee}.q .opt.wrong{border-color:var(--err);background:#fbe9e6}
+.q .opt input{width:auto;flex:0 0 auto;margin:0;min-height:0}.q .opt span{flex:1;min-width:0}
+.q.essay{border-inline-start:4px solid var(--gold)}.q textarea[data-ans]{width:100%;min-height:110px}
+.qmodel{border:1px dashed #c9d6ec;border-radius:10px;padding:10px;background:#f8fbff;min-height:60px;white-space:pre-wrap}
+.qpts{display:inline-flex;align-items:center;gap:4px;font-weight:600}.qpts input{width:64px;padding:4px 6px;min-height:0}
+.qimgw{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.qimg{max-width:100%;max-height:360px;border-radius:12px;border:1px solid var(--line);object-fit:contain;background:#fff}
+.essres{border:1px solid #e3e9f2;background:#f8fbff;border-radius:12px;padding:10px;display:grid;gap:6px}
+.exres{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border:2px solid var(--c);border-radius:14px;padding:12px 16px;background:#fff}.exres b{font-size:26px;color:var(--c)}.exres span{font-weight:800;color:var(--c)}.exres small{color:#64748b}
 .q [contenteditable]{outline:none;border-radius:6px;padding:2px 4px}
 .q [contenteditable]:focus{background:#f1f5fc}
 .out{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;min-height:120px;line-height:1.8}
@@ -518,7 +525,8 @@ details.fold[open] .uchev{transform:rotate(180deg)}
 .plive{background:#4a1015;color:#ff8a8a;border-radius:999px;padding:6px 14px;font-weight:700}
 .psoon{background:#1b3263;color:#c9d6ec;border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px}
 .pjoin{display:inline-flex;align-items:center;gap:8px;background:#46d37f;color:#fff;font:700 17px Cairo,sans-serif;border-radius:14px;padding:12px 22px;text-decoration:none}
-.pjoin svg{width:22px;height:22px}.pjoin.off{background:#2a4a85}
+.pjoin svg{width:22px;height:22px}.pjoin.off{background:#46d37f;opacity:.9}
+.btn.join{background:#46d37f;border-color:#46d37f;color:#fff}.btn.join:hover{background:#3cc072}
 button.pjoin{border:0;cursor:pointer}
 .ptitle a{margin-inline-start:auto;font-size:15px;color:#8fb4ff;text-decoration:none;font-weight:600}
 .pnext{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #1f3a6e;padding-top:10px;color:#c9d6ec;font-size:14px;text-decoration:none}.pnext b{color:#fff;font-weight:600}
@@ -1676,7 +1684,7 @@ async function live(action, payload={}, pub=false){
 const LKINDS=[["lecture","محاضرة عادية"],["workshop","ورشة عمل"],["course","دورة تدريبية (متسلسلة)"],["meeting","اجتماع تدريبي"],["other","أخرى (اذكرها)"]];
 const LKIND={lecture:"محاضرة",workshop:"ورشة عمل",course:"دورة تدريبية",meeting:"اجتماع تدريبي",other:"أخرى",video:"مرتبطة بمحاضرة متحركة"};
 const kindOf=s=>s.kind==="other"?(s.kind_label||s.settings?.kind_label||"أخرى"):(LKIND[s.kind]||"محاضرة");
-const LSTAT={scheduled:["مجدولة",""],live:["جارية الآن","green"],ended:["انتهت","gold"],cancelled:["أُلغيت","red"]};
+const LSTAT={scheduled:["مجدولة",""],live:["● مباشر الآن","red"],ended:["انتهت","gold"],cancelled:["أُلغيت","red"]};
 const LREC={done:"التسجيل محفوظ",processing:"جارٍ تجهيز التسجيل في Google…",none:"لا يوجد تسجيل بعد",error:"تعذّرت مزامنة التسجيل"};
 const toLocalInput=d=>{ const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,16); };
 const liveLink=id=>location.origin+location.pathname+"#live-"+id;
@@ -1771,7 +1779,7 @@ async function drawLiveList(cfg, pre){
     const inNow=J.filter(j=>j.ok&&j.role==="trainee"&&now-new Date(j.created_at)<3*3600e3); const bad=J.filter(j=>!j.ok).length;
     return `<details class="ucard" data-ls="${s.id}"${OPEN.has(s.id)?" open":""}><summary class="uhead"><div class="uhinfo"><div><b style="font-size:16px">${esc(s.title)}</b> <span class="pill ${cl}">${st}</span>${s.published?' <span class="pill green">منشورة في البوابة</span>':' <span class="pill">غير منشورة</span>'}</div><span class="small muted">${esc(kindOf(s))}${s.course?" · "+esc(s.course):""}${serTag(s)} · ${fmtDT(s.start_at)} · ${num(s.duration_min)} دقيقة · ${esc(cfg.all[s.provider]||s.provider)} ${s.recording_url?" · 🎥 مسجّلة":""}</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody stack">
       ${s.warning?`<div class="hb-tip small">⚠ ${esc(s.warning)}</div>`:""}
-      <div class="ubtns">${["scheduled","live"].includes(s.status)?`<button class="btn gold sm" data-la="host">${ico("play")} ادخل كمحاضر</button>`:""}
+      <div class="ubtns">${["scheduled","live"].includes(s.status)?`<button class="btn join sm" data-la="host">${ico("live")} ${s.status==="live"?"انضم الآن":"ادخل كمحاضر"}</button>`:""}
        ${["scheduled","live"].includes(s.status)?`<button class="btn ghost sm" data-la="pub">${s.published?"إلغاء النشر من البوابة":"نشر في بوابة المتدرّب"}</button>`:""}
        ${s.status!=="cancelled"&&can("live_attention")?`<button class="btn ghost sm" data-la="attn">🧠 مؤشر الانتباه</button>`:""}
        ${isAdmin()?`<button class="btn ghost sm" data-la="adminlink">${ico("shield")} رابط الاجتماع (للمدير)</button>`:""}
@@ -1980,7 +1988,7 @@ async function dashLive(el){
     <h2>${esc(s.title)}</h2><p class="pmuted" style="margin:0">${esc([kindOf(s),s.course].filter(Boolean).join(" · "))}${serTag(s)}</p>
     <p style="margin:0">${new Date(s.start_at).toLocaleString("ar-EG-u-nu-latn",{weekday:"long",day:"numeric",month:"long",hour:"numeric",minute:"2-digit"})} · ${num(s.duration_min)} دقيقة${s.published?"":` · <span class="pmuted">غير منشورة للمتدرّبين</span>`}</p>
     <div class="prow">${isLive?`<span class="plive">● مباشر الآن</span>`:`<span class="psoon">يبدأ ${untilTxt(s.start_at)}</span>`}
-     ${open?`<button class="pjoin" type="button" data-host="${s.id}">${ico("live")} ادخل كمحاضر</button>`:`<a class="pjoin off" href="#live">${ico("live")} التفاصيل</a>`}</div>
+     <button class="pjoin" type="button" data-host="${s.id}">${ico("live")} ${isLive?"انضم الآن":"ادخل كمحاضر"}</button></div>
     ${L.slice(1,3).map(x=>`<a class="pnext" href="#live"><b>${esc(x.title)}</b><span>${fmtDT(x.start_at)}</span></a>`).join("")}
     <div data-push></div></div>`;
   pushBanner(el.querySelector("[data-push]"),"trainer");
@@ -2884,7 +2892,7 @@ async function vExams(){
   const p=examPrefill||{}; examPrefill=null;
   $("#main").innerHTML=`<div class="head"><div><h1>منشئ الاختبارات وبنك الأسئلة</h1><p class="muted">أنشئ اختباراً من موضوع أو من مراجعك، راجعه وعدّله، ثم احفظه أو جرّبه.</p></div></div>${pending()}
    <div class="grid2" style="align-items:start"><form class="card stack" id="exForm"><label for="exTopic">الموضوع<input id="exTopic" value="${esc(p.topic||"")}" placeholder="مثال: مضادات التخثر الفموية"></label>
-   <div class="grid3"><label for="exCount">عدد الأسئلة<input id="exCount" type="number" min="3" max="40" value="${+p.count||10}"></label><label for="exDiff">الصعوبة<select id="exDiff">${["سهل","متوسط","صعب","متقدم"].map(x=>`<option ${x===p.difficulty?"selected":""}>${x}</option>`).join("")}</select></label><label for="exType">النوع<select id="exType"><option value="mcq">اختيار من متعدد</option><option value="tf">صح أو خطأ</option><option value="mix">مزيج</option><option value="case">حالات سريرية</option></select></label></div>
+   <div class="grid3"><label for="exCount">عدد الأسئلة<input id="exCount" type="number" min="3" max="40" value="${+p.count||10}"></label><label for="exDiff">الصعوبة<select id="exDiff">${["سهل","متوسط","صعب","متقدم"].map(x=>`<option ${x===p.difficulty?"selected":""}>${x}</option>`).join("")}</select></label><label for="exType">النوع<select id="exType"><option value="mcq">اختيار من متعدد</option><option value="tf">صح أو خطأ</option><option value="mix">مزيج</option><option value="case">حالات سريرية</option><option value="essay">تحريري (مقالي)</option><option value="all">شامل: اختيار + تحريري</option></select></label></div>
    <div class="stack"><span class="small muted" style="font-weight:500">من ملفات قاعدة المعرفة (اختياري)</span>${kbPicker("exKb")}</div>
    ${p.source?`<p class="small muted">سيُبنى الاختبار من محتوى المحاضرة المحددة.</p>`:""}
    <button class="btn gold" id="exGo" type="submit">أنشئ الأسئلة</button></form>
@@ -2902,29 +2910,82 @@ async function vExams(){
     const btn=$("#exGo"); busy(btn,true,"جارٍ كتابة الأسئلة…");
     try{
       let ctx=source; const ids=pickedDocs("exKb"); if(ids.length){ const docs=await kbDocs(); ctx=ctxText(await retrieve(topic,ids,10),docs); }
-      const type={mcq:"اختيار من متعدد بأربعة خيارات",tf:"صح أو خطأ (خياران: صح، خطأ)",mix:"مزيج من اختيار من متعدد وصح أو خطأ",case:"أسئلة حالات سريرية قصيرة باختيار من متعدد"}[$("#exType").value];
-      const n=Math.max(3,Math.min(40,+$("#exCount").value||10));
-      const r=await chat(SYS, `اكتب ${n} سؤالاً عن «${topic}» بمستوى ${$("#exDiff").value}، من نوع: ${type}.${ctx?`\nاعتمد فقط على هذا المحتوى:\n${ctx}`:""}\nأعد JSON: {"title":"","questions":[{"q":"","options":["",""],"answer":0,"explanation":"شرح قصير لسبب صحة الإجابة"}]} حيث answer رقم الخيار الصحيح بدءاً من 0. نوّع مواضع الإجابة الصحيحة.`, {json:true, maxTokens:Math.min(8000,400+n*260), temperature:0.5});
-      curExam={ title:r.title||`اختبار: ${topic}`, settings:{topic, difficulty:$("#exDiff").value}, questions:(r.questions||[]).filter(q=>q.q&&q.options?.length) };
+      const xt=$("#exType").value;
+      const type={mcq:"اختيار من متعدد بأربعة خيارات",tf:"صح أو خطأ (خياران: صح، خطأ)",mix:"مزيج من اختيار من متعدد وصح أو خطأ",case:"أسئلة حالات سريرية قصيرة باختيار من متعدد",essay:"أسئلة تحريرية (مقالية) قصيرة الإجابة",all:"مزيج: نحو ثلثيها اختيار من متعدد وثلثها تحريرية (مقالية)"}[xt];
+      const n=Math.max(3,Math.min(40,+$("#exCount").value||10)); const hasEssay=xt==="essay"||xt==="all";
+      const r=await chat(SYS, `اكتب ${n} سؤالاً عن «${topic}» بمستوى ${$("#exDiff").value}، من نوع: ${type}.${ctx?`\nاعتمد فقط على هذا المحتوى:\n${ctx}`:""}\nأعد JSON: {"title":"","questions":[{"t":"mcq","q":"","options":["",""],"answer":0,"explanation":"شرح قصير لسبب صحة الإجابة","points":1}${hasEssay?`,{"t":"essay","q":"","model":"الإجابة النموذجية كاملة بالنقاط الأساسية المطلوبة","points":5,"explanation":"ما يجب أن تتضمنه الإجابة"}`:""}]} حيث answer رقم الخيار الصحيح بدءاً من 0. نوّع مواضع الإجابة الصحيحة.${hasEssay?" للأسئلة التحريرية اكتب إجابة نموذجية دقيقة يمكن التصحيح عليها، ودرجة من 3 إلى 10 بحسب طول الإجابة المطلوبة.":""}`, {json:true, maxTokens:Math.min(8000,400+n*(hasEssay?380:260)), temperature:0.5});
+      curExam={ title:r.title||`اختبار: ${topic}`, settings:{topic, difficulty:$("#exDiff").value}, questions:(r.questions||[]).map(q=>q.t==="essay"||(!q.options?.length&&q.model)?{t:"essay",q:q.q,model:q.model||"",points:+q.points||5,explanation:q.explanation||""}:{...q,t:"mcq",points:+q.points||1}).filter(q=>q.q&&(q.t==="essay"||q.options?.length)) };
       renderExam(); toast(`كُتب ${curExam.questions.length} سؤالاً`);
     }catch(err){ toast(err.message,true);} finally{ busy(btn,false); }
   }
   $("#exForm").addEventListener("submit",e=>{ e.preventDefault(); gen(); });
   if(p.autostart||source) gen();
 }
+/* ===== الأسئلة: اختيار من متعدد + تحريري (تصحيح Gemini مقابل الإجابة النموذجية) + صور ===== */
+const qType=q=>q.t==="essay"?"essay":"mcq";
+const qPts=q=>Math.max(0,+q.points||(qType(q)==="essay"?5:1));
+async function uploadQImg(file){
+  if(!/^image\//.test(file.type)) throw new Error("اختر ملف صورة");
+  const img=await new Promise((ok,no)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=()=>no(new Error("تعذّر قراءة الصورة")); i.src=URL.createObjectURL(file); });
+  const k=Math.min(1,1600/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
+  const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(img.src);
+  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",.86)); const path=`${session.user.id}/exams/${crypto.randomUUID()}.jpg`;
+  const { error } = await sb.storage.from("audio").upload(path,blob,{contentType:"image/jpeg",upsert:false}); if(error) throw new Error("تعذّر رفع الصورة: "+error.message);
+  return sb.storage.from("audio").getPublicUrl(path).data.publicUrl;
+}
+async function gradeEssays(items){
+  const r=await chat(`أنت مصحّح أكاديمي دقيق ومنصف لاختبارات طبية وصيدلانية باللغة العربية. تقارن إجابة المتدرّب بالإجابة النموذجية من حيث المعنى والمفاهيم والنقاط الأساسية والدقة العلمية، لا من حيث تطابق الألفاظ. تقبل الصياغات المختلفة والمرادفات والإجابة بالإنجليزية للمصطلحات العلمية. لا تمنح درجة لمعلومة خاطئة علمياً، وتخصم على الأخطاء الجوهرية. الإجابة الفارغة أو الخارجة عن السؤال درجتها صفر.`,
+    `صحّح الإجابات التالية. لكل سؤال: الدرجة الكاملة، والإجابة النموذجية، وإجابة المتدرّب.\n${items.map(x=>`### سؤال ${x.i}\nالسؤال: ${x.q}\nالدرجة الكاملة: ${x.points}\nالإجابة النموذجية: ${x.model||"(غير محددة: صحّح بحسب المعرفة العلمية الصحيحة)"}\nإجابة المتدرّب: ${x.answer||"(فارغة)"}`).join("\n\n")}\n\nأعد JSON: {"results":[{"i":رقم السؤال,"score":درجة عشرية من 0 حتى الدرجة الكاملة (بخطوات 0.5),"similarity":نسبة التطابق المعنوي مع الإجابة النموذجية من 0 إلى 100,"covered":["نقاط ذكرها المتدرّب بشكل صحيح"],"missing":["نقاط أساسية ناقصة"],"errors":["أخطاء علمية إن وُجدت"],"feedback":"تعليق قصير بنّاء للمتدرّب"}]}`,
+    {json:true, temperature:0.1, maxTokens:Math.min(8000,600+items.length*450)});
+  return (r.results||[]).map(x=>({...x, score:Math.max(0,Math.min(+items.find(y=>y.i===x.i)?.points||0, Math.round((+x.score||0)*2)/2))}));
+}
 function renderExam(take=false){
   const ex=curExam, w=$("#exWork"); if(!ex) return;
-  w.innerHTML=`<div class="card stack"><div class="head"><div><h2 contenteditable="${!take}" id="exTitle">${esc(ex.title)}</h2><p class="small muted">${take?"اختر إجابة لكل سؤال ثم اضغط «النتيجة».":"اضغط على أي نص لتعديله. حدّد الإجابة الصحيحة بالدائرة."}</p></div><div class="row">${take?`<button class="btn" id="exScore">النتيجة</button><button class="btn ghost" id="exBack">رجوع للتعديل</button>`:`<button class="btn gold" id="exSave">${ex.id?"حفظ التعديلات":"احفظ في بنك الأسئلة"}</button><button class="btn ghost" id="exTake">جرّب الاختبار</button><button class="btn ghost" id="exCopy">نسخ كنص</button>`}</div></div>
-   <div class="stack" id="qs">${ex.questions.map((q,k)=>`<div class="q" data-k="${k}"><div class="row" style="justify-content:space-between"><b>سؤال ${k+1}</b>${take?"":`<button class="btn sm danger" data-rm="${k}" type="button">حذف</button>`}</div><div ${take?"":`contenteditable="true"`} data-f="q">${esc(q.q)}</div><div class="opts">${q.options.map((o,j)=>`<label class="opt" style="color:var(--ink);font-weight:400"><input type="radio" name="q${k}" value="${j}" ${!take&&j===q.answer?"checked":""}><span ${take?"":`contenteditable="true"`} data-o="${j}">${esc(o)}</span></label>`).join("")}</div><div class="small muted ${take?"hidden":""}" data-exp ${take?"":`contenteditable="true"`}>${esc(q.explanation||"")}</div></div>`).join("")}</div></div>`;
-  const sync=()=>{ ex.title=$("#exTitle").textContent.trim(); w.querySelectorAll(".q").forEach(el=>{ const q=ex.questions[+el.dataset.k]; q.q=el.querySelector("[data-f=q]").textContent.trim(); el.querySelectorAll("[data-o]").forEach(s=>q.options[+s.dataset.o]=s.textContent.trim()); const c=el.querySelector("input:checked"); if(c) q.answer=+c.value; q.explanation=el.querySelector("[data-exp]").textContent.trim(); }); };
+  ex.questions=ex.questions||[]; const total=ex.questions.reduce((a,q)=>a+qPts(q),0); const nE=ex.questions.filter(q=>qType(q)==="essay").length;
+  const qHtml=(q,k)=>{ const E=qType(q)==="essay";
+    return `<div class="q${E?" essay":""}" data-k="${k}"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><b>سؤال ${k+1} <span class="pill ${E?"gold":""}">${E?"تحريري":"اختيار"}</span></b>
+      <div class="row" style="gap:6px">${take?`<span class="small muted">${num(qPts(q))} درجة</span>`:`<label class="small qpts">الدرجة<input type="number" min="0" max="100" step="0.5" data-pts value="${qPts(q)}"></label><label class="btn sm ghost" style="cursor:pointer">🖼️ صورة<input type="file" accept="image/*" data-img hidden></label><button class="btn sm danger" data-rm="${k}" type="button">حذف</button>`}</div></div>
+     <div ${take?"":`contenteditable="true"`} data-f="q" class="qtext">${esc(q.q)}</div>
+     ${q.img?`<div class="qimgw"><img class="qimg" src="${esc(q.img)}" alt="صورة السؤال ${k+1}" loading="lazy">${take?"":`<button class="btn sm ghost" type="button" data-rmimg="${k}">إزالة الصورة</button>`}</div>`:""}
+     ${E?(take?`<textarea data-ans rows="5" placeholder="اكتب إجابتك هنا…"></textarea><div data-res class="hidden"></div><div class="small muted hidden" data-modelv style="white-space:pre-wrap"><b>الإجابة النموذجية:</b> ${esc(q.model||"")}</div>`
+        :`<div class="small" style="font-weight:700;color:var(--navy)">الإجابة النموذجية (يصحّح عليها Gemini)</div><div class="qmodel" contenteditable="true" data-model>${esc(q.model||"")}</div><div class="row"><button class="btn sm ghost" type="button" data-sugg="${k}">✨ اقترح إجابة نموذجية</button></div>`)
+      :`<div class="opts">${(q.options||[]).map((o,j)=>`<label class="opt" style="color:var(--ink);font-weight:400"><input type="radio" name="q${k}" value="${j}" ${!take&&j===q.answer?"checked":""}><span ${take?"":`contenteditable="true"`} data-o="${j}">${esc(o)}</span></label>`).join("")}</div>${take?"":`<div class="row"><button class="btn sm ghost" type="button" data-addopt="${k}">+ خيار</button></div>`}`}
+     <div class="small muted ${take?"hidden":""}" data-exp ${take?"":`contenteditable="true"`}>${esc(q.explanation||"")}</div></div>`; };
+  w.innerHTML=`<div class="card stack"><div class="head"><div><h2 contenteditable="${!take}" id="exTitle">${esc(ex.title)}</h2><p class="small muted">${take?`أجب عن الأسئلة ثم اضغط «النتيجة». ${nE?"الأسئلة التحريرية يصحّحها Gemini بمقارنتها بالإجابة النموذجية.":""}`:"اضغط على أي نص لتعديله. حدّد الإجابة الصحيحة بالدائرة، واكتب الإجابة النموذجية للأسئلة التحريرية."} · المجموع ${num(total)} درجة</p></div><div class="row">${take?`<button class="btn gold" id="exScore">النتيجة</button><button class="btn ghost" id="exBack">رجوع للتعديل</button>`:`<button class="btn gold" id="exSave">${ex.id?"حفظ التعديلات":"احفظ في بنك الأسئلة"}</button><button class="btn ghost" id="exTake">جرّب الاختبار</button><button class="btn ghost" id="exCopy">نسخ كنص</button>`}</div></div>
+   <div id="exResult"></div>
+   <div class="stack" id="qs">${ex.questions.map(qHtml).join("")}</div>
+   ${take?"":`<div class="row"><button class="btn ghost" type="button" id="exAddM">+ سؤال اختيار من متعدد</button><button class="btn ghost" type="button" id="exAddE">+ سؤال تحريري</button></div>`}</div>`;
+  const sync=()=>{ ex.title=$("#exTitle").textContent.trim(); w.querySelectorAll(".q").forEach(el=>{ const q=ex.questions[+el.dataset.k]; q.q=el.querySelector("[data-f=q]").innerText.trim(); const pt=el.querySelector("[data-pts]"); if(pt) q.points=Math.max(0,+pt.value||0);
+    if(qType(q)==="essay"){ const m=el.querySelector("[data-model]"); if(m) q.model=m.innerText.trim(); }
+    else { el.querySelectorAll("[data-o]").forEach(s=>q.options[+s.dataset.o]=s.textContent.trim()); const c=el.querySelector("input:checked"); if(c) q.answer=+c.value; }
+    q.explanation=el.querySelector("[data-exp]").innerText.trim(); }); };
   if(take){
     $("#exBack").onclick=()=>renderExam(false);
-    $("#exScore").onclick=()=>{ let s=0; w.querySelectorAll(".q").forEach(el=>{ const q=ex.questions[+el.dataset.k]; const c=el.querySelector("input:checked"); el.querySelectorAll(".opt").forEach((o,j)=>{ o.classList.toggle("right",j===q.answer); o.classList.toggle("wrong",!!c&&+c.value===j&&j!==q.answer); }); if(c&&+c.value===q.answer) s++; el.querySelector("[data-exp]").classList.remove("hidden"); }); toast(`النتيجة: ${s} من ${ex.questions.length}`); };
+    $("#exScore").onclick=async e=>{ const b=e.currentTarget; let got=0; const essays=[];
+      w.querySelectorAll(".q").forEach(el=>{ const k=+el.dataset.k, q=ex.questions[k];
+        if(qType(q)==="essay"){ essays.push({i:k+1, q:q.q, model:q.model, points:qPts(q), answer:el.querySelector("[data-ans]").value.trim()}); return; }
+        const c=el.querySelector("input:checked"); el.querySelectorAll(".opt").forEach((o,j)=>{ o.classList.toggle("right",j===q.answer); o.classList.toggle("wrong",!!c&&+c.value===j&&j!==q.answer); }); if(c&&+c.value===q.answer) got+=qPts(q); el.querySelector("[data-exp]").classList.remove("hidden"); });
+      const show=(res)=>{ let eg=0; (res||[]).forEach(r=>{ eg+=r.score; const el=w.querySelector(`.q[data-k="${r.i-1}"]`); if(!el) return; const q=ex.questions[r.i-1]; const box=el.querySelector("[data-res]"); const pc=qPts(q)?r.score/qPts(q):0;
+          box.className="essres"; box.innerHTML=`<div class="row" style="justify-content:space-between"><b style="color:${attColor(pc)}">${num(r.score)} / ${num(qPts(q))}</b><span class="small muted">التطابق مع الإجابة النموذجية: ${num(Math.round(+r.similarity||0))}%</span></div><div class="lvbarpc"><i style="width:${Math.round(pc*100)}%;background:${attColor(pc)}"></i></div>${r.feedback?`<p class="small" style="margin:4px 0">${esc(r.feedback)}</p>`:""}${r.covered?.length?`<div class="small">✅ ${r.covered.map(esc).join(" · ")}</div>`:""}${r.missing?.length?`<div class="small">⚠️ ناقص: ${r.missing.map(esc).join(" · ")}</div>`:""}${r.errors?.length?`<div class="small" style="color:#b42318">❌ ${r.errors.map(esc).join(" · ")}</div>`:""}`;
+          el.querySelector("[data-modelv]").classList.remove("hidden"); el.querySelector("[data-exp]").classList.remove("hidden"); });
+        const sc=got+eg, pc=total?sc/total:0;
+        $("#exResult").innerHTML=`<div class="exres" style="--c:${attColor(pc)}"><b>${num(Math.round(sc*10)/10)} / ${num(total)}</b><span>${num(Math.round(pc*100))}%</span><small>${essays.length?`منها ${num(Math.round(eg*10)/10)} من الأسئلة التحريرية بتصحيح Gemini`:"اختيار من متعدد"}</small></div>`; $("#exResult").scrollIntoView({behavior:"smooth",block:"center"}); };
+      if(!essays.length) return show([]);
+      busy(b,true,"Gemini يصحّح الإجابات التحريرية…"); try{ show(await gradeEssays(essays)); }catch(err){ toast(err.message,true); } finally{ busy(b,false); } };
     return;
   }
-  w.querySelector("#qs").onclick=e=>{ const r=e.target.closest("[data-rm]"); if(r){ sync(); ex.questions.splice(+r.dataset.rm,1); renderExam(); } };
-  $("#exTake").onclick=()=>{ sync(); renderExam(true); };
-  $("#exCopy").onclick=()=>{ sync(); copy(ex.title+"\n\n"+ex.questions.map((q,k)=>`${k+1}. ${q.q}\n${q.options.map((o,j)=>`   ${"أبجد"[j]||j+1}) ${o}`).join("\n")}\nالإجابة: ${q.options[q.answer]}`).join("\n\n")); };
+  w.querySelector("#qs").onclick=async e=>{ const r=e.target.closest("[data-rm]"), ri=e.target.closest("[data-rmimg]"), ao=e.target.closest("[data-addopt]"), sg=e.target.closest("[data-sugg]");
+    if(r){ sync(); ex.questions.splice(+r.dataset.rm,1); return renderExam(); }
+    if(ri){ sync(); delete ex.questions[+ri.dataset.rmimg].img; return renderExam(); }
+    if(ao){ sync(); const q=ex.questions[+ao.dataset.addopt]; q.options=[...(q.options||[]),"خيار جديد"]; return renderExam(); }
+    if(sg){ sync(); const q=ex.questions[+sg.dataset.sugg]; if(!q.q) return toast("اكتب نص السؤال أولاً",true); busy(sg,true,"جارٍ الكتابة…");
+      try{ const t=await chat(SYS,`اكتب إجابة نموذجية دقيقة ومختصرة لهذا السؤال التحريري، بالنقاط الأساسية التي يُصحَّح عليها (درجة السؤال ${qPts(q)}):\n${q.q}\nاكتب نصاً عادياً بنقاط مرقّمة، دون مقدمة.`,{maxTokens:900,temperature:0.3}); q.model=t.trim(); renderExam(); }catch(err){ toast(err.message,true); busy(sg,false); } } };
+  w.querySelector("#qs").onchange=async e=>{ const f=e.target.closest("[data-img]"); if(!f?.files?.[0]) return; sync(); const k=+f.closest(".q").dataset.k; toast("جارٍ رفع الصورة…");
+    try{ ex.questions[k].img=await uploadQImg(f.files[0]); renderExam(); toast("أُضيفت الصورة إلى السؤال"); }catch(err){ toast(err.message,true); } };
+  $("#exAddM").onclick=()=>{ sync(); ex.questions.push({t:"mcq",q:"نص السؤال",options:["الخيار الأول","الخيار الثاني","الخيار الثالث","الخيار الرابع"],answer:0,points:1,explanation:""}); renderExam(); w.querySelector(".q:last-child")?.scrollIntoView({behavior:"smooth"}); };
+  $("#exAddE").onclick=()=>{ sync(); ex.questions.push({t:"essay",q:"نص السؤال التحريري",model:"",points:5,explanation:""}); renderExam(); w.querySelector(".q:last-child")?.scrollIntoView({behavior:"smooth"}); };
+  $("#exTake").onclick=()=>{ sync(); if(ex.questions.some(q=>qType(q)==="essay"&&!q.model)) toast("تنبيه: بعض الأسئلة التحريرية بلا إجابة نموذجية؛ سيصحّحها Gemini بحسب المعرفة العلمية.",true); renderExam(true); };
+  $("#exCopy").onclick=()=>{ sync(); copy(ex.title+"\n\n"+ex.questions.map((q,k)=>qType(q)==="essay"?`${k+1}. ${q.q} (${qPts(q)} درجة)${q.img?`\n[صورة: ${q.img}]`:""}\nالإجابة النموذجية: ${q.model||"—"}`:`${k+1}. ${q.q}${q.img?`\n[صورة: ${q.img}]`:""}\n${(q.options||[]).map((o,j)=>`   ${"أبجدهوزح"[j]||j+1}) ${o}`).join("\n")}\nالإجابة: ${q.options?.[q.answer]??""}`).join("\n\n")); };
   $("#exSave").onclick=async e=>{ sync(); const b=e.currentTarget; busy(b,true); const row={title:ex.title, settings:ex.settings||{}, questions:ex.questions}; const res= ex.id? await sb.from("exams").update(row).eq("id",ex.id).select().single() : await sb.from("exams").insert(row).select().single(); busy(b,false); if(res.error) return toast(res.error.message,true); curExam=res.data; toast("حُفظ الاختبار"); vExams().then(()=>{ curExam=res.data; renderExam(); }); };
 }
 
