@@ -2448,58 +2448,63 @@ async function vSettings(){
   const [{ data: st }, cfg] = await Promise.all([ sb.rpc("my_settings"), ai("config").catch(()=>({})) ]);
   const s=st?.[0]||{};
   const cc=$("#cloneCard");
-  if(s.has_clone){
-    const exp = s.clone_created ? new Date(new Date(s.clone_created).getTime()+365*864e5) : null;
-    cc.innerHTML=`<h2>صوتي المستنسخ</h2><p><span class="pill green">مفعّل</span> <b>${esc(s.cloned_voice_name)}</b> <span class="pill">${s.clone_provider==="elevenlabs"?"ElevenLabs":"Gemini · مجاني"}</span></p>
-     <p class="muted small">يظهر صوتك في قائمة الأصوات عند إنشاء المحاضرة.${s.clone_provider==="gemini"&&exp?` يحتفظ Google بالصوت سنة (حتى ${fmtDate(exp)})، وتجدّده المنصة تلقائياً من تسجيلاتك المحفوظة قبل انتهائه، فلا تحتاج إلى إعادة التسجيل.`:""}</p>
-     <textarea id="clTest">مرحباً بكم في محاضرة اليوم. سنتناول المفهوم الأساسي، ثم نطبّقه على حالة سريرية.</textarea><div class="row"><button class="btn ghost" id="clSay">${ico("play")} استمع لصوتي</button><button class="btn danger" id="clDel">حذف الصوت المستنسخ</button></div><p class="small muted">للتبديل بين Gemini و ElevenLabs احذف الصوت الحالي ثم استنسخ من جديد بالخيار الآخر.</p>`;
-    $("#clSay").onclick=async e=>{ const b=e.currentTarget; busy(b,true); try{ await speak($("#clTest").value,"clone"); }catch(err){ toast(err.message,true);} finally{ busy(b,false);} };
-    $("#clDel").onclick=async e=>{ const b=e.currentTarget; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } await ai("delete_clone"); await loadProfile(); toast("حُذف الصوت المستنسخ"); vSettings(); };
-  } else {
+  const PROV={fish:"Fish Audio · مجاني",eleven:"ElevenLabs · برصيد",gemini:"Gemini · مدفوع"};
+  const chain=(cfg.order||["fish","eleven","gemini"]).map(k=>`<span class="pill ${(k==="fish"?cfg.fish:k==="eleven"?cfg.eleven:cfg.gemini)?"green":""}">${PROV[k]||k}${(k==="fish"?cfg.fish:k==="eleven"?cfg.eleven:cfg.gemini)?"":" · غير مفعّل"}</span>`).join(" ← ");
+  const showForm=(again)=>{
     const CONSENT = "أنا مالك هذا الصوت وأوافق على أن تستخدم Google هذا الصوت لإنشاء نموذج صوتي اصطناعي.";
     cc.innerHTML=`<h2>صوتي المستنسخ</h2>
-     <div class="seg" id="clProv"><button type="button" class="on" data-p="g">Gemini · مجاني</button><button type="button" data-p="x">ElevenLabs · مدفوع</button></div>
-     <div class="stack" id="provG">
-     <p class="muted small">تسجيلان قصيران بنفس الهاتف وفي نفس المكان الهادئ. يُحفظ صوتك ويُجدَّد تلقائياً كل سنة.</p>
+     <p class="muted small">سجّل صوتك <b>مرة واحدة فقط</b>. تحفظ المنصة التسجيل، وتستنسخه تلقائياً لدى كل خدمة متاحة، ثم تستخدم أول خدمة فيها رصيد بهذا الترتيب:</p>
+     <p class="small">${chain}</p>
+     <p class="muted small">إذا نفد رصيد خدمة انتقلت المنصة إلى التالية دون أن يتغيّر صوتك، وإذا أُضيفت خدمة جديدة لاحقاً يُستنسخ صوتك فيها تلقائياً من نفس التسجيل.</p>
      <div class="stack" style="border:1px solid var(--line);border-radius:14px;padding:14px">
-      <b>1. عيّنة صوتك (من 10 إلى 30 ثانية)</b>
+      <b>1. عيّنة صوتك (من 15 إلى 30 ثانية)</b>
       <div class="bubble small">اقرأ بنبرتك الطبيعية في الشرح: «مرحباً بكم في محاضرة اليوم. سنتعرف على آلية عمل مثبطات الإنزيم المحوّل للأنجيوتنسين، وكيف تخفض ضغط الدم، ولماذا يسبب بعضها السعال الجاف. ثم ننتقل إلى حالة سريرية، ونناقش خيارات العلاج البديلة ومتابعة وظائف الكلى.»</div>
       <div class="row"><span id="clMic1"></span><span id="clT1" class="muted">اضغط للتسجيل، ومرة أخرى للإيقاف</span></div>
       <label for="clF1">أو ارفع تسجيلاً<input id="clF1" type="file" accept="audio/*"></label>
      </div>
      <div class="stack" style="border:1px solid var(--line);border-radius:14px;padding:14px">
-      <b>2. عبارة الموافقة (اقرأها كما هي حرفياً)</b>
+      <b>2. عبارة الموافقة (تطلبها Google لخدمة Gemini)</b>
       <div class="bubble" style="font-size:17px;font-weight:600">«${CONSENT}»</div>
       <div class="row"><span id="clMic2"></span><span id="clT2" class="muted">اضغط للتسجيل، ومرة أخرى للإيقاف</span></div>
      </div>
-     </div>
-     <div class="stack hidden" id="provX">
-      ${cfg.eleven?`<p class="muted small">جودة عالية جداً للعربية، ويحتاج اشتراك ElevenLabs (خطة Starter أو أعلى). سجّل من دقيقة إلى دقيقتين.</p>
-      <div class="bubble small">نص مقترح: «مرحباً بكم في محاضرة اليوم. سنتعرف على آلية عمل مثبطات الإنزيم المحوّل للأنجيوتنسين، وكيف تخفض ضغط الدم، ولماذا يسبب بعضها السعال الجاف. ثم ننتقل إلى حالة سريرية لمريض في الثامنة والخمسين، ونناقش خيارات العلاج البديلة ومتابعة وظائف الكلى ومستوى البوتاسيوم.»</div>
-      <div class="row"><span id="clMic3"></span><span id="clT3" class="muted">اضغط للتسجيل، ومرة أخرى للإيقاف</span></div>
-      <label for="clF3">أو ارفع تسجيلاً<input id="clF3" type="file" accept="audio/*"></label>`:`<p class="muted small">غير مفعّل: أضف مفتاح ElevenLabs في Supabase باسم <code>ELEVENLABS_API_KEY</code> (يحتاج خطة Starter أو أعلى، وصلاحيتي Voices: Write و Text to Speech).</p>`}
-     </div>
-     <label for="clName">اسم الصوت<input id="clName" value="${esc(profile?.full_name||"صوتي")}"></label>
+     <p class="muted small">نصيحة: سجّل في مكان هادئ بلا صدى، وبنفس الهاتف للتسجيلين.</p>
+     <label for="clName">اسم الصوت<input id="clName" value="${esc(s.cloned_voice_name||profile?.full_name||"صوتي")}"></label>
      <label class="row" style="color:var(--ink);font-weight:400;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="clOk" style="margin-top:4px"> <span>أُقرّ بأن هذا صوتي، وأوافق على استنساخه واستخدامه في محاضراتي على المنصة.</span></label>
-     <button class="btn gold" id="clGo">استنسخ صوتي</button>`;
-    let prov="g";
-    $("#clProv").onclick=e=>{ const b=e.target.closest("[data-p]"); if(!b) return; prov=b.dataset.p; $("#clProv").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); $("#provG").classList.toggle("hidden",prov!=="g"); $("#provX").classList.toggle("hidden",prov!=="x"); };
-    const rec={1:null,2:null,3:null};
-    const mk=(k)=>{ const t=$("#clT"+k); let tv,s0; const m=micButton(async f=>{ clearInterval(tv); rec[k]=f; const sec=Math.round((Date.now()-s0)/1000); t.textContent=`تم التسجيل (${sec} ث)`+(k===1&&(sec<10||sec>30)?" — الأفضل بين 10 و30 ثانية":""); }, "اضغط للتسجيل، واضغط مرة أخرى للإيقاف");
+     <div class="row"><button class="btn gold" id="clGo">${again?"احفظ التسجيل الجديد":"استنسخ صوتي"}</button>${again?`<button class="btn ghost" id="clBack">إلغاء</button>`:""}</div>
+     <div id="clRes" class="small"></div>`;
+    if(again) $("#clBack").onclick=()=>vSettings();
+    const rec={1:null,2:null};
+    const mk=(k)=>{ const t=$("#clT"+k); let tv,s0; const m=micButton(async f=>{ clearInterval(tv); rec[k]=f; const sec=Math.round((Date.now()-s0)/1000); t.textContent=`تم التسجيل (${sec} ث)`+(k===1&&(sec<15||sec>30)?" — الأفضل بين 15 و30 ثانية":""); }, "اضغط للتسجيل، واضغط مرة أخرى للإيقاف");
       m.addEventListener("click",()=>{ if(!m.classList.contains("rec")){ s0=Date.now(); clearInterval(tv); tv=setInterval(()=>t.textContent=`جارٍ التسجيل… ${Math.round((Date.now()-s0)/1000)} ث`,500); } }, true);
       $("#clMic"+k).replaceWith(m); };
-    mk(1); mk(2); if(cfg.eleven) mk(3);
+    mk(1); mk(2);
     $("#clGo").onclick=async e=>{
-      if(prov==="x"){ if(!cfg.eleven) return toast("ElevenLabs غير مفعّل على الخادم",true); const f=$("#clF3").files[0]||rec[3]; if(!f) return toast("سجّل صوتك أو ارفع ملفاً",true); if(!$("#clOk").checked) return toast("يلزم الإقرار بالموافقة",true);
-        const b=e.currentTarget; busy(b,true,"جارٍ الاستنساخ…"); try{ await aiForm({action:"clone_voice", file:f, name:$("#clName").value.trim(), consent:"yes"}); await loadProfile(); toast("تم استنساخ صوتك عبر ElevenLabs"); vSettings(); }catch(err){ toast(err.message,true); busy(b,false);} return; }
       const f1=$("#clF1").files[0]||rec[1], f2=rec[2];
-      if(!f1) return toast("سجّل عيّنة صوتك أو ارفعها",true); if(!f2) return toast("سجّل عبارة الموافقة",true); if(!$("#clOk").checked) return toast("يلزم الإقرار بالموافقة",true);
-      const b=e.currentTarget; busy(b,true,"جارٍ الاستنساخ…");
-      try{ const [w1,w2]=await Promise.all([toWav24k(f1,30),toWav24k(f2,20)]);
-        await aiForm({action:"clone_gemini", ref:new File([w1],"ref.wav",{type:"audio/wav"}), consent_audio:new File([w2],"consent.wav",{type:"audio/wav"}), name:$("#clName").value.trim(), consent:"yes"});
-        await loadProfile(); toast("تم استنساخ صوتك"); vSettings(); }
+      if(!f1) return toast("سجّل عيّنة صوتك أو ارفعها",true);
+      if(!f2 && !confirm("لم تسجّل عبارة الموافقة، فلن يعمل صوتك عبر Gemini (الاحتياطي الأخير). المتابعة؟")) return;
+      if(!$("#clOk").checked) return toast("يلزم الإقرار بالموافقة",true);
+      const b=e.currentTarget; busy(b,true,"جارٍ الاستنساخ لدى الخدمات…");
+      try{ const w1=await toWav24k(f1,30), w2=f2?await toWav24k(f2,20):null;
+        const r=await aiForm({action:"clone_all", ref:new File([w1],"ref.wav",{type:"audio/wav"}), ...(w2?{consent_audio:new File([w2],"consent.wav",{type:"audio/wav"})}:{}), name:$("#clName").value.trim(), consent:"yes"});
+        await loadProfile(); const ok=Object.entries(r.providers||{}).filter(([,v])=>v==="ok").map(([k])=>PROV[k]||k);
+        toast("تم استنساخ صوتك"+(ok.length?" عبر: "+ok.join("، "):"")); vSettings(); }
       catch(err){ toast(err.message,true); busy(b,false); } };
-  }
+  };
+  if(s.has_clone){
+    cc.innerHTML=`<h2>صوتي المستنسخ</h2><p><span class="pill green">مفعّل</span> <b>${esc(s.cloned_voice_name)}</b></p><div id="vStat" class="small muted">جارٍ فحص الخدمات…</div>
+     <textarea id="clTest">مرحباً بكم في محاضرة اليوم. سنتناول المفهوم الأساسي، ثم نطبّقه على حالة سريرية.</textarea>
+     <div class="row"><button class="btn ghost" id="clSay">${ico("play")} استمع لصوتي</button><button class="btn ghost" id="clRe">إعادة التسجيل</button><button class="btn danger" id="clDel">حذف الصوت المستنسخ</button></div>`;
+    $("#clSay").onclick=async e=>{ const b=e.currentTarget; busy(b,true); try{ await speak($("#clTest").value,"clone"); setTimeout(loadVStat,800); }catch(err){ toast(err.message,true);} finally{ busy(b,false);} };
+    $("#clRe").onclick=()=>showForm(true);
+    $("#clDel").onclick=async e=>{ const b=e.currentTarget; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } await ai("delete_clone"); await loadProfile(); toast("حُذف الصوت المستنسخ"); vSettings(); };
+    const loadVStat=async()=>{ try{ const v=await ai("voice_status"); const now=Date.now();
+      const row=k=>{ const key=v.keys?.[k], id=v.ids?.[k], sk=(v.skip||{})[k];
+        const st=!key?`<span class="muted">غير مفعّلة على الخادم</span>`:sk&&sk>now?`<span style="color:var(--warn,#b45309)">نفد الرصيد — تعود ${fmtDate(new Date(sk))} ${new Date(sk).toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"})}</span>`:id?`<span style="color:var(--ok,#15803d)">جاهزة</span>`:k==="gemini"&&!v.has_consent?`<span class="muted">تحتاج عبارة الموافقة (أعد التسجيل)</span>`:`<span class="muted">ستُستنسخ تلقائياً عند الحاجة</span>`;
+        return `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0"><b>${PROV[k]||k}${v.last===k?' <span class="pill green">المستخدمة الآن</span>':""}</b>${st}</div>`; };
+      $("#vStat").innerHTML=`<p class="muted small" style="margin:0 0 6px">تسجيلك محفوظ مرة واحدة، وتختار المنصة تلقائياً أول خدمة فيها رصيد:</p>${(v.order||[]).map(row).join("")}`;
+    }catch(err){ $("#vStat").textContent=err.message; } };
+    loadVStat();
+  } else showForm(false);
   const ep = SB_URL + "/functions/v1/alexa";
   $("#alexaCard").innerHTML=`<h2>ربط Alexa</h2>
    <p>${s.has_pin?`<span class="pill green">رمزك مضبوط</span>`:`<span class="pill gold">لم يُضبط رمز بعد</span>`} ${s.alexa_links?`<span class="pill">${num(s.alexa_links)} جهاز مرتبط</span>`:""}</p>
