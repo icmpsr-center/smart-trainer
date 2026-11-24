@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v34" />
+<meta name="app-version" content="v36" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -380,6 +380,42 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .ucard[open] .uchev{transform:rotate(180deg)}
 .ucard[open] .uhead{border-bottom:1px solid var(--line);background:#fafcff}
 .ubody{padding:4px 18px 18px}
+
+.nformbox{border:1px dashed var(--gold);border-radius:14px;background:#fffdf8}
+.nthumb{flex:none;width:58px;height:58px;border-radius:12px;object-fit:cover;border:1px solid var(--line);display:grid;place-items:center;background:#eef3fb;color:var(--navy)}
+.nthumb svg{width:24px;height:24px}
+.ucard .ubody .ncard{border:0;grid-template-columns:minmax(0,1fr)}.ucard .ubody .ncard .nimg{max-height:220px;border-radius:12px}.ucard .ubody .ncard .nbody{padding:10px 0 0}
+
+/* الرسائل والإشعارات */
+.ucard:not(.card){border:1px solid var(--line);border-radius:14px;background:#fff}
+.nbadge{font-style:normal;display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#d92d20;color:#fff;font:700 11.5px/1 Cairo,sans-serif;margin-inline-start:6px;box-shadow:0 0 0 2px var(--navy)}
+.nbadge[hidden]{display:none}.nbadge.inl{box-shadow:none}
+.brand .acts .topout[data-inbox],.topout[data-inbox]{position:relative;top:auto;left:auto;right:auto;bottom:auto;text-decoration:none}
+.topout[data-inbox] .nbadge{position:absolute;top:-7px;left:-7px;margin:0}
+.bnav [data-inbox]{position:relative}.bnav [data-inbox] .nbadge{position:absolute;top:2px;left:calc(50% - 22px);margin:0}
+.tab .nbadge,.bsheet .nbadge,.who .nbadge{box-shadow:none}
+.mitem .mdot{flex:none;width:10px;height:10px;border-radius:50%;background:transparent}
+.mitem.unread .mdot{background:var(--gold);box-shadow:0 0 0 4px #fbf3e2}
+.mitem.unread{border-color:#e6d3a3;background:#fffdf7}.mitem.unread .msubj{font-weight:700;color:var(--ink)}
+.msubj{font-size:14.5px;color:#334155;overflow-wrap:anywhere}
+.mbody{font-size:15px;line-height:1.9;white-space:normal;overflow-wrap:anywhere;background:#f8fafc;border-radius:12px;padding:12px 14px}
+.nthumb.ph svg{width:22px;height:22px}
+.inote{display:flex;align-items:center;gap:12px;text-decoration:none;border-color:#e6d3a3;background:#fffaf0;color:var(--navy)}
+.inote svg{width:26px;height:26px;flex:none}.inote>span{display:grid}
+
+/* تنبيهات لوحة التحكم */
+.wsub{line-height:1.7}
+.atiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.atile{display:grid;justify-items:center;gap:2px;padding:10px 4px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--navy);text-decoration:none;text-align:center}
+.atile svg{width:20px;height:20px;opacity:.75}.atile b{font-size:22px;line-height:1.2}.atile span{font-size:12px;font-weight:600;color:#64748b}
+.atile.hot{border-color:#f3c7c2;background:#fff8f7}.atile.hot b{color:#b42318}
+.arow{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);text-decoration:none;min-width:0}
+.arow>span:not(.mdot):not(.uchev){display:grid;min-width:0;flex:1;overflow-wrap:anywhere}
+.arow svg{width:20px;height:20px;flex:none;color:var(--navy)}
+.arow.head{background:#f6f9fe}
+.arow .mdot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--gold)}
+.arow .uchev.side{width:24px;height:24px;transform:rotate(90deg)}
+.usagemini{display:grid;gap:6px;margin-top:4px;padding-top:10px;border-top:1px dashed var(--line)}
 </style>
 </head>
 <body>
@@ -418,9 +454,9 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 <!-- ===== App ===== -->
 <div id="appView" class="app hidden">
   <aside class="side">
-    <div class="brand"><img data-icon alt=""><div><b>منصة المحاضر الذكية</b><span>المركز الدولي للدراسات والأبحاث الطبية والصيدلانية</span><span class="en" dir="ltr">International Center for Medical and Pharmaceutical Studies and Research</span></div><div class="acts"><button class="topout" id="logout2" type="button" aria-label="تسجيل الخروج"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l-5-5 5-5"/><path d="M11 12h10"/></svg><span>خروج</span></button><button class="topout langbtn" type="button" data-langbtn aria-label="Language">English</button></div></div>
+    <div class="brand"><img data-icon alt=""><div><b>منصة المحاضر الذكية</b><span>المركز الدولي للدراسات والأبحاث الطبية والصيدلانية</span><span class="en" dir="ltr">International Center for Medical and Pharmaceutical Studies and Research</span></div><div class="acts"><a class="topout" href="#inbox" data-inbox aria-label="الرسائل والإشعارات"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span>الرسائل</span><i class="nbadge" hidden></i></a><button class="topout" id="logout2" type="button" aria-label="تسجيل الخروج"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l-5-5 5-5"/><path d="M11 12h10"/></svg><span>خروج</span></button><button class="topout langbtn" type="button" data-langbtn aria-label="Language">English</button></div></div>
     <nav class="tabs" id="tabs"></nav>
-    <div class="who"><span id="whoName"></span><button class="btn sm" id="logout" type="button">تسجيل الخروج</button><button class="btn sm" type="button" data-langbtn>English</button></div>
+    <div class="who"><span id="whoName"></span><a class="btn sm" href="#inbox" data-inbox>الرسائل والإشعارات<i class="nbadge" hidden></i></a><button class="btn sm" id="logout" type="button">تسجيل الخروج</button><button class="btn sm" type="button" data-langbtn>English</button></div>
   </aside>
   <main class="main" id="main"></main>
 </div>
@@ -500,6 +536,8 @@ const P = {
   eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   bone:'<path d="M7 4a2.5 2.5 0 0 0-3 3 2.5 2.5 0 0 0 3 3l7 7a2.5 2.5 0 0 0 3 3 2.5 2.5 0 0 0 3-3 2.5 2.5 0 0 0-3-3l-7-7a2.5 2.5 0 0 0-3-3z"/>',
   bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+  news:'<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/>',
+  send:'<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
   copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
   support:'<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19a3 3 0 0 1-3 3h-3"/>'
 };
@@ -882,6 +920,15 @@ const HELP={
    steps:["فعّل المدرّب الجديد وحدد حده.","اضبط خصائصه حسب دوره.","عيّن كلمة مرور إن احتاج.","راجع الأعطال والبلاغات بانتظام."],
    tips:["إيقاف Alexa لمستخدم يلغي ربطه، ويحتاج لضبط رمزه من جديد عند إعادة التفعيل."],faq:[]},
 
+  inbox:{t:"الرسائل والإشعارات",intro:"صندوق رسائل داخلي بين مدير المنصة والمدرّبين، مع تنبيه برقم على أيقونة الرسائل عند وصول رسالة جديدة.",
+   parts:[["عناصر الصفحة",[
+    ["الوارد / المرسل","«الوارد» ما وصلك، والرقم بجانبه عدد غير المقروء. «المرسل» ما أرسلته، مع حالة القراءة؛ وللرسائل الجماعية «قرأها X من Y» وقائمة المستلمين."],
+    ["رسالة جديدة","للمدير: إلى «كل المدرّبين المفعّلين» أو «مستخدمون محددون» بالبحث والاختيار، ونوعها «رسالة» أو «إشعار» بشارة مميزة. للمدرّب: تصل إلى مدير المنصة مباشرة."],
+    ["بطاقة الرسالة","مطوية: المرسل والعنوان والتاريخ، والنقطة الذهبية تعني غير مقروءة. اضغطها لقراءة النص فتُعلَّم مقروءة تلقائياً، ومنها «ردّ» و«نسخ» و«حذف»."],
+    ["البحث والتصفية","ابحث في النصوص والأسماء، أو اعرض غير المقروءة أو الإشعارات فقط."],
+    ["أيقونة الرسائل","في أعلى الشاشة (وتحت القائمة على الكمبيوتر)، يظهر عليها عدد الرسائل غير المقروءة، ويُحدَّث كل دقيقة تقريباً، مع تنبيه عند وصول جديد."]]]],
+   steps:["افتح «رسالة جديدة» واختر المستلمين.","اكتب العنوان والنص واضغط «إرسال».","تابع القراءة والردود من «المرسل» و«الوارد»."],
+   tips:["استخدم «إشعار» للتنبيهات المهمة كمواعيد الدورات وتحديثات المنصة."],faq:[]},
   trouble:{t:"الأعطال والدعم الفني",intro:"تشخيص أي مشكلة وحلها: سجل الأعطال (للمدير)، ودليل مفصّل لكل رسالة خطأ، وإرسال بلاغ للدعم الفني.",
    parts:[["الأقسام",[
     ["الأعطال التقنية","كل بند: المصدر، المرحلة، التاريخ، السبب، والتفاصيل التقنية. «نسخ» ينسخ البند كاملاً، و«تم الإصلاح» يغلقه، و«نسخ الكل» ينسخ كل المفتوح."],
@@ -1036,18 +1083,20 @@ async function newsBox(el){
   const { data } = await sb.from("announcements").select("*").eq("published",true).in("audience",["trainers","both"]).order("news_date",{ascending:false}).limit(12);
   const L=(data||[]).filter(n=>!n.expires_on||n.expires_on>=today).sort(newsSort);
   if(!L.length){ el.innerHTML=""; return; }
-  el.innerHTML=`<div class="card stack"><h2 class="row" style="gap:8px">${ico("bell")}الأخبار والإعلانات</h2><div class="nlist">${L.slice(0,6).map(n=>newsCard(n)).join("")}</div></div>`;
+  el.innerHTML=`<div class="card stack"><h2 class="row" style="gap:8px">${ico("news")}الأخبار والإعلانات</h2><div class="nlist">${L.slice(0,6).map(n=>newsCard(n)).join("")}</div></div>`;
 }
 async function publicNews(){
   const el=$("#pubNews"); if(!el) return;
   try{ const { data } = await sb.from("site_news").select("*").limit(6); if(!(data||[]).length){ el.innerHTML=""; return; }
-    el.innerHTML=`<h2 class="row" style="gap:8px;margin:0">${ico("bell")}الأخبار والإعلانات</h2><div class="nlist">${data.map(n=>newsCard(n)).join("")}</div>`; }catch(_){ el.innerHTML=""; }
+    el.innerHTML=`<h2 class="row" style="gap:8px;margin:0">${ico("news")}الأخبار والإعلانات</h2><div class="nlist">${data.map(n=>newsCard(n)).join("")}</div>`; }catch(_){ el.innerHTML=""; }
 }
+const NOPEN=new Set();
 async function adminNews(){
   const m=$("#main"); if(!m||m.querySelector("#adNews")) return;
   const today=new Date().toISOString().slice(0,10);
-  m.insertAdjacentHTML("beforeend",`<div class="card stack" id="adNews"><h2 class="row" style="gap:8px;margin:0">${ico("bell")}الأخبار والإعلانات</h2>
+  m.insertAdjacentHTML("beforeend",`<div class="card stack" id="adNews"><h2 class="row" style="gap:8px;margin:0">${ico("news")}الأخبار والإعلانات</h2>
    <p class="small muted">أضف خبراً أو إعلاناً بصورة ونص وتاريخ، واختر أين يظهر: للمدرّبين في لوحة التحكم، أو في الصفحة الرئيسية للموقع، أو في الاثنين.</p>
+   <details class="ucard nformbox" id="nFormBox"><summary class="uhead"><div class="uhinfo"><b id="nFormT">إضافة خبر أو إعلان جديد</b><span class="small muted">صورة ونص وتاريخ، واختيار مكان الظهور</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody">
    <form class="stack" id="nForm"><input type="hidden" id="nId">
     <label for="nTitle">العنوان<input id="nTitle" maxlength="200" placeholder="مثال: افتتاح دورة الصيدلة السريرية المتقدمة"></label>
     <label for="nBody">النص<textarea id="nBody" rows="4" placeholder="تفاصيل الخبر أو الإعلان"></textarea></label>
@@ -1059,12 +1108,21 @@ async function adminNews(){
      <label for="nExp">ينتهي ظهوره في (اختياري)<input id="nExp" type="date"></label></div>
     <div class="row" style="gap:16px"><label class="chk"><input type="checkbox" id="nPub" checked> منشور</label><label class="chk"><input type="checkbox" id="nPin"> تثبيت في الأعلى</label></div>
     <div class="row" style="gap:8px"><button class="btn gold" id="nSave" type="submit">نشر الخبر</button><button class="btn ghost" id="nReset" type="button" style="display:none">إلغاء التعديل</button></div>
-   </form><div class="nlist" id="nList"></div></div>`);
+   </form></div></details>
+   <div class="ufilter"><input id="nQ" type="search" placeholder="ابحث في العناوين والنصوص…"><div class="chips" id="nF"><button type="button" class="on" data-f="">الكل</button><button type="button" data-f="pub">منشور</button><button type="button" data-f="hid">مخفي</button><button type="button" data-f="trainers">للمدرّبين</button><button type="button" data-f="public">للموقع العام</button></div><span class="small muted" id="nCount"></span></div>
+   <div class="stack" id="nList" style="gap:10px"></div></div>`);
   let items=[], img=null, keepUrl=null;
   const F=$("#nForm");
-  const reset=()=>{ F.reset(); $("#nId").value=""; $("#nDate").value=today; img=null; keepUrl=null; $("#nPrev").style.display="none"; $("#nImgDel").style.display="none"; $("#nSave").textContent="نشر الخبر"; $("#nReset").style.display="none"; };
+  const reset=()=>{ F.reset(); $("#nId").value=""; $("#nDate").value=today; img=null; keepUrl=null; $("#nPrev").style.display="none"; $("#nImgDel").style.display="none"; $("#nSave").textContent="نشر الخبر"; $("#nReset").style.display="none"; $("#nFormT").textContent="إضافة خبر أو إعلان جديد"; };
   const list=async()=>{ const { data, error } = await sb.from("announcements").select("*").order("news_date",{ascending:false}).limit(60); if(error){ $("#nList").innerHTML=`<div class="empty">${esc(error.message)}</div>`; return; }
-    items=(data||[]).sort(newsSort); $("#nList").innerHTML=items.length?items.map(n=>newsCard(n,true)).join(""):`<div class="empty">لا توجد أخبار بعد.</div>`; };
+    items=(data||[]).sort(newsSort);
+    $("#nList").innerHTML=items.length?items.map(n=>`<details class="ucard" data-nid="${n.id}"${NOPEN.has(n.id)?" open":""}><summary class="uhead">${n.image_url?`<img class="nthumb" src="${esc(n.image_url)}" alt="" loading="lazy">`:`<span class="nthumb ph">${ico("news")}</span>`}<div class="uhinfo"><b>${esc(n.title)}</b><div class="nmeta"><span class="ntag">${esc(NKIND[n.kind]||"خبر")}</span>${n.pinned?`<span class="ntag gold">مثبّت</span>`:""}${n.published?`<span class="pill green">منشور</span>`:`<span class="pill" style="background:#f1f5f9;color:#64748b">مخفي</span>`}</div><span class="small muted">${fmtDate(n.news_date)} · ${esc(NAUD[n.audience])}</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody">${newsCard(n,true)}</div></details>`).join(""):`<div class="empty">لا توجد أخبار بعد.</div>`;
+    nFilt(); };
+  let nf=""; const nFilt=()=>{ const q=$("#nQ").value.trim(); let c=0; items.forEach(n=>{ const el=$("#nList").querySelector(`[data-nid="${n.id}"]`); if(!el) return;
+      const ok=(!q||(n.title+" "+(n.body||"")).includes(q))&&(!nf||(nf==="pub"?n.published:nf==="hid"?!n.published:nf==="trainers"?n.audience!=="public":n.audience!=="trainers")); el.style.display=ok?"":"none"; if(ok) c++; });
+    $("#nCount").textContent=items.length?`${num(c)} من ${num(items.length)} خبر`:""; };
+  $("#nQ").oninput=nFilt; $("#nF").onclick=e=>{ const b=e.target.closest("[data-f]"); if(!b) return; nf=b.dataset.f; $("#nF").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); nFilt(); };
+  $("#nList").addEventListener("toggle",e=>{ const d=e.target; if(!d.matches?.("[data-nid]")) return; d.open?NOPEN.add(d.dataset.nid):NOPEN.delete(d.dataset.nid); },true);
   $("#nImg").onchange=()=>{ const f=$("#nImg").files[0]; if(!f) return; if(f.size>5e6){ toast("الصورة أكبر من 5 ميغابايت",true); $("#nImg").value=""; return; } img=f; $("#nPrev").src=URL.createObjectURL(f); $("#nPrev").style.display=""; $("#nImgDel").style.display=""; };
   $("#nImgDel").onclick=()=>{ img=null; keepUrl=null; $("#nImg").value=""; $("#nPrev").style.display="none"; $("#nImgDel").style.display="none"; };
   $("#nReset").onclick=reset;
@@ -1079,10 +1137,89 @@ async function adminNews(){
   $("#nList").onclick=async e=>{ const ed=e.target.closest("[data-nedit]"), pb=e.target.closest("[data-npub]"), dl=e.target.closest("[data-ndel]");
     if(ed){ const n=items.find(x=>x.id===ed.dataset.nedit); $("#nId").value=n.id; $("#nTitle").value=n.title; $("#nBody").value=n.body||""; $("#nDate").value=n.news_date; $("#nKind").value=n.kind; F.querySelector(`[name=nAud][value=${n.audience}]`).checked=true; $("#nLink").value=n.link_url||""; $("#nExp").value=n.expires_on||""; $("#nPub").checked=n.published; $("#nPin").checked=n.pinned;
       img=null; keepUrl=n.image_url||null; if(keepUrl){ $("#nPrev").src=keepUrl; $("#nPrev").style.display=""; $("#nImgDel").style.display=""; } else { $("#nPrev").style.display="none"; $("#nImgDel").style.display="none"; }
-      $("#nSave").textContent="حفظ التعديل"; $("#nReset").style.display=""; F.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+      $("#nSave").textContent="حفظ التعديل"; $("#nReset").style.display=""; $("#nFormBox").open=true; $("#nFormT").textContent="تعديل: "+n.title; F.scrollIntoView({behavior:"smooth",block:"start"}); return; }
     if(pb){ const n=items.find(x=>x.id===pb.dataset.npub); const { error } = await sb.from("announcements").update({published:!n.published,updated_at:new Date().toISOString()}).eq("id",n.id); if(error) return toast(error.message,true); toast(n.published?"أُخفي الخبر":"نُشر الخبر"); return list(); }
     if(dl){ if(dl.dataset.c!=="1"){ dl.dataset.c="1"; dl.textContent="تأكيد الحذف"; return; } const { error } = await sb.from("announcements").delete().eq("id",dl.dataset.ndel); if(error) return toast(error.message,true); toast("حُذف الخبر"); list(); } };
   list();
+}
+
+/* ================= الرسائل والإشعارات ================= */
+let UNREAD=null; const MOPEN=new Set(); let INBOX_TAB="in", REPLY=null;
+function setBadges(){ document.querySelectorAll("[data-inbox] .nbadge").forEach(b=>{ b.textContent=UNREAD>99?"99+":String(UNREAD||0); b.hidden=!UNREAD; }); }
+async function refreshUnread(){
+  if(!session||!profile) return; const uid=session.user.id;
+  let q=sb.from("messages").select("id",{count:"exact",head:true}).is("read_at",null).neq("sender",uid);
+  q = profile.role==="admin" ? q.or(`recipient.eq.${uid},to_admin.eq.true`) : q.eq("recipient",uid);
+  const { count, error } = await q; if(error) return;
+  const prev=UNREAD; UNREAD=count||0; setBadges();
+  if(prev!==null && UNREAD>prev){ toast(UNREAD-prev>1?`وصلتك ${UNREAD-prev} رسائل جديدة`:"وصلتك رسالة جديدة"); if(location.hash==="#inbox") vInbox(); }
+}
+setInterval(()=>{ if(document.visibilityState==="visible") refreshUnread().catch(()=>{}); },45000);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") refreshUnread().catch(()=>{}); });
+const MKIND={message:"رسالة",notice:"إشعار"};
+function msgItem(m,box){ const uid=session.user.id; const incoming=box==="in"; const unread=incoming&&!m.read_at;
+  const who=incoming?(m.sender_name||"مستخدم"):(m.to_admin?"مدير المنصة":(m._batch?`${num(m._batch.n)} مستلم`:(m.recipient_name||"مستخدم")));
+  const reads=!incoming&&m._batch?`قرأها ${num(m._batch.read)} من ${num(m._batch.n)}`:(!incoming?(m.read_at?"قُرئت":"لم تُقرأ بعد"):"");
+  return `<details class="ucard mitem${unread?" unread":""}" data-mid="${m.id}"${MOPEN.has(m.id)?" open":""}><summary class="uhead">
+   <span class="mdot" aria-hidden="true"></span><div class="uhinfo"><div class="nmeta"><b>${incoming?"من":"إلى"}: ${esc(who)}</b>${m.kind==="notice"?`<span class="ntag gold">إشعار</span>`:""}</div>
+   <span class="msubj">${esc(m.subject||"(بدون عنوان)")}</span><span class="small muted">${new Date(m.created_at).toLocaleString("ar-EG-u-nu-latn",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}${reads?` · ${reads}`:""}</span></div><span class="uchev" aria-hidden="true"></span></summary>
+   <div class="ubody stack"><div class="mbody">${esc(m.body).replace(/\n/g,"<br>")}</div>
+    ${m._batch&&m._batch.names?`<details class="small"><summary class="muted" style="cursor:pointer">المستلمون</summary><div class="small" style="margin-top:6px;line-height:1.9">${m._batch.names.map(([n,r])=>`${esc(n)} ${r?"✓":"·"}`).join("، ")}</div></details>`:""}
+    <div class="ubtns">${incoming?`<button class="btn sm" type="button" data-mreply="${m.id}">ردّ</button>`:""}<button class="btn sm ghost" type="button" data-mcopy="${m.id}">${ico("copy")}نسخ</button><button class="btn sm danger" type="button" data-mdel="${m.id}">حذف</button></div></div></details>`; }
+async function vInbox(){
+  const admin=profile?.role==="admin", uid=session.user.id;
+  const tab=INBOX_TAB;
+  $("#main").innerHTML=`<div class="head"><div><h1>الرسائل والإشعارات</h1><p class="muted">${admin?"راسل المدرّبين فرداً أو جماعة، وأرسل الإشعارات، واستقبل رسائلهم.":"تواصل مع مدير المنصة، وتابع الإشعارات التي تصلك."}</p></div></div>
+   <div class="seg2" id="mSeg"><button type="button" data-t="in"${tab==="in"?' class="on"':""}>الوارد ${UNREAD?`<span class="nbadge inl">${UNREAD}</span>`:""}</button><button type="button" data-t="out"${tab==="out"?' class="on"':""}>المرسل</button></div>
+   <details class="card ucard" id="mCompose"${REPLY?" open":""}><summary class="uhead"><span class="nthumb ph">${ico("send")}</span><div class="uhinfo"><b id="mComposeT">${REPLY?"ردّ على: "+esc(REPLY.subject||""):"رسالة جديدة"}</b><span class="small muted">${admin?"إلى مدرّب محدد أو مجموعة أو كل المدرّبين":"إلى مدير المنصة"}</span></div><span class="uchev" aria-hidden="true"></span></summary>
+    <div class="ubody"><form class="stack" id="mForm">
+     ${admin?`<fieldset class="naud" id="mTo"><legend>المستلمون</legend><label><input type="radio" name="mTo" value="all" checked> كل المدرّبين المفعّلين</label><label><input type="radio" name="mTo" value="pick"> مستخدمون محددون</label></fieldset>
+      <div id="mPick" class="stack" style="display:none;gap:8px"><input id="mPickQ" type="search" placeholder="ابحث بالاسم أو البريد…"><div class="kbpick" id="mPickL"><span class="small muted">جارٍ التحميل…</span></div></div>
+      <label for="mKind">النوع<select id="mKind"><option value="message">رسالة</option><option value="notice">إشعار (يظهر بشارة مميزة)</option></select></label>`:`<div class="small muted">تصل رسالتك إلى مدير المنصة، ويصلك الرد هنا مع تنبيه على أيقونة الرسائل.</div>`}
+     <label for="mSubj">العنوان<input id="mSubj" maxlength="200" value="${REPLY?esc("ردّ: "+(REPLY.subject||"").replace(/^ردّ: /,"")):""}" placeholder="موضوع الرسالة"></label>
+     <label for="mBody">النص<textarea id="mBody" rows="5" placeholder="اكتب رسالتك…"></textarea></label>
+     <div class="ubtns"><button class="btn gold" id="mSend" type="submit">${ico("send")}إرسال</button>${REPLY?`<button class="btn ghost" type="button" id="mCancel">إلغاء الرد</button>`:""}</div></form></div></details>
+   <div class="ufilter"><input id="mQ" type="search" placeholder="ابحث في الرسائل…"><div class="chips" id="mF"><button type="button" class="on" data-f="">الكل</button>${tab==="in"?`<button type="button" data-f="unread">غير المقروءة</button>`:""}<button type="button" data-f="notice">الإشعارات</button></div><span class="small muted" id="mCount"></span></div>
+   <div class="stack" id="mList" style="gap:10px"><div class="muted small">جارٍ التحميل…</div></div>`;
+  $("#mSeg").onclick=e=>{ const b=e.target.closest("[data-t]"); if(!b) return; INBOX_TAB=b.dataset.t; REPLY=null; vInbox(); };
+  // قائمة المستلمين للمدير
+  let people=[];
+  if(admin){ const { data } = await sb.from("profiles").select("id,full_name,email,role,approved").neq("id",uid).order("full_name"); people=data||[];
+    const drawPick=()=>{ const q=($("#mPickQ")?.value||"").trim().toLowerCase(); $("#mPickL").innerHTML=people.length?people.filter(p=>!q||`${p.full_name||""} ${p.email}`.toLowerCase().includes(q)).map(p=>`<label class="kbrow"><input type="checkbox" value="${p.id}"${REPLY?.to===p.id?" checked":""}><span class="kbt">${esc(p.full_name||p.email)}</span><span class="kbf">${p.role==="admin"?"مدير":p.approved?"مدرّب":"بانتظار التفعيل"}</span></label>`).join(""):`<span class="small muted">لا يوجد مستخدمون.</span>`; };
+    drawPick(); $("#mPickQ").oninput=drawPick;
+    $("#mTo").onchange=()=>{ $("#mPick").style.display=$("#mForm").querySelector("[name=mTo]:checked").value==="pick"?"":"none"; };
+    if(REPLY?.to){ $("#mForm").querySelector("[name=mTo][value=pick]").checked=true; $("#mPick").style.display=""; } }
+  $("#mCancel")&&($("#mCancel").onclick=()=>{ REPLY=null; vInbox(); });
+  $("#mForm").onsubmit=async e=>{ e.preventDefault(); const subject=$("#mSubj").value.trim(), body=$("#mBody").value.trim(); if(!body) return toast("اكتب نص الرسالة",true);
+    const btn=$("#mSend"); busy(btn,true,"جارٍ الإرسال…");
+    try{ const base={ sender:uid, sender_name:profile.full_name||session.user.email, subject, body, parent_id:REPLY?.id||null };
+      let rows;
+      if(admin){ const mode=$("#mForm").querySelector("[name=mTo]:checked").value; const kind=$("#mKind").value;
+        const targets=mode==="all"?people.filter(p=>p.approved&&p.role!=="admin"):people.filter(p=>$("#mPickL").querySelector(`input[value="${p.id}"]`)?.checked);
+        if(!targets.length) return toast(mode==="all"?"لا يوجد مدرّبون مفعّلون":"اختر مستلماً واحداً على الأقل",true);
+        const batch=targets.length>1?crypto.randomUUID():null;
+        rows=targets.map(p=>({ ...base, kind, recipient:p.id, recipient_name:p.full_name||p.email, to_admin:false, batch_id:batch }));
+      } else rows=[{ ...base, kind:"message", recipient:null, recipient_name:"مدير المنصة", to_admin:true }];
+      const { error } = await sb.from("messages").insert(rows); if(error) throw error;
+      toast(rows.length>1?`أُرسلت إلى ${rows.length} مستخدم`:"أُرسلت الرسالة"); REPLY=null; INBOX_TAB="out"; vInbox();
+    }catch(err){ toast("تعذّر الإرسال: "+err.message,true); logErr("admin","إرسال رسالة",err.message,JSON.stringify(err)); } finally{ busy(btn,false); } };
+  // جلب الرسائل
+  let q=sb.from("messages").select("*").order("created_at",{ascending:false}).limit(150);
+  q = tab==="out" ? q.eq("sender",uid) : (admin ? q.neq("sender",uid).or(`recipient.eq.${uid},to_admin.eq.true`) : q.eq("recipient",uid));
+  const { data, error } = await q; if(error){ $("#mList").innerHTML=`<div class="empty">${esc(error.message)}</div>`; return; }
+  let list=data||[];
+  if(tab==="out"){ const groups={}; const out=[]; list.forEach(m=>{ if(!m.batch_id){ out.push(m); return; } const g=groups[m.batch_id]; if(g){ g._batch.n++; if(m.read_at) g._batch.read++; g._batch.names.push([m.recipient_name,!!m.read_at]); g._ids.push(m.id); } else { const c={...m,_batch:{n:1,read:m.read_at?1:0,names:[[m.recipient_name,!!m.read_at]]},_ids:[m.id]}; groups[m.batch_id]=c; out.push(c); } }); list=out; }
+  const draw=()=>{ $("#mList").innerHTML=list.length?list.map(m=>msgItem(m,tab)).join(""):`<div class="empty">${tab==="in"?"لا توجد رسائل واردة.":"لم ترسل رسائل بعد."}</div>`; filt(); };
+  let mf=""; const filt=()=>{ const s=$("#mQ").value.trim(); let c=0; list.forEach(m=>{ const el=$("#mList").querySelector(`[data-mid="${m.id}"]`); if(!el) return; const ok=(!s||`${m.subject} ${m.body} ${m.sender_name} ${m.recipient_name}`.includes(s))&&(!mf||(mf==="unread"?!m.read_at:m.kind==="notice")); el.style.display=ok?"":"none"; if(ok) c++; }); $("#mCount").textContent=list.length?`${num(c)} من ${num(list.length)}`:""; };
+  $("#mQ").oninput=filt; $("#mF").onclick=e=>{ const b=e.target.closest("[data-f]"); if(!b) return; mf=b.dataset.f; $("#mF").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); filt(); };
+  draw();
+  $("#mList").addEventListener("toggle",async e=>{ const d=e.target; if(!d.matches?.("[data-mid]")) return; const id=d.dataset.mid; d.open?MOPEN.add(id):MOPEN.delete(id);
+    if(d.open&&tab==="in"){ const m=list.find(x=>x.id===id); if(m&&!m.read_at){ m.read_at=new Date().toISOString(); d.classList.remove("unread"); await sb.from("messages").update({read_at:m.read_at}).eq("id",id); refreshUnread(); } } },true);
+  $("#mList").onclick=async e=>{ const r=e.target.closest("[data-mreply]"), c=e.target.closest("[data-mcopy]"), dl=e.target.closest("[data-mdel]");
+    if(r){ const m=list.find(x=>x.id===r.dataset.mreply); REPLY={ id:m.id, subject:m.subject, to: admin?m.sender:null }; vInbox().then(()=>{ $("#mCompose").scrollIntoView({behavior:"smooth"}); $("#mBody").focus(); }); return; }
+    if(c){ const m=list.find(x=>x.id===c.dataset.mcopy); return copyText(`${tab==="in"?"من":"إلى"}: ${tab==="in"?m.sender_name:(m.recipient_name||"مدير المنصة")}\nالتاريخ: ${new Date(m.created_at).toLocaleString("ar-EG-u-nu-latn")}\nالعنوان: ${m.subject}\n\n${m.body}`,"نُسخت الرسالة"); }
+    if(dl){ if(dl.dataset.c!=="1"){ dl.dataset.c="1"; dl.textContent="تأكيد الحذف"; return; } const m=list.find(x=>x.id===dl.dataset.mdel); const ids=m._ids||[m.id];
+      const { error } = await sb.from("messages").delete().in("id",ids); if(error) return toast(error.message,true); toast("حُذفت"); list=list.filter(x=>x!==m); draw(); refreshUnread(); } };
 }
 
 /* ================= Navigation ================= */
@@ -1096,19 +1233,20 @@ const TABS = [
   {id:"coursechat", t:"محادثة الدورة", i:"chat"},
   {id:"kb", t:"قاعدة المعرفة", i:"kb"},
   {id:"settings", t:"حسابي", i:"gear"},
+  {id:"inbox", t:"الرسائل والإشعارات", i:"bell"},
   {id:"admin", t:"إدارة المنصة", i:"admin", admin:true},
   {id:"trouble", t:"الأعطال والدعم الفني", i:"support"}
 ];
 function renderTabs(cur){
   const vis=TABS.filter(t=>(!t.admin || profile?.role==="admin") && (!FEATURES.some(f=>f[0]===t.id) || can(t.id)));
-  $("#tabs").innerHTML = vis.map(t=>`<a class="tab ${t.id===cur?"on":""}" href="#${t.id}">${ico(t.i)}${t.t}</a>`).join("");
+  $("#tabs").innerHTML = vis.map(t=>`<a class="tab ${t.id===cur?"on":""}" href="#${t.id}"${t.id==="inbox"?" data-inbox":""}>${ico(t.i)}${t.t}${t.id==="inbox"?'<i class="nbadge" hidden></i>':""}</a>`).join("");
   // شريط تنقّل سفلي ثابت للجوال: أهم 4 أقسام + «المزيد»
-  const SHORT={trouble:"الدعم الفني",dash:"الرئيسية",studio:"الاستوديو",lessons:"محاضراتي",settings:"حسابي",assistant:"المساعد",kb:"المعرفة",exams:"الاختبارات",tools:"الأدوات",coursechat:"المحادثة",admin:"الإدارة"};
+  const SHORT={inbox:"الرسائل",trouble:"الدعم الفني",dash:"الرئيسية",studio:"الاستوديو",lessons:"محاضراتي",settings:"حسابي",assistant:"المساعد",kb:"المعرفة",exams:"الاختبارات",tools:"الأدوات",coursechat:"المحادثة",admin:"الإدارة"};
   const main=["dash","studio","lessons","assistant"].filter(id=>vis.some(t=>t.id===id)); const more=vis.filter(t=>!main.includes(t.id));
   let nav=$("#bnav"); if(!nav){ nav=document.createElement("nav"); nav.id="bnav"; nav.className="bnav"; $("#appView").append(nav); }
-  nav.innerHTML=main.map(id=>{ const t=vis.find(x=>x.id===id); return `<a href="#${id}" class="${id===cur?"on":""}">${ico(t.i)}<span>${SHORT[id]||t.t}</span></a>`; }).join("")+(more.length?`<button type="button" class="${more.some(t=>t.id===cur)?"on":""}" id="bMore">${ico("dash")}<span>المزيد</span></button>`:"");
-  nav.style.gridTemplateColumns=`repeat(${main.length+(more.length?1:0)},1fr)`;
-  $("#bMore")?.addEventListener("click",()=>{ const sh=document.createElement("div"); sh.className="bsheet"; sh.innerHTML=`<div><b>كل الأقسام</b>${more.map(t=>`<a href="#${t.id}" class="${t.id===cur?"on":""}">${ico(t.i)}<span>${t.t}</span></a>`).join("")}</div>`; sh.onclick=e=>{ if(e.target===sh||e.target.closest("a")) sh.remove(); }; document.body.append(sh); });
+  nav.innerHTML=main.map(id=>{ const t=vis.find(x=>x.id===id); return `<a href="#${id}" class="${id===cur?"on":""}">${ico(t.i)}<span>${SHORT[id]||t.t}</span></a>`; }).join("")+(more.length?`<button type="button" class="${more.some(t=>t.id===cur)?"on":""}" id="bMore" data-inbox>${ico("dash")}<span>المزيد</span><i class="nbadge" hidden></i></button>`:"");
+  nav.style.gridTemplateColumns=`repeat(${main.length+(more.length?1:0)},1fr)`; setTimeout(setBadges,0);
+  $("#bMore")?.addEventListener("click",()=>{ const sh=document.createElement("div"); sh.className="bsheet"; setTimeout(setBadges,0); sh.innerHTML=`<div><b>كل الأقسام</b>${more.map(t=>`<a href="#${t.id}" class="${t.id===cur?"on":""}"${t.id==="inbox"?" data-inbox":""}>${ico(t.i)}<span>${t.t}</span>${t.id==="inbox"?'<i class="nbadge" hidden></i>':""}</a>`).join("")}</div>`; sh.onclick=e=>{ if(e.target===sh||e.target.closest("a")) sh.remove(); }; document.body.append(sh); });
 }
 function route(){
   const h = location.hash.replace("#","");
@@ -1118,7 +1256,7 @@ function route(){
   const id = TABS.some(t=>t.id===h) ? h : (h.startsWith("play-") ? "lessons" : "dash");
   renderTabs(id);
   if (curAudio) curAudio.pause();
-  const views = {settings:vSettings, dash:vDash, studio:vStudio, lessons:vLessons, assistant:vAssistant, kb:vKb, exams:vExams, tools:vTools, coursechat:vCourseChat, admin:vAdmin, trouble:vTrouble};
+  const views = {settings:vSettings, dash:vDash, studio:vStudio, lessons:vLessons, assistant:vAssistant, kb:vKb, exams:vExams, tools:vTools, coursechat:vCourseChat, admin:vAdmin, trouble:vTrouble, inbox:vInbox};
   if (h.startsWith("play-")) return vPlay(h.slice(5)).then(()=>appendHelp("play")).catch(e=>toast(e.message,true));
   if (FEATURES.some(f=>f[0]===id) && !can(id)){ $("#main").innerHTML=offNote(FEATURES.find(f=>f[0]===id)[1]); return; }
   (views[id]||vDash)().then(()=>{ appendHelp(views[id]?id:"dash"); }).catch(e=>toast(e.message,true));
@@ -1157,6 +1295,7 @@ async function loadProfile(){
   $("#whoName").textContent = (profile.full_name||session.user.email) + (profile.role==="admin"?" · مدير":"");
   if(profile.role==="admin") syncAssets();
   adminBanner(); await loadMyPhoto();
+  UNREAD=null; refreshUnread().catch(()=>{});
   if(can("voicefab")) mountVoiceFab(); else { $("#vfab")?.remove(); $("#vpanel")?.remove(); }
 }
 // لا ننتظر أي طلب لـ Supabase داخل هذا المستمع: انتظاره يسبب تجمّد الصفحة عند إعادة فتحها بجلسة محفوظة
@@ -1172,13 +1311,31 @@ async function askApproval(b){ busy(b,true,"جارٍ الإرسال…"); try{ c
   if(r.error) throw new Error(r.error); toast(r.info||"أُرسل طلب التفعيل إلى مدير المنصة"); }catch(err){ toast("تعذّر الإرسال: "+err.message,true); } finally{ busy(b,false); } }
 
 /* ================= Dashboard ================= */
+/* التنبيهات في لوحة التحكم: الرسائل غير المقروءة، وللمدير: الأعطال والبلاغات والحسابات المنتظرة */
+async function dashAlerts(el){
+  if(!el) return; const uid=session.user.id, admin=profile?.role==="admin";
+  let mq=sb.from("messages").select("id,sender_name,subject,kind,created_at").is("read_at",null).neq("sender",uid).order("created_at",{ascending:false}).limit(4);
+  mq = admin ? mq.or(`recipient.eq.${uid},to_admin.eq.true`) : mq.eq("recipient",uid);
+  const jobs=[mq];
+  if(admin) jobs.push(sb.from("system_errors").select("id",{count:"exact",head:true}).eq("status","open"), sb.from("support_tickets").select("id",{count:"exact",head:true}).in("status",["open","in_progress"]), sb.from("profiles").select("id",{count:"exact",head:true}).eq("approved",false));
+  else jobs.push(sb.from("support_tickets").select("id,status,resolution,updated_at").eq("user_id",uid).in("status",["resolved","needs_user"]).order("updated_at",{ascending:false}).limit(2));
+  const [m, a, b, c] = await Promise.all(jobs);
+  await refreshUnread().catch(()=>{});
+  const msgs=m.data||[]; let h="";
+  if(admin){ const tiles=[["الأعطال الجديدة",a.count||0,"#trouble","log","warning"],["بلاغات الدعم",b.count||0,"#trouble","support","support"],["بانتظار التفعيل",c.count||0,"#admin","","users"]];
+    h+=`<div class="atiles">${tiles.map(([t,n,href,tt,i])=>`<a class="atile${n?" hot":""}" href="${href}"${tt?` data-trtab="${tt}"`:""}>${ico(i)}<b>${num(n)}</b><span>${t}</span></a>`).join("")}</div>`; }
+  h+=`<a class="arow head" href="#inbox" data-inbox>${ico("bell")}<span><b>${UNREAD?`${num(UNREAD)} ${UNREAD===1?"رسالة غير مقروءة":"رسائل غير مقروءة"}`:"لا رسائل جديدة"}</b><span class="small muted">الرسائل والإشعارات</span></span><span class="uchev side" aria-hidden="true"></span></a>`;
+  h+=msgs.map(x=>`<a class="arow" href="#inbox"><span class="mdot on"></span><span><b>${esc(x.sender_name||"مستخدم")}${x.kind==="notice"?` <span class="ntag gold">إشعار</span>`:""}</b><span class="small muted">${esc(x.subject||"(بدون عنوان)")}</span></span></a>`).join("");
+  if(!admin) h+=(a?.data||[]).map(t=>`<a class="arow" href="#trouble" data-trtab="support">${ico("support")}<span><b>${t.status==="resolved"?"تم حل بلاغك":"بلاغك يحتاج إجراءً منك"}</b><span class="small muted">${esc((t.resolution||"").slice(0,90))}</span></span></a>`).join("");
+  el.innerHTML=h;
+}
 async function vDash(){
   const main=$("#main");
-  main.innerHTML = `<div class="welcome"><div class="wtext"><span class="muted small">أهلاً</span><h1>${esc(profile?.full_name||"")}</h1><p class="muted">ابدأ محاضرة جديدة، أو تابع عملك.</p></div>${MYPHOTO?`<img class="havatar" src="${esc(MYPHOTO)}" alt="">`:`<a class="havatar hph" href="#settings" title="أضف صورتك الشخصية">${esc(String(profile?.full_name||"؟").replace(/^(د|أ\.?د)\.?\s*/,"").trim()[0]||"؟")}</a>`}</div><div class="row wbtns">${can("studio")?`<a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a>`:""}${can("exams")?`<a class="btn ghost" href="#exams">اختبار جديد</a>`:""}</div></div>${pending()}
+  main.innerHTML = `<div class="welcome"><div class="wtext"><span class="muted small">أهلاً</span><h1>${esc(profile?.full_name||"")}</h1><p class="muted wsub">ابدأ محاضرة جديدة<br>أو تابع عملك</p></div>${MYPHOTO?`<img class="havatar" src="${esc(MYPHOTO)}" alt="">`:`<a class="havatar hph" href="#settings" title="أضف صورتك الشخصية">${esc(String(profile?.full_name||"؟").replace(/^(د|أ\.?د)\.?\s*/,"").trim()[0]||"؟")}</a>`}</div><div class="row wbtns">${can("studio")?`<a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a>`:""}${can("exams")?`<a class="btn ghost" href="#exams">اختبار جديد</a>`:""}</div></div>${pending()}
   <div class="stats" id="stats">${"<div class='card stat'><b>…</b></div>".repeat(4)}</div>
   <div id="newsBox"></div>
   <div id="alexaBox"></div>
-  <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2>الاستهلاك هذا الشهر</h2><div id="usage"></div></div></div>`;
+  <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2 class="row" style="gap:8px">${ico("bell")}التنبيهات</h2><div id="alerts" class="stack" style="gap:8px"><span class="small muted">جارٍ التحميل…</span></div><div id="usage" class="usagemini"></div></div></div>`;
   const [l,e,d,u] = await Promise.all([
     sb.from("lessons").select("id,title,created_at,slides,is_public",{count:"exact"}).order("created_at",{ascending:false}).limit(5),
     sb.from("exams").select("id",{count:"exact",head:true}),
@@ -1189,9 +1346,10 @@ async function vDash(){
   $("#stats").innerHTML = [["المحاضرات",l.count,"lessons","lessons"],["الاختبارات",e.count,"exams","exam"],["ملفات المعرفة",d.count,"kb","kb"],["توكنز هذا الشهر",used,"settings","gear"]].map(([t,v,h,i])=>`<a class="card stat" href="#${h}"><span class="si">${ico(i)}</span><span><b>${num(v)}</b><span class="muted small">${t}</span></span></a>`).join("");
   $("#recentL").innerHTML = (l.data||[]).length ? l.data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${fmtDate(x.created_at)} · ${num((x.slides||[]).length)} شريحة</span></div><a class="btn sm ghost" href="#play-${x.id}">${ico("play")} تشغيل</a></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد.</div>`;
   newsBox($("#newsBox")).catch(e=>console.error(e));
+  dashAlerts($("#alerts")).catch(e=>{ $("#alerts").innerHTML=`<span class="small muted">تعذّر تحميل التنبيهات</span>`; console.error(e); });
   if(can("alexa")) alexaPanel().catch(e=>console.error(e));
   const pct = lim? Math.min(100, used/lim*100):0;
-  $("#usage").innerHTML = `<p><b style="font-size:22px">${num(used)}</b> <span class="muted">من ${num(lim)} توكن</span></p><div class="meter"><i style="width:${pct}%"></i></div><p class="small muted" style="margin-top:10px">يشمل الشرح والصوت والبحث في الملفات. يحدّد مدير المنصة الحد الشهري لكل مدرّب. الخدمة مجانية ضمن الحدود اليومية لـ Google Gemini.</p>`;
+  $("#usage").innerHTML = `<div class="row" style="justify-content:space-between;gap:6px"><span class="small muted">الاستهلاك هذا الشهر</span><span class="small"><b>${num(used)}</b> <span class="muted">من ${num(lim)}</span></span></div><div class="meter"><i style="width:${pct}%"></i></div>`;
 }
 
 // طلبات أليكسا: التقدّم، والمحاضرات التي تنتظر تصدير الفيديو، والأعطال
