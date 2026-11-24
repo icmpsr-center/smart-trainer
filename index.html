@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v39" />
+<meta name="app-version" content="v40" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,8 +31,8 @@ body{margin:0;color:var(--ink);font:16px/1.6 Cairo,Tahoma,sans-serif;overflow-x:
   background:
    radial-gradient(60% 45% at 50% 108%,#c8d6ee 0%,rgba(200,214,238,0) 70%),
    radial-gradient(45% 50% at 92% 22%,#f5efe4 0%,rgba(245,239,228,0) 70%),
-   linear-gradient(170deg,#ffffff 0%,#f7f8fb 45%,#e9eef8 100%) fixed;
-  background-attachment:fixed}
+   linear-gradient(170deg,#ffffff 0%,#f7f8fb 45%,#e9eef8 100%);
+  background-repeat:no-repeat;background-size:100% 100vh;background-color:#eef2f9}
 h1,h2,h3{font-family:Cairo,sans-serif;margin:0;line-height:1.2;text-wrap:balance}
 h1{font-size:clamp(28px,3.4vw,40px)}h2{font-size:24px}h3{font-size:18px}
 p{margin:0}
@@ -62,7 +62,7 @@ input[type=checkbox]{width:20px;height:20px;min-height:0;accent-color:var(--navy
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 @media(max-width:700px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}}
-.card{background:var(--card);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:0 1px 2px rgba(11,42,91,.04)}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:0 1px 2px rgba(11,42,91,.04)}
 .stack{display:grid;gap:14px}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;background:var(--sky);color:var(--navy);font-size:13px;font-weight:600}
 .pill.gold{background:#f6ebcc;color:#6b5112}.pill.green{background:#dcf2e7;color:#17663f}.pill.red{background:#f9e0dc;color:#8e2a1f}
@@ -443,6 +443,9 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .qrow.full{border-color:#f3c7c2;background:#fff8f7}.qrow.full .meter i{background:#b42318}
 .qbody{display:grid;gap:6px;margin-top:10px;line-height:1.8}
 .qedit{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.qedit label{display:grid;gap:4px;margin:0;font-size:12.5px}.qedit input,.qedit select{width:100%;min-width:0}
+
+.item:has(.xdis){position:relative;padding-inline-end:46px}.xdis{position:absolute;top:8px;inset-inline-end:8px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#64748b;font-size:18px;line-height:1;cursor:pointer;align-self:flex-start}
+.xdis:hover{color:#b42318;border-color:#f3c7c2}
 </style>
 </head>
 <body>
@@ -491,8 +494,6 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 <div id="toast" class="toast hidden" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
 <script>
 const LOGO="./logo.jpg";
 const ICON192="./icon-192.png";
@@ -508,7 +509,10 @@ const SB_URL = "https://xrjzmnnonrlpejyxlkat.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyanptbm5vbnJscGVqeXhsa2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MTkyNjQsImV4cCI6MjExMDk5NTI2NH0.rEQLFvcCHNG99Ctn_RNOWJm2jaT_a33KveWQQsmHnaU";
 const FN = SB_URL + "/functions/v1/ai";
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
-if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+/* المكتبات الثقيلة تُحمَّل عند الحاجة فقط (قارئ PDF وتحويل MP3) حتى تفتح المنصة بسرعة */
+const loadScript=src=>new Promise((res,rej)=>{ if(document.querySelector(`script[src="${src}"]`)) return res(); const sc=document.createElement("script"); sc.src=src; sc.async=true; sc.onload=res; sc.onerror=()=>rej(new Error("تعذّر تحميل مكتبة: "+src.split("/").pop())); document.head.append(sc); });
+async function ensurePdf(){ if(!window.pdfjsLib) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"); if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }
+async function ensureLame(){ if(!window.lamejs) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js").catch(()=>{}); }
 
 const VOICES = [
   {id:"nova", n:"نور", d:"أنثى، دافئ", c:"#2f6db5"},
@@ -1431,11 +1435,12 @@ async function quotaBox(el){
 async function dashAlerts(el){
   if(!el) return; const uid=session.user.id, admin=profile?.role==="admin";
   const mq=sb.from("messages").select("id,sender_name,subject,kind,created_at").is("read_at",null).or(inboxOr(uid,admin)).order("created_at",{ascending:false}).limit(4);
-  const jobs=[mq];
+  const cq=sb.from("messages").select("id",{count:"exact",head:true}).is("read_at",null).or(inboxOr(uid,admin));
+  const jobs=[mq,cq];
   if(admin) jobs.push(sb.from("system_errors").select("id",{count:"exact",head:true}).eq("status","open"), sb.from("support_tickets").select("id",{count:"exact",head:true}).in("status",["open","in_progress"]), sb.from("profiles").select("id",{count:"exact",head:true}).eq("approved",false));
   else jobs.push(sb.from("support_tickets").select("id,status,resolution,updated_at").eq("user_id",uid).in("status",["resolved","needs_user"]).order("updated_at",{ascending:false}).limit(2));
-  const [m, a, b, c] = await Promise.all(jobs);
-  await refreshUnread().catch(()=>{});
+  const [m, cnt, a, b, c] = await Promise.all(jobs);
+  UNREAD=cnt.count||0; setBadges();
   const msgs=m.data||[]; let h="";
   if(admin){ const tiles=[["الأعطال الجديدة",a.count||0,"#trouble","log","warning"],["بلاغات الدعم",b.count||0,"#trouble","support","support"],["بانتظار التفعيل",c.count||0,"#admin","","users"]];
     h+=`<div class="atiles">${tiles.map(([t,n,href,tt,i])=>`<a class="atile${n?" hot":""}" href="${href}"${tt?` data-trtab="${tt}"`:""}>${ico(i)}<b>${num(n)}</b><span>${t}</span></a>`).join("")}</div>`; }
@@ -1452,19 +1457,20 @@ async function vDash(){
   <div id="newsBox"></div>
   <div id="alexaBox"></div>
   <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2 class="row" style="gap:8px">${ico("bell")}التنبيهات</h2><div id="alerts" class="stack" style="gap:8px"><span class="small muted">جارٍ التحميل…</span></div><div id="usage" class="usagemini"></div></div></div>`;
-  const [l,e,d,u] = await Promise.all([
-    sb.from("lessons").select("id,title,created_at,slides,is_public",{count:"exact"}).order("created_at",{ascending:false}).limit(5),
-    sb.from("exams").select("id",{count:"exact",head:true}),
-    sb.from("kb_docs").select("id",{count:"exact",head:true}),
-    sb.rpc("month_usage")
-  ]);
-  const used = u.data?.[0]?.used||0, lim = u.data?.[0]?.lim||0;
-  $("#stats").innerHTML = [["المحاضرات",l.count,"lessons","lessons"],["الاختبارات",e.count,"exams","exam"],["ملفات المعرفة",d.count,"kb","kb"],["توكنز هذا الشهر",used,"settings","gear"]].map(([t,v,h,i])=>`<a class="card stat" href="#${h}"><span class="si">${ico(i)}</span><span><b>${num(v)}</b><span class="muted small">${t}</span></span></a>`).join("");
-  $("#recentL").innerHTML = (l.data||[]).length ? l.data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${fmtDate(x.created_at)} · ${num((x.slides||[]).length)} شريحة</span></div><a class="btn sm ghost" href="#play-${x.id}">${ico("play")} تشغيل</a></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد.</div>`;
   newsBox($("#newsBox")).catch(e=>console.error(e));
   quotaBox($("#quotaBox")).catch(e=>console.error(e));
   dashAlerts($("#alerts")).catch(e=>{ $("#alerts").innerHTML=`<span class="small muted">تعذّر تحميل التنبيهات</span>`; console.error(e); });
   if(can("alexa")) alexaPanel().catch(e=>console.error(e));
+  const [l,e,d,u,lc] = await Promise.all([
+    sb.rpc("dash_lessons"),
+    sb.from("exams").select("id",{count:"exact",head:true}),
+    sb.from("kb_docs").select("id",{count:"exact",head:true}),
+    sb.rpc("month_usage"),
+    sb.from("lessons").select("id",{count:"exact",head:true})
+  ]);
+  const used = u.data?.[0]?.used||0, lim = u.data?.[0]?.lim||0;
+  $("#stats").innerHTML = [["المحاضرات",lc.count,"lessons","lessons"],["الاختبارات",e.count,"exams","exam"],["ملفات المعرفة",d.count,"kb","kb"],["توكنز هذا الشهر",used,"settings","gear"]].map(([t,v,h,i])=>`<a class="card stat" href="#${h}"><span class="si">${ico(i)}</span><span><b>${num(v)}</b><span class="muted small">${t}</span></span></a>`).join("");
+  $("#recentL").innerHTML = (l.data||[]).length ? l.data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${fmtDate(x.created_at)} · ${num(x.n||0)} شريحة</span></div><a class="btn sm ghost" href="#play-${x.id}">${ico("play")} تشغيل</a></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد.</div>`;
   const pct = lim? Math.min(100, used/lim*100):0;
   $("#usage").innerHTML = `<div class="row" style="justify-content:space-between;gap:6px"><span class="small muted">الاستهلاك هذا الشهر</span><span class="small"><b>${num(used)}</b> <span class="muted">من ${num(lim)}</span></span></div><div class="meter"><i style="width:${pct}%"></i></div>`;
 }
@@ -1472,24 +1478,31 @@ async function vDash(){
 // طلبات أليكسا: التقدّم، والمحاضرات التي تنتظر تصدير الفيديو، والأعطال
 const JOBST={queued:"في الانتظار",text:"جارٍ كتابة المحتوى",audio:"جارٍ تسجيل الصوت",done:"اكتملت",error:"تعثّرت",audio_limit:"توقف الصوت مؤقتاً"};
 const JOBPH={plan:"تخطيط الدورة",outline:"إعداد المخطط",slides:"كتابة الشرائح",audio:"تسجيل الصوت"};
+const alexaHidden=()=>{ try{ return localStorage.getItem("st_hide_alexa")==="1"; }catch(_){ return false; } };
 async function alexaPanel(){
   const uid=session?.user?.id; if(!uid) return;
-  const [j,w,er]=await Promise.all([
-    sb.from("alexa_jobs").select("id,kind,topic,status,state,error,created_at").eq("owner",uid).order("created_at",{ascending:false}).limit(3),
-    sb.from("lessons").select("id,title,slides,settings,video_url").eq("owner",uid).is("video_url",null).eq("settings->>autoExport","true").order("created_at",{ascending:false}).limit(5),
-    sb.from("system_errors").select("id,source,stage,reason,context,created_at").eq("owner",uid).eq("status","open").order("created_at",{ascending:false}).limit(3)
-  ]);
-  const jobs=j.data||[], wait=(w.data||[]).filter(x=>(x.slides||[]).length), errs=er.data||[];
   const box=$("#alexaBox"); if(!box) return;
-  if(!jobs.length && !wait.length && !errs.length){ box.innerHTML=`<div class="card stack"><h2>${ico("voice")} طلبات أليكسا</h2><div class="empty" style="padding:14px">لا توجد طلبات بعد. قل لأليكسا: «افتح المدرب الذكي»، ثم «أنشئ محاضرة عن …»، وستظهر هنا مراحل إنشائها لحظة بلحظة، ثم يُصدَّر الفيديو تلقائياً.</div></div>`; return; }
+  if(alexaHidden()){ box.innerHTML=""; return; }
+  const [j,w,er]=await Promise.all([
+    sb.from("alexa_jobs").select("id,kind,topic,status,state,error,created_at").eq("owner",uid).eq("dismissed",false).order("created_at",{ascending:false}).limit(3),
+    sb.rpc("alexa_wait"),
+    sb.from("system_errors").select("id,source,stage,reason,context,created_at").eq("owner",uid).eq("status","open").eq("owner_dismissed",false).order("created_at",{ascending:false}).limit(3)
+  ]);
+  const jobs=j.data||[], wait=(w.data||[]).filter(x=>x.n>0), errs=er.data||[];
+  const X=(t,id)=>`<button type="button" class="xdis" data-dis="${t}:${id}" title="إزالة" aria-label="إزالة">×</button>`;
+  if(!jobs.length && !wait.length && !errs.length){ box.innerHTML=""; return; }
   const jobRow=x=>{ const st=x.state||{}; const n=st.titles?.length||1, li=Math.min((st.li||0)+1,n), secs=st.secs?.length||0;
     const pr=x.status==="done"?100: st.phase==="audio"? 60+40*((st.si||0)/Math.max(1,secs)) : st.phase==="slides"? 15+45*((st.si||0)/Math.max(1,secs)) : 8;
     const detail=["done","error","audio_limit"].includes(x.status)? (x.error||"") : `${n>1?`المحاضرة ${li} من ${n} · `:""}${JOBPH[st.phase]||"البدء"}${secs&&st.phase!=="outline"?` · القسم ${Math.min((st.si||0)+1,secs)} من ${secs}`:""}`;
-    return `<div class="item"><div style="flex:1"><h3>${esc(x.topic)} <span class="small muted">· ${x.kind==="course"?"دورة":"محاضرة"}</span></h3><span class="small ${x.status==="error"?"":"muted"}" style="${x.status==="error"?"color:#b42318":""}">${JOBST[x.status]||x.status}${detail?" — "+esc(detail):""}</span><div class="meter" style="margin-top:6px"><i style="width:${Math.round(pr)}%"></i></div></div></div>`; };
-  box.innerHTML=`<div class="card stack"><h2>${ico("voice")} طلبات أليكسا</h2>
+    return `<div class="item">${["done","error","audio_limit"].includes(x.status)?X("job",x.id):""}<div style="flex:1"><h3>${esc(x.topic)} <span class="small muted">· ${x.kind==="course"?"دورة":"محاضرة"}</span></h3><span class="small ${x.status==="error"?"":"muted"}" style="${x.status==="error"?"color:#b42318":""}">${JOBST[x.status]||x.status}${detail?" — "+esc(detail):""}</span><div class="meter" style="margin-top:6px"><i style="width:${Math.round(pr)}%"></i></div></div></div>`; };
+  box.innerHTML=`<div class="card stack"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0">${ico("voice")} طلبات أليكسا</h2><span class="row" style="gap:6px"><button type="button" class="btn sm ghost" id="axClear">مسح الكل</button><button type="button" class="btn sm ghost" id="axHide">إخفاء اللوحة</button></span></div>
     ${jobs.map(jobRow).join("")}
-    ${wait.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">جاهزة — تنتظر تصدير الفيديو وحفظه في Drive</span></div><a class="btn sm gold" href="#play-${x.id}">تصدير الفيديو</a></div>`).join("")}
-    ${errs.map(e=>`<div class="item" style="border-color:#f3c7c2;background:#fff6f5"><div><h3 style="color:#b42318">عطل: ${esc(e.context?.topic||e.context?.title||e.stage||"")}</h3><span class="small">${esc(e.reason)}${e.stage?` · مرحلة ${esc(e.stage)}`:""} · ${fmtDate(e.created_at)}</span>${(()=>{ const g=guideMatch(e); return g?`<div class="small" style="margin-top:6px;line-height:1.8"><b>المعنى:</b> ${esc(g.mean)}<br><b>الحل:</b> ${esc(g.fix[0])}${g.fix[1]?" "+esc(g.fix[1]):""}</div>`:""; })()}${profile?.role==="admin"?`<a class="small" href="#trouble" data-trtab="log">التفاصيل في سجل الأعطال</a>`:""}</div></div>`).join("")}</div>`;
+    ${wait.map(x=>`<div class="item">${X("wait",x.id)}<div><h3>${esc(x.title)}</h3><span class="small muted">جاهزة — تنتظر تصدير الفيديو وحفظه في Drive</span></div><a class="btn sm gold" href="#play-${x.id}">تصدير الفيديو</a></div>`).join("")}
+    ${errs.map(e=>`<div class="item" style="border-color:#f3c7c2;background:#fff6f5">${X("err",e.id)}<div><h3 style="color:#b42318">عطل: ${esc(e.context?.topic||e.context?.title||e.stage||"")}</h3><span class="small">${esc(e.reason)}${e.stage?` · مرحلة ${esc(e.stage)}`:""} · ${fmtDate(e.created_at)}</span>${(()=>{ const g=guideMatch(e); return g?`<div class="small" style="margin-top:6px;line-height:1.8"><b>المعنى:</b> ${esc(g.mean)}<br><b>الحل:</b> ${esc(g.fix[0])}${g.fix[1]?" "+esc(g.fix[1]):""}</div>`:""; })()}${profile?.role==="admin"?`<a class="small" href="#trouble" data-trtab="log">التفاصيل في سجل الأعطال</a>`:""}</div></div>`).join("")}</div>`;
+  const dis=async(t,id)=>{ if(t==="job") return sb.from("alexa_jobs").update({dismissed:true}).eq("id",id); if(t==="err") return sb.from("system_errors").update({owner_dismissed:true}).eq("id",id); if(t==="wait") return sb.from("lessons").update({export_dismissed:true}).eq("id",id); };
+  box.onclick=async ev=>{ const b=ev.target.closest("[data-dis]"); if(b){ const [t,id]=b.dataset.dis.split(":"); b.closest(".item").remove(); await dis(t,id); if(!box.querySelector(".item")) box.innerHTML=""; return; }
+    if(ev.target.closest("#axClear")){ await Promise.all([...jobs.filter(x=>["done","error","audio_limit"].includes(x.status)).map(x=>dis("job",x.id)), ...errs.map(e=>dis("err",e.id)), ...wait.map(x=>dis("wait",x.id))]); toast("مُسحت إشعارات أليكسا"); return alexaPanel(); }
+    if(ev.target.closest("#axHide")){ try{ localStorage.setItem("st_hide_alexa","1"); }catch(_){} box.innerHTML=""; toast("أُخفيت لوحة أليكسا. أعد إظهارها من «حسابي ← ربط Alexa»."); } };
   // فتح أول محاضرة جاهزة تلقائياً لتصديرها (مرة واحدة في الجلسة)
   const ready=wait.find(x=>{ try{ return !sessionStorage.getItem("st-ae-"+x.id); }catch(_){ return false; } });
   if(ready && location.hash.replace("#","") in {"":1,dash:1}){ toast(`محاضرة «${ready.title}» جاهزة — أفتحها لتصدير الفيديو تلقائياً…`); setTimeout(()=>{ if(["","#dash"].includes(location.hash)) location.hash="#play-"+ready.id; },2500); }
@@ -1606,6 +1619,7 @@ function wavToMp3(buf){
   return new Blob(out,{type:"audio/mpeg"});
 }
 async function fillAudio(lesson, onP=()=>{}, log=()=>{}){
+  await ensureLame();
   const slides=lesson.slides, uid=session.user.id; const groups={};
   slides.forEach((s,i)=>{ const k=s.sec??0; (groups[k]=groups[k]||[]).push(i); });
   const keys=Object.keys(groups).map(Number).sort((a,b)=>a-b); let missing=0;
@@ -2267,7 +2281,7 @@ async function extractFile(file, setP){
   return [{page:1,text}];
 }
 async function readPdf(file, setP){
-  if(!window.pdfjsLib) throw new Error("تعذّر تحميل قارئ PDF");
+  await ensurePdf().catch(()=>{}); if(!window.pdfjsLib) throw new Error("تعذّر تحميل قارئ PDF");
   const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise; const out=[]; let ocr=0;
   for(let n=1;n<=pdf.numPages;n++){
     setP(Math.round(n/pdf.numPages*55), `قراءة الصفحة ${n} من ${pdf.numPages}`);
@@ -2459,6 +2473,7 @@ async function vSettings(){
   const ep = SB_URL + "/functions/v1/alexa";
   $("#alexaCard").innerHTML=`<h2>ربط Alexa</h2>
    <p>${s.has_pin?`<span class="pill green">رمزك مضبوط</span>`:`<span class="pill gold">لم يُضبط رمز بعد</span>`} ${s.alexa_links?`<span class="pill">${num(s.alexa_links)} جهاز مرتبط</span>`:""}</p>
+   <label class="chk" style="margin-bottom:8px"><input type="checkbox" id="axShow" ${alexaHidden()?"":"checked"} onchange="try{localStorage.setItem('st_hide_alexa',this.checked?'0':'1')}catch(e){}"> إظهار لوحة «طلبات أليكسا» في الرئيسية</label>
    <div class="row"><input id="pin" inputmode="numeric" maxlength="8" placeholder="رمز من 4 إلى 8 أرقام" dir="ltr" style="max-width:220px"><button class="btn" id="pinGo">حفظ الرمز</button></div>
    <p class="small muted">بعد تفعيل المهارة قل: «أليكسا، افتح المدرب الذكي» ثم «الرمز» وأرقامك مرة واحدة، فيرتبط الجهاز بحسابك. بعدها: «اعرض محاضراتي»، «أنشئ اختباراً عن مضادات التخثر»، «اسأل ما آلية عمل الأسبرين».</p>
    <details><summary style="cursor:pointer;font-weight:600">إعداد المهارة على حساب Amazon (مرة واحدة)</summary>
