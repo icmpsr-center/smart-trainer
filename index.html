@@ -462,6 +462,13 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 @keyframes bpop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 details.fold>summary.foldh{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
 details.fold>summary.foldh::-webkit-details-marker{display:none}
+details.fold>summary.foldh svg{width:22px;height:22px;flex:none}
+.actlist{display:flex;flex-direction:column;max-height:460px;overflow:auto}
+.actday{position:sticky;top:0;background:#fff;font-weight:700;color:var(--navy,#0b2a5b);font-size:14px;padding:8px 2px 4px;border-bottom:1px solid var(--line)}
+.actrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 2px;border-bottom:1px dashed var(--line);font-size:14.5px;line-height:1.7}
+.actic{font-size:17px;line-height:1.6;text-align:center}
+.acttg{color:var(--navy,#0b2a5b);font-weight:600}
+.actrow time{white-space:nowrap;padding-top:2px}
 details.fold>summary.foldh span:first-child{display:flex;flex-direction:column;gap:2px}
 details.fold>summary.foldh b{font-size:19px;color:var(--navy,#0b2a5b)}
 details.fold[open] .uchev{transform:rotate(180deg)}
@@ -1379,13 +1386,13 @@ $("#authForm").addEventListener("submit", async e=>{
       if(error) throw error;
       if(!data.session) toast("تم إنشاء الحساب وأُرسل طلب التفعيل إلى مدير المنصة. افتح بريدك لتأكيده، وسيصلك بريد آخر عند التفعيل.");
     } else {
-      const { error } = await sb.auth.signInWithPassword({ email, password }); if(error) throw error;
+      const { data:lg, error } = await sb.auth.signInWithPassword({ email, password }); if(error) throw error; actLog("login", null, lg?.user?.id);
     }
   }catch(err){ toast(err.message==="Invalid login credentials"?"البريد أو كلمة المرور غير صحيحة":err.message, true); }
   finally{ busy(btn,false); }
 });
 function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); publicNews(); }
-$("#logout").onclick=$("#logout2").onclick=async()=>{ if(asAdmin()) return backToAdmin(); await sb.auth.signOut(); };
+$("#logout").onclick=$("#logout2").onclick=async()=>{ if(asAdmin()) return backToAdmin(); await Promise.race([actLog("logout"), new Promise(r=>setTimeout(r,1500))]); await sb.auth.signOut(); };
 function hideBoot(){ const b=$("#boot"); if(b&&!b.classList.contains("off")){ window.bootP?.(100); setTimeout(()=>{ b.classList.add("off"); setTimeout(()=>b.remove(),450); },260); } }
 setTimeout(hideBoot,6000);
 const PKEY=()=>"st_prof_"+session?.user?.id;
@@ -1397,6 +1404,7 @@ async function loadProfile(){
   if(error){ logErr("profile","تحميل الملف الشخصي",error.message,JSON.stringify(error)); ({ data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name").eq("id", session.user.id).single()); }
   profile = data || {role:"trainer", approved:false};
   if(data?.approved) loadSharedVoices();
+  if(data?.approved && !asAdmin()){ try{ const k="st_act_open_"+session.user.id, t=+localStorage.getItem(k)||0; if(Date.now()-t>3*3600e3){ localStorage.setItem(k,String(Date.now())); actLog("open"); } }catch(_){ } }
   $("#whoName").textContent = (profile.full_name||session.user.email) + (profile.role==="admin"?" · مدير":"");
   if(profile.role==="admin") syncAssets();
   adminBanner();
@@ -1449,7 +1457,8 @@ async function quotaBox(el){
         ${r.period==="year"||!r.auto?`<label>تاريخ التجديد<input type="date" data-f="renew_date" value="${r.renew_date||""}"></label>`:""}</div>
        <div class="ubtns"><button class="btn sm" type="button" data-qsave>حفظ</button>${!r.auto?`<button class="btn sm danger" type="button" data-qdel>حذف</button>`:""}</div></div></details>`; };
   const hot=rows.filter(r=>r.lim&&(+r.used/+r.lim*100>=(r.warn||80)||r.limited_today)).length;
-  el.innerHTML=`<div class="card stack" id="quotaCard"><div class="row" style="justify-content:space-between;gap:8px"><h2 class="row" style="gap:8px;margin:0">${ico("chart")}حدود الذكاء الاصطناعي</h2><span class="pill ${hot?"red":"green"}">${hot?`${num(hot)} قارب أو بلغ الحد`:"ضمن الحدود"}</span></div>
+  const qOpen=(()=>{ try{ return localStorage.getItem("st_quota_open")==="1"; }catch(_){ return false; } })();
+  el.innerHTML=`<details class="card fold" id="quotaCard"${qOpen?" open":""}><summary class="foldh"><span><b class="row" style="gap:8px">${ico("chart")}حدود الذكاء الاصطناعي</b><small class="muted">${num(rows.length)} عدّاد — اضغط لعرض التفاصيل</small></span><span class="row" style="gap:8px"><span class="pill ${hot?"red":"green"}">${hot?`${num(hot)} قارب أو بلغ الحد`:"ضمن الحدود"}</span><span class="uchev" aria-hidden="true"></span></span></summary><div class="stack" style="margin-top:12px">
     <p class="small muted" style="margin:0">العدّاد يحسب طلبات المنصة فعلياً. حدود Google المجانية تتجدد يومياً منتصف الليل بتوقيت المحيط الهادئ (${fmtDT(rows.find(r=>r.period==="day_pt")?.reset_at||Date.now()).split("،").pop()} بتوقيتك). يصلك تنبيه في الرسائل عند بلوغ نسبة التنبيه وعند الحد الكامل.</p>
     <div class="stack" style="gap:8px">${rows.map(row).join("")}</div>
     <details class="qadd"><summary class="small" style="cursor:pointer;font-weight:700;color:var(--navy)">+ إضافة عدّاد يدوي (اشتراك سنوي أو شهري، رصيد مدفوع…)</summary>
@@ -1457,7 +1466,8 @@ async function quotaBox(el){
       <label>الفترة<select id="qaPer"><option value="year">سنوي</option><option value="month">شهري</option><option value="day">يومي</option><option value="none">إجمالي</option></select></label>
       <label>الحد<input id="qaLim" type="number" min="0"></label><label>الوحدة<input id="qaU" value="طلب"></label><label>تاريخ التجديد<input id="qaR" type="date"></label></div>
      <div class="ubtns"><button class="btn sm gold" type="button" id="qaAdd">أضف العدّاد</button></div></details>
-    <a class="small" href="https://aistudio.google.com/rate-limit" target="_blank" rel="noopener">عرض حدود Gemini الرسمية لمشروعك في Google AI Studio ←</a></div>`;
+    <a class="small" href="https://aistudio.google.com/rate-limit" target="_blank" rel="noopener">عرض حدود Gemini الرسمية لمشروعك في Google AI Studio ←</a></div></details>`;
+  $("#quotaCard").addEventListener("toggle",e=>{ if(e.target.id!=="quotaCard") return; try{ localStorage.setItem("st_quota_open",e.target.open?"1":"0"); }catch(_){} });
   el.onclick=async e=>{ const box=e.target.closest("[data-q]");
     if(e.target.closest("[data-qsave]")&&box){ const upd={}; box.querySelectorAll("[data-f]").forEach(i=>{ upd[i.dataset.f]=i.value===""?null:(i.type==="number"?+i.value:i.value); });
       const { error:er2 } = await sb.from("ai_limits").update(upd).eq("key",box.dataset.q); if(er2) return toast(er2.message,true); toast("حُفظ"); return quotaBox(el); }
@@ -1485,6 +1495,41 @@ async function dashAlerts(el){
   if(!admin) h+=(a?.data||[]).map(t=>`<a class="arow" href="#trouble" data-trtab="support">${ico("support")}<span><b>${t.status==="resolved"?"تم حل بلاغك":"بلاغك يحتاج إجراءً منك"}</b><span class="small muted">${esc((t.resolution||"").slice(0,90))}</span></span></a>`).join("");
   el.innerHTML=h;
 }
+
+/* ===== سجل الأحداث ===== */
+async function actLog(action, target=null, uid=null){ try{ uid=uid||session?.user?.id||(await sb.auth.getUser()).data?.user?.id; if(!uid) return; await sb.from("activity_log").insert({actor:uid, action, target}); }catch(_){ } }
+const ACT={login:["سجّل الدخول","🔑"],logout:["سجّل الخروج","🚪"],open:["فتح المنصة","📱"],signup:["أنشأ حساباً جديداً","🆕"],approve:["فعّل حساب","✅"],
+  lesson_create:["أنشأ محاضرة","🎬"],lesson_delete:["حذف محاضرة","🗑️"],lesson_publish:["نشر محاضرة للمتدرّبين","📢"],lesson_unpublish:["ألغى نشر محاضرة","🔒"],video_export:["حفظ فيديو محاضرة في Drive","🎞️"],
+  exam_create:["أنشأ اختباراً","📝"],kb_add:["أضاف مرجعاً إلى قاعدة المعرفة","📚"],kb_delete:["حذف مرجعاً من قاعدة المعرفة","🗑️"],tool_use:["استخدم أداة","🛠️"],
+  alexa_lecture:["طلب محاضرة عبر Alexa","🔊"],alexa_course:["طلب دورة عبر Alexa","🎓"],alexa_exam:["طلب اختباراً عبر Alexa","🔊"],news_create:["نشر خبراً أو إعلاناً","📰"],ticket_open:["فتح تذكرة دعم فني","🛟"],voice_clone:["استنسخ صوته","🎙️"]};
+const actLabel=a=>ACT[a]||(a.startsWith("alexa_")?["أرسل طلباً عبر Alexa","🔊"]:[a,"•"]);
+const TOOLN={summary:"ملخص مراجعة",assignment:"مولّد التكليفات",simplify:"تبسيط وإعادة صياغة",script:"سكربت فيديو",slides:"مولّد الشرائح",cases:"حالات سريرية"};
+function actDay(d){ const x=new Date(d), t=new Date(); const y=new Date(); y.setDate(t.getDate()-1); const same=(a,b)=>a.toDateString()===b.toDateString();
+  return same(x,t)?"اليوم":same(x,y)?"أمس":x.toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",day:"numeric",month:"long",year:"numeric"}); }
+async function actBox(el){
+  if(!el) return; const admin=profile?.role==="admin";
+  const open=(()=>{ try{ return localStorage.getItem("st_act_open")!=="0"; }catch(_){ return true; } })();
+  el.innerHTML=`<details class="card fold" id="actCard"${open?" open":""}><summary class="foldh"><span><b class="row" style="gap:8px">${ico("clock")}سجل الأحداث</b><small class="muted">${admin?"كل ما يفعله المستخدمون على المنصة بالتاريخ والوقت":"نشاطك على المنصة بالتاريخ والوقت"}</small></span><span class="uchev" aria-hidden="true"></span></summary>
+   <div class="stack" style="margin-top:12px;gap:10px"><div class="row" style="gap:8px;flex-wrap:wrap">${admin?`<select id="actU" style="flex:1;min-width:140px"><option value="">كل المستخدمين</option></select>`:""}
+    <select id="actT" style="flex:1;min-width:140px"><option value="">كل الأحداث</option><option value="login">الدخول</option><option value="open">فتح المنصة</option><option value="lesson_">المحاضرات</option><option value="video">الفيديو</option><option value="exam">الاختبارات</option><option value="kb_">قاعدة المعرفة</option><option value="alexa_">Alexa</option><option value="tool">الأدوات</option>${admin?`<option value="signup">الحسابات الجديدة</option><option value="approve">التفعيل</option><option value="news">الأخبار</option><option value="ticket">الدعم الفني</option>`:""}</select></div>
+    <div id="actL" class="actlist"><span class="small muted">جارٍ التحميل…</span></div><button class="btn ghost sm hidden" id="actMore" type="button">عرض المزيد</button></div></details>`;
+  $("#actCard").addEventListener("toggle",e=>{ if(e.target.id!=="actCard") return; try{ localStorage.setItem("st_act_open",e.target.open?"1":"0"); }catch(_){} });
+  if(admin){ const { data: ppl } = await sb.from("profiles").select("id,full_name,email").order("full_name"); $("#actU").insertAdjacentHTML("beforeend",(ppl||[]).map(p=>`<option value="${p.id}">${esc(p.full_name||p.email)}</option>`).join("")); }
+  let last=null, lastDay="";
+  const load=async(reset)=>{ if(reset){ last=null; lastDay=""; $("#actL").innerHTML=""; }
+    const { data, error } = await sb.rpc("activity_feed",{p_limit:30, p_before:last, p_actor:$("#actU")?.value||null, p_action:$("#actT").value||null});
+    if(error){ el.innerHTML=""; return; }
+    if(reset&&!data?.length){ $("#actL").innerHTML=`<span class="small muted">لا توجد أحداث بعد.</span>`; $("#actMore").classList.add("hidden"); return; }
+    let h="";
+    for(const a of data){ const day=actDay(a.created_at); if(day!==lastDay){ h+=`<div class="actday">${esc(day)}</div>`; lastDay=day; }
+      const [lbl,ic]=actLabel(a.action); const tg=a.action==="tool_use"?(TOOLN[a.target]||a.target):a.target;
+      h+=`<div class="actrow"><span class="actic" aria-hidden="true">${ic}</span><div class="acttx">${admin?`<b>${esc(a.actor_name)}</b> `:""}${lbl}${tg?` <span class="acttg">«${esc(tg)}»</span>`:""}</div><time class="small muted">${new Date(a.created_at).toLocaleTimeString("ar-EG-u-nu-latn",{hour:"numeric",minute:"2-digit"})}</time></div>`; }
+    $("#actL").insertAdjacentHTML("beforeend",h); last=data.at(-1)?.created_at||last;
+    $("#actMore").classList.toggle("hidden",data.length<30); };
+  $("#actT").onchange=()=>load(true); if($("#actU")) $("#actU").onchange=()=>load(true);
+  $("#actMore").onclick=async e=>{ const b=e.currentTarget; busy(b,true); await load(false).catch(()=>{}); busy(b,false); };
+  await load(true);
+}
 async function vDash(){
   const main=$("#main");
   main.innerHTML = `<div class="welcome"><div class="wtext"><span class="muted small">أهلاً</span><h1>${esc(profile?.full_name||"")}</h1><p class="muted wsub">ابدأ محاضرة جديدة<br>أو تابع عملك</p></div>${MYPHOTO?`<img class="havatar" src="${esc(MYPHOTO)}" alt="">`:`<a class="havatar hph" href="#settings" title="أضف صورتك الشخصية">${esc(String(profile?.full_name||"؟").replace(/^(د|أ\.?د)\.?\s*/,"").trim()[0]||"؟")}</a>`}</div><div class="row wbtns">${can("studio")?`<a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a>`:""}${can("exams")?`<a class="btn ghost" href="#exams">اختبار جديد</a>`:""}</div></div>${pending()}
@@ -1492,9 +1537,11 @@ async function vDash(){
   <div id="newsBox"></div>
   <div id="quotaBox"></div>
   <div id="alexaBox"></div>
+  <div id="actBox"></div>
   <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2 class="row" style="gap:8px">${ico("bell")}التنبيهات</h2><div id="alerts" class="stack" style="gap:8px"><span class="small muted">جارٍ التحميل…</span></div><div id="usage" class="usagemini"></div></div></div>`;
   newsBox($("#newsBox")).catch(e=>console.error(e));
   quotaBox($("#quotaBox")).catch(e=>console.error(e));
+  actBox($("#actBox")).catch(e=>{ $("#actBox").innerHTML=""; console.error(e); });
   dashAlerts($("#alerts")).catch(e=>{ $("#alerts").innerHTML=`<span class="small muted">تعذّر تحميل التنبيهات</span>`; console.error(e); });
   if(can("alexa")) alexaPanel().catch(e=>console.error(e));
   const [l,e,d,u,lc] = await Promise.all([
@@ -2495,7 +2542,7 @@ async function vSettings(){
       const b=e.currentTarget; busy(b,true,"جارٍ الاستنساخ لدى الخدمات…");
       try{ const w1=await toWav24k(f1,30), w2=f2?await toWav24k(f2,20):null;
         const r=await aiForm({action:"clone_all", ref:new File([w1],"ref.wav",{type:"audio/wav"}), ...(w2?{consent_audio:new File([w2],"consent.wav",{type:"audio/wav"})}:{}), name:$("#clName").value.trim(), consent:"yes"});
-        await loadProfile(); const ok=Object.entries(r.providers||{}).filter(([,v])=>v==="ok").map(([k])=>PROV[k]||k);
+        actLog("voice_clone"); await loadProfile(); const ok=Object.entries(r.providers||{}).filter(([,v])=>v==="ok").map(([k])=>PROV[k]||k);
         toast("تم استنساخ صوتك"+(ok.length?" عبر: "+ok.join("، "):"")); vSettings(); }
       catch(err){ toast(err.message,true); busy(b,false); } };
   };
