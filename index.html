@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v38" />
+<meta name="app-version" content="v39" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -432,6 +432,17 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .vzrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff}.vzrow img{width:64px;height:48px;object-fit:cover;border-radius:8px;flex:none}.vzrow>span{flex:1;display:grid;min-width:0;overflow-wrap:anywhere}
 
 .gexp{background:#f5f8fd;border:1px solid #dbe5f3;border-radius:10px;padding:8px 10px;line-height:1.85}.gexp summary{cursor:pointer;font-weight:700;color:var(--navy)}.gexp ul,.gexp ol{margin:4px 0 6px;padding-inline-start:20px}.gexp p{margin:6px 0}
+
+/* عدّاد الحدود */
+.qrow{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px 12px;min-width:0}
+.qrow summary{list-style:none;cursor:pointer;display:grid;gap:6px}.qrow summary::-webkit-details-marker{display:none}
+.qhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}.qhead b{font-size:14px;color:var(--ink);overflow-wrap:anywhere}
+.qtags{display:flex;gap:4px;flex-wrap:wrap}.ntag.red{background:#fde8e6;color:#b42318}
+.qline{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12.5px}
+.qrow.warn{border-color:#ead9a6;background:#fffcf3}.qrow.warn .meter i{background:#d4a017}
+.qrow.full{border-color:#f3c7c2;background:#fff8f7}.qrow.full .meter i{background:#b42318}
+.qbody{display:grid;gap:6px;margin-top:10px;line-height:1.8}
+.qedit{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.qedit label{display:grid;gap:4px;margin:0;font-size:12.5px}.qedit input,.qedit select{width:100%;min-width:0}
 </style>
 </head>
 <body>
@@ -765,6 +776,7 @@ const HELP={
     ["زر «محاضرة متحركة جديدة»","يفتح استوديو المحاضرة مباشرة لبدء محاضرة من وصف قصير."],
     ["زر «اختبار جديد»","يفتح منشئ الاختبارات لإنشاء أسئلة من موضوع أو من مراجعك."],
     ["المربعات الأربعة (العدادات)","عدد المحاضرات، والاختبارات المحفوظة، وملفات قاعدة المعرفة، والمحاضرات المنشورة. كل مربع زر يفتح القسم الخاص به."],
+    ["حدود الذكاء الاصطناعي (للمدير)","عدّاد لكل أداة: النصوص، والصوت، والصوت المستنسخ، والبحث في المراجع، وتوليد الصور، واستهلاك المنصة الشهري، ورصيد ElevenLabs، وتخزين Supabase. لكل عدّاد: المستهلك من الحد، والنسبة، وموعد التجديد بتوقيتك. اضغطه لتعديل الحد ونسبة التنبيه. حدود Google المجانية تتجدد منتصف الليل بتوقيت المحيط الهادئ، وإن لم تحدد الحد يُكتشف تلقائياً عند أول رفض من Google. يمكنك إضافة عدّاد يدوي لاشتراك سنوي أو شهري مع تاريخ تجديده. يصلك تنبيه في الرسائل عند 80٪ وعند 100٪ وقبل التجديد بأسبوع."],
     ["الاستهلاك هذا الشهر","شريط يوضح التوكنز المستهلكة من حدك الشهري. التوكن وحدة قياس النص الذي يعالجه الذكاء الاصطناعي؛ المحاضرة من 5 دقائق تستهلك عادة بضعة آلاف. يتجدد الحد أول كل شهر."],
     ["آخر المحاضرات","أحدث محاضراتك مع حالتها (منشورة أو غير مكتملة الصوت). اضغط أي محاضرة لفتحها."],
     ["الأخبار والإعلانات","أخبار المركز وإعلاناته التي ينشرها مدير المنصة: صورة وعنوان ونص وتاريخ، والمثبّت يظهر أولاً. «اقرأ المزيد» يفتح النص كاملاً، و«التفاصيل» يفتح الرابط المرفق."],
@@ -1371,6 +1383,50 @@ async function askApproval(b){ busy(b,true,"جارٍ الإرسال…"); try{ c
   if(r.error) throw new Error(r.error); toast(r.info||"أُرسل طلب التفعيل إلى مدير المنصة"); }catch(err){ toast("تعذّر الإرسال: "+err.message,true); } finally{ busy(b,false); } }
 
 /* ================= Dashboard ================= */
+/* ================= عدّاد حدود الذكاء الاصطناعي (للمدير) ================= */
+const QPER={day_pt:"يومي (توقيت Google)",day:"يومي",month:"شهري",year:"سنوي",none:"إجمالي"};
+function untilTxt(d){ if(!d) return ""; const ms=new Date(d)-Date.now(); if(ms<=0) return "يتجدد الآن"; const h=Math.floor(ms/36e5), dd=Math.floor(h/24), m=Math.floor(ms%36e5/6e4);
+  return dd>=2?`بعد ${num(dd)} يوم`:h>=1?`بعد ${num(h)} س ${num(m)} د`:`بعد ${num(m)} دقيقة`; }
+const fmtDT=d=>new Date(d).toLocaleString("ar-EG-u-nu-latn",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});
+async function quotaBox(el){
+  if(!el||profile?.role!=="admin") return;
+  el.innerHTML=`<div class="card stack"><h2 class="row" style="gap:8px">${ico("chart")}حدود الذكاء الاصطناعي</h2><span class="small muted">جارٍ الحساب…</span></div>`;
+  const [{ data, error }, q] = await Promise.all([ sb.rpc("ai_quota_status"), ai("quota",{fast:1}).catch(()=>({})) ]);
+  if(error){ el.innerHTML=""; return; }
+  const rows=(data||[]).map(r=>({...r}));
+  const ev=q?.eleven; const er=rows.find(r=>r.key==="eleven_chars");
+  if(er){ if(ev&&!ev.error){ er.used=ev.used; er.lim=ev.limit; er.reset_at=ev.reset?new Date(ev.reset*1000).toISOString():er.reset_at; er.extra=ev.tier?`الخطة: ${ev.tier}`:""; } else er.off=true; }
+  for(const r of rows) if(r.lim && (r.key==="eleven_chars"||!r.auto||r.key.startsWith("supabase")||r.renew_date)) sb.rpc("ai_check_external",{p_key:r.key,p_used:+r.used||0,p_lim:+r.lim}).then(()=>{});
+  const row=r=>{ const lim=+r.lim||0, used=+r.used||0, pct=lim?Math.min(100,used/lim*100):0; const lvl=pct>=100||r.limited_today?"full":pct>=(r.warn||80)?"warn":"ok";
+    const limTxt=r.off?"غير مربوط":lim?`${num(used)} من ${num(lim)} ${esc(r.unit)}`:`${num(used)} ${esc(r.unit)} · الحد غير محدد`;
+    return `<details class="qrow ${lvl}" data-q="${esc(r.key)}"><summary><div class="qhead"><b>${esc(r.label)}</b><span class="qtags"><span class="ntag">${esc(r.provider)}</span><span class="ntag">${QPER[r.period]||""}</span>${r.limited_today?`<span class="ntag red">بلغ الحد اليوم</span>`:""}</span></div>
+      <div class="meter"><i style="width:${lim?pct:3}%"></i></div>
+      <div class="qline"><span>${limTxt}${lim?` · <b>${Math.round(pct)}٪</b>`:""}</span><span class="muted">${r.reset_at?`${r.period==="year"||r.renew_date?"التجديد":"يتجدد"} ${untilTxt(r.reset_at)}`:""}</span></div></summary>
+      <div class="qbody small">${r.reset_at?`<div>موعد التجديد: <b>${fmtDT(r.reset_at)}</b> بتوقيتك.</div>`:""}${r.detected?`<div>الحد المكتشف فعلياً عند آخر رفض من Google: <b>${num(r.detected)}</b> ${esc(r.unit)}${r.detected_at?` (${fmtDate(r.detected_at)})`:""}.</div>`:""}${r.extra?`<div>${esc(r.extra)}</div>`:""}${r.note?`<div class="muted">${esc(r.note)}</div>`:""}
+       <div class="qedit"><label>الحد${r.key==="platform_tokens"?" (فارغ = مجموع حدود المستخدمين)":""}<input type="number" min="0" data-f="lim" value="${r.set_lim??""}" placeholder="${r.detected?num(r.detected):"اتركه فارغاً للاكتشاف التلقائي"}"></label>
+        <label>التنبيه عند (٪)<input type="number" min="10" max="100" data-f="warn_pct" value="${r.warn||80}"></label>
+        ${!r.auto?`<label>المستهلك حالياً<input type="number" min="0" data-f="manual_used" value="${used}"></label>`:""}
+        ${r.period==="year"||!r.auto?`<label>تاريخ التجديد<input type="date" data-f="renew_date" value="${r.renew_date||""}"></label>`:""}</div>
+       <div class="ubtns"><button class="btn sm" type="button" data-qsave>حفظ</button>${!r.auto?`<button class="btn sm danger" type="button" data-qdel>حذف</button>`:""}</div></div></details>`; };
+  const hot=rows.filter(r=>r.lim&&(+r.used/+r.lim*100>=(r.warn||80)||r.limited_today)).length;
+  el.innerHTML=`<div class="card stack" id="quotaCard"><div class="row" style="justify-content:space-between;gap:8px"><h2 class="row" style="gap:8px;margin:0">${ico("chart")}حدود الذكاء الاصطناعي</h2><span class="pill ${hot?"red":"green"}">${hot?`${num(hot)} قارب أو بلغ الحد`:"ضمن الحدود"}</span></div>
+    <p class="small muted" style="margin:0">العدّاد يحسب طلبات المنصة فعلياً. حدود Google المجانية تتجدد يومياً منتصف الليل بتوقيت المحيط الهادئ (${fmtDT(rows.find(r=>r.period==="day_pt")?.reset_at||Date.now()).split("،").pop()} بتوقيتك). يصلك تنبيه في الرسائل عند بلوغ نسبة التنبيه وعند الحد الكامل.</p>
+    <div class="stack" style="gap:8px">${rows.map(row).join("")}</div>
+    <details class="qadd"><summary class="small" style="cursor:pointer;font-weight:700;color:var(--navy)">+ إضافة عدّاد يدوي (اشتراك سنوي أو شهري، رصيد مدفوع…)</summary>
+     <div class="qedit" style="margin-top:8px"><label>الاسم<input id="qaL" placeholder="مثال: اشتراك Google AI Pro"></label><label>المزوّد<input id="qaP" placeholder="Google"></label>
+      <label>الفترة<select id="qaPer"><option value="year">سنوي</option><option value="month">شهري</option><option value="day">يومي</option><option value="none">إجمالي</option></select></label>
+      <label>الحد<input id="qaLim" type="number" min="0"></label><label>الوحدة<input id="qaU" value="طلب"></label><label>تاريخ التجديد<input id="qaR" type="date"></label></div>
+     <div class="ubtns"><button class="btn sm gold" type="button" id="qaAdd">أضف العدّاد</button></div></details>
+    <a class="small" href="https://aistudio.google.com/rate-limit" target="_blank" rel="noopener">عرض حدود Gemini الرسمية لمشروعك في Google AI Studio ←</a></div>`;
+  el.onclick=async e=>{ const box=e.target.closest("[data-q]");
+    if(e.target.closest("[data-qsave]")&&box){ const upd={}; box.querySelectorAll("[data-f]").forEach(i=>{ upd[i.dataset.f]=i.value===""?null:(i.type==="number"?+i.value:i.value); });
+      const { error:er2 } = await sb.from("ai_limits").update(upd).eq("key",box.dataset.q); if(er2) return toast(er2.message,true); toast("حُفظ"); return quotaBox(el); }
+    if(e.target.closest("[data-qdel]")&&box){ const b=e.target.closest("[data-qdel]"); if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } await sb.from("ai_limits").delete().eq("key",box.dataset.q); return quotaBox(el); }
+    if(e.target.closest("#qaAdd")){ const label=$("#qaL").value.trim(); if(!label) return toast("اكتب اسم العدّاد",true);
+      const { error:er3 } = await sb.from("ai_limits").insert({ key:"custom_"+Date.now(), label, provider:$("#qaP").value.trim()||"أخرى", period:$("#qaPer").value, lim:+$("#qaLim").value||null, unit:$("#qaU").value.trim()||"طلب", renew_date:$("#qaR").value||null, auto:false, manual_used:0, sort:50 });
+      if(er3) return toast(er3.message,true); toast("أُضيف العدّاد"); quotaBox(el); } };
+}
+
 /* التنبيهات في لوحة التحكم: الرسائل غير المقروءة، وللمدير: الأعطال والبلاغات والحسابات المنتظرة */
 async function dashAlerts(el){
   if(!el) return; const uid=session.user.id, admin=profile?.role==="admin";
@@ -1392,6 +1448,7 @@ async function vDash(){
   const main=$("#main");
   main.innerHTML = `<div class="welcome"><div class="wtext"><span class="muted small">أهلاً</span><h1>${esc(profile?.full_name||"")}</h1><p class="muted wsub">ابدأ محاضرة جديدة<br>أو تابع عملك</p></div>${MYPHOTO?`<img class="havatar" src="${esc(MYPHOTO)}" alt="">`:`<a class="havatar hph" href="#settings" title="أضف صورتك الشخصية">${esc(String(profile?.full_name||"؟").replace(/^(د|أ\.?د)\.?\s*/,"").trim()[0]||"؟")}</a>`}</div><div class="row wbtns">${can("studio")?`<a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a>`:""}${can("exams")?`<a class="btn ghost" href="#exams">اختبار جديد</a>`:""}</div></div>${pending()}
   <div class="stats" id="stats">${"<div class='card stat'><b>…</b></div>".repeat(4)}</div>
+  <div id="quotaBox"></div>
   <div id="newsBox"></div>
   <div id="alexaBox"></div>
   <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2 class="row" style="gap:8px">${ico("bell")}التنبيهات</h2><div id="alerts" class="stack" style="gap:8px"><span class="small muted">جارٍ التحميل…</span></div><div id="usage" class="usagemini"></div></div></div>`;
@@ -1405,6 +1462,7 @@ async function vDash(){
   $("#stats").innerHTML = [["المحاضرات",l.count,"lessons","lessons"],["الاختبارات",e.count,"exams","exam"],["ملفات المعرفة",d.count,"kb","kb"],["توكنز هذا الشهر",used,"settings","gear"]].map(([t,v,h,i])=>`<a class="card stat" href="#${h}"><span class="si">${ico(i)}</span><span><b>${num(v)}</b><span class="muted small">${t}</span></span></a>`).join("");
   $("#recentL").innerHTML = (l.data||[]).length ? l.data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${fmtDate(x.created_at)} · ${num((x.slides||[]).length)} شريحة</span></div><a class="btn sm ghost" href="#play-${x.id}">${ico("play")} تشغيل</a></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد.</div>`;
   newsBox($("#newsBox")).catch(e=>console.error(e));
+  quotaBox($("#quotaBox")).catch(e=>console.error(e));
   dashAlerts($("#alerts")).catch(e=>{ $("#alerts").innerHTML=`<span class="small muted">تعذّر تحميل التنبيهات</span>`; console.error(e); });
   if(can("alexa")) alexaPanel().catch(e=>console.error(e));
   const pct = lim? Math.min(100, used/lim*100):0;
