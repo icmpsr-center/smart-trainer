@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v31" />
+<meta name="app-version" content="v32" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -351,6 +351,21 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 #newsBox:empty{display:none}
 @media(max-width:600px){.ncard{grid-template-columns:minmax(0,1fr)}.nimg{max-height:190px;min-height:0;aspect-ratio:16/9}.nbody{padding:0 12px 12px}.ncard:not(:has(.nimg)) .nbody{padding:12px}}
 .vmode{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#64748b}.vmode select{flex:1;min-width:0;padding:4px 8px;font-size:12.5px;height:auto}
+
+/* بطاقة المستخدم في الإدارة */
+.usec{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px;min-width:0}
+.usec h4{margin:0;font-size:14px;color:var(--navy);border-inline-start:3px solid var(--gold);padding-inline-start:8px}
+.ugrid2,.ugrid3{display:grid;gap:10px;align-items:end}
+.ugrid2{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.ugrid3{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.ugrid2 label,.ugrid3 label{display:grid;gap:6px;min-width:0;margin:0}
+.ugrid3 select,.ugrid3 input,.ugrid2 input{width:100%;min-width:0}
+.utoggle{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:0 12px;min-height:46px;background:#fff;color:var(--ink);font-weight:500}
+.utoggle input{width:20px!important;height:20px;margin:0;accent-color:var(--navy);flex:none}
+.ubtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.ubtns .btn{width:100%;justify-content:center}
+@media(max-width:600px){.ugrid3>label:last-child{grid-column:1/-1}}
+.card[data-id]>details{border-top:1px solid var(--line);padding-top:12px}.card[data-id]>details>summary{color:var(--navy)}
 </style>
 </head>
 <body>
@@ -2046,15 +2061,18 @@ async function vAdmin0(){
     return `<div class="card stack" data-id="${p.id}">
      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:10px"><div><b style="font-size:17px">${esc(p.full_name||"—")}</b> ${p.role==="admin"?`<span class="pill">مدير</span>`:""} ${p.approved?`<span class="pill green">مفعّل</span>`:`<span class="pill" style="background:#fff4e5;color:#9a6700">بانتظار التفعيل</span>`}<br><span class="small muted" dir="ltr">${esc(p.email)}</span></div>
       <span class="small muted">استهلاك الشهر: <b>${num(used[p.id]||0)}</b> من ${num(p.monthly_token_limit)}${off?` · <b style="color:#b42318">${num(off)} ${off>2?"خصائص موقوفة":"خاصية موقوفة"}</b>`:""}</span></div>
-     <div class="row" style="gap:8px;flex-wrap:wrap;align-items:end"><label style="flex:1;min-width:180px">الاسم (مع اللقب)<input data-uname value="${esc(p.full_name||"")}"></label><label style="flex:1;min-width:200px">البريد الإلكتروني<input data-uemail dir="ltr" value="${esc(p.email||"")}"></label><button class="btn sm" data-saveuser>حفظ الاسم والبريد</button></div>
-     <div class="row" style="gap:10px;flex-wrap:wrap;align-items:end">
-      <label class="row" style="color:var(--ink);font-weight:500;gap:6px"><input type="checkbox" data-f="approved" ${p.approved?"checked":""} ${me?"disabled":""}> الحساب مفعّل</label>
-      <label>الدور<select data-f="role" style="min-width:110px" ${me?"disabled":""}><option value="trainer" ${p.role==="trainer"?"selected":""}>مدرّب</option><option value="admin" ${p.role==="admin"?"selected":""}>مدير</option></select></label>
-      <label>الحد الشهري (توكن)<input type="number" data-f="monthly_token_limit" value="${p.monthly_token_limit}" min="0" step="100000" style="max-width:160px"></label>
-      <button class="btn sm" data-save>حفظ</button>${me?"":`<button class="btn sm gold" data-enter>الدخول إلى حسابه</button>`}</div>
-     <div class="stack" style="gap:6px;border-top:1px solid var(--line,#e5e7eb);padding-top:10px"><b class="small">كلمة المرور</b>
-      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">${pws[p.id]?`<input readonly dir="ltr" value="${esc(pws[p.id].password)}" data-pwshow style="max-width:180px;font-family:monospace" onclick="this.select()"><button class="btn sm ghost" data-copypw>نسخ</button><span class="small muted">عُيّنت ${fmtDate(pws[p.id].set_at)}</span>`:`<span class="small muted">كلمة المرور التي أنشأها المستخدم بنفسه مشفّرة ولا يمكن عرضها؛ عيّن كلمة جديدة لتظهر هنا.</span>`}</div>
-      <div class="row" style="gap:8px;flex-wrap:wrap"><input data-newpw dir="ltr" placeholder="كلمة مرور جديدة (اتركها فارغة لتوليد كلمة تلقائياً)" style="flex:1;min-width:200px"><button class="btn sm gold" data-setpw>تعيين كلمة المرور</button></div></div>
+     <div class="usec"><h4>البيانات الشخصية</h4>
+      <div class="ugrid2"><label>الاسم (مع اللقب)<input data-uname value="${esc(p.full_name||"")}"></label><label>البريد الإلكتروني<input data-uemail dir="ltr" value="${esc(p.email||"")}"></label></div>
+      <div class="ubtns"><button class="btn sm" data-saveuser>حفظ الاسم والبريد</button></div></div>
+     <div class="usec"><h4>الحساب والاستهلاك</h4>
+      <div class="ugrid3">
+       <label>حالة الحساب<span class="utoggle"><input type="checkbox" data-f="approved" ${p.approved?"checked":""} ${me?"disabled":""}><span>الحساب مفعّل</span></span></label>
+       <label>الدور<select data-f="role" ${me?"disabled":""}><option value="trainer" ${p.role==="trainer"?"selected":""}>مدرّب</option><option value="admin" ${p.role==="admin"?"selected":""}>مدير</option></select></label>
+       <label>الحد الشهري (توكن)<input type="number" data-f="monthly_token_limit" value="${p.monthly_token_limit}" min="0" step="100000"></label></div>
+      <div class="ubtns"><button class="btn sm" data-save>حفظ الحالة والدور والحد</button>${me?"":`<button class="btn sm gold" data-enter>الدخول إلى حسابه</button>`}</div></div>
+     <div class="usec"><h4>كلمة المرور</h4>
+      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">${pws[p.id]?`<input readonly dir="ltr" value="${esc(pws[p.id].password)}" data-pwshow style="flex:1;min-width:0;max-width:220px;font-family:monospace" onclick="this.select()"><button class="btn sm ghost" data-copypw>نسخ</button><span class="small muted">عُيّنت ${fmtDate(pws[p.id].set_at)}</span>`:`<span class="small muted">كلمة المرور التي أنشأها المستخدم بنفسه مشفّرة ولا يمكن عرضها؛ عيّن كلمة جديدة لتظهر هنا.</span>`}</div>
+      <input data-newpw dir="ltr" placeholder="كلمة جديدة، أو اتركها فارغة للتوليد التلقائي"><div class="ubtns"><button class="btn sm gold" data-setpw>تعيين كلمة المرور</button></div></div>
      <details ${off?"open":""}><summary style="cursor:pointer;font-weight:600">خصائص المنصة لهذا المستخدم</summary>
       <div class="stack" style="gap:8px;margin-top:10px">${[["main","الأقسام الرئيسية"],["lesson","صفحة المحاضرة"]].map(([g,gt])=>`<b class="small" style="margin-top:6px">${gt}</b>`+FEATURES.filter(x=>x[3]===g).map(([k,n,d])=>`<label class="row" style="justify-content:space-between;gap:10px;color:var(--ink);padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:${f[k]===false?"#fff6f5":"#fff"}"><span><b>${n}</b><br><span class="small muted">${d}</span></span><span class="row" style="gap:6px;white-space:nowrap"><span class="small" data-lbl="${k}" style="color:${f[k]===false?"#b42318":"#067647"}">${f[k]===false?"موقوفة":"مفعّلة"}</span><input type="checkbox" data-feat="${k}" ${f[k]===false?"":"checked"} style="width:22px;height:22px"></span></label>`).join("")).join("")}
        <div class="row" style="gap:8px"><button class="btn sm ghost" data-allon>تفعيل الكل</button><button class="btn sm ghost" data-alloff>إيقاف الكل</button></div></div></details>
