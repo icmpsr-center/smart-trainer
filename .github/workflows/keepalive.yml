@@ -1,0 +1,17 @@
+# يبقي مشروع Supabase المجاني نشطاً: استعلام خفيف كل يومين حتى لا يُوقف بسبب عدم النشاط
+name: Supabase keep-alive
+on:
+  schedule:
+    - cron: "17 6 */2 * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the database
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "https://xrjzmnnonrlpejyxlkat.supabase.co/rest/v1/announcements?select=id&limit=1" -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyanptbm5vbnJscGVqeXhsa2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MTkyNjQsImV4cCI6MjExMDk5NTI2NH0.rEQLFvcCHNG99Ctn_RNOWJm2jaT_a33KveWQQsmHnaU" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyanptbm5vbnJscGVqeXhsa2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MTkyNjQsImV4cCI6MjExMDk5NTI2NH0.rEQLFvcCHNG99Ctn_RNOWJm2jaT_a33KveWQQsmHnaU")
+            echo "HTTP $code"; [ "$code" = "200" ] && exit 0; sleep 20
+          done
+          exit 1
