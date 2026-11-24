@@ -1677,7 +1677,7 @@ const LKINDS=[["lecture","محاضرة عادية"],["workshop","ورشة عمل
 const LKIND={lecture:"محاضرة",workshop:"ورشة عمل",course:"دورة تدريبية",meeting:"اجتماع تدريبي",other:"أخرى",video:"مرتبطة بمحاضرة متحركة"};
 const kindOf=s=>s.kind==="other"?(s.kind_label||s.settings?.kind_label||"أخرى"):(LKIND[s.kind]||"محاضرة");
 const LSTAT={scheduled:["مجدولة",""],live:["جارية الآن","green"],ended:["انتهت","gold"],cancelled:["أُلغيت","red"]};
-const LREC={done:"التسجيل محفوظ في Drive",processing:"جارٍ تجهيز التسجيل في Google…",none:"لا يوجد تسجيل بعد",error:"تعذّرت مزامنة التسجيل"};
+const LREC={done:"التسجيل محفوظ",processing:"جارٍ تجهيز التسجيل في Google…",none:"لا يوجد تسجيل بعد",error:"تعذّرت مزامنة التسجيل"};
 const toLocalInput=d=>{ const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,16); };
 const liveLink=id=>location.origin+location.pathname+"#live-"+id;
 const liveDevice=()=>{ try{ let d=localStorage.getItem("st_live_dev"); if(!d){ d=crypto.randomUUID(); localStorage.setItem("st_live_dev",d); } return d; }catch(_){ return ""; } };
@@ -1701,7 +1701,7 @@ async function vLive(){
      <div class="grid2"><label>الموعد<input id="lvS" type="datetime-local" required value="${toLocalInput(Date.now()+3600e3).slice(0,14)}00"></label>
       <label>المدة (دقيقة)<input id="lvD" type="number" min="15" max="600" step="5" value="60"></label></div>
      <div class="grid2"><label>المنصة<select id="lvP">${cfg.providers.map(p=>`<option value="${p}">${esc(cfg.all[p]||p)}</option>`).join("")}</select></label>
-      <label>بريدك في Google (لتدخل مضيفاً مشاركاً)<input id="lvC" type="email" dir="ltr" value="${esc(session.user.email||"")}"></label></div>
+      <label id="lvCL"><span>بريدك في Google (لتدخل مضيفاً مشاركاً)</span><input id="lvC" type="email" dir="ltr" value="${esc(session.user.email||"")}"></label></div>
      <div class="grid2"><label>نوع الجلسة<select id="lvK">${LKINDS.map(([k,t])=>`<option value="${k}">${t}</option>`).join("")}</select></label>
       <label id="lvKOL" class="hidden">اذكر نوع الجلسة<input id="lvKO" maxlength="60" placeholder="مثال: حلقة نقاش، مراجعة امتحان…"></label></div>
      <div class="grid2"><label><span>اسم الدورة <b style="color:#b42318">*</b></span><select id="lvCSel" required><option value="">اختر من دوراتك…</option><option value="__other">أخرى (اكتب اسمها)</option></select></label>
@@ -1715,9 +1715,10 @@ async function vLive(){
      <p class="small muted" style="margin:0">الإعدادات الموحّدة: ${cfg.config.defaults?.auto_record!==false?"تسجيل تلقائي إلى Drive، ":""}فتح الدخول قبل الموعد بـ ${num(cfg.config.defaults?.window_before??15)} دقيقة، والدخول للمتدرّبين المسجّلين فقط، وكل غريب يطرق الباب.</p>
      <p class="small muted" style="margin:0">بعد النشر تظهر الجلسة تلقائياً في حساب كل متدرّب مسجّل في هذه الدورة أو المحاضرة أو الورشة.</p>
      <div class="row"><button class="btn gold" id="lvGo" type="submit" data-pub="1">${ico("live")} نشر في بوابة المتدرّب</button><button class="btn ghost" id="lvSave" type="submit" data-pub="0">حفظ دون نشر</button></div></form></details>
-   ${can0?"":`<div class="card"><b>القاعات الذكية غير متاحة لحسابك بعد.</b><p class="small muted">${cfg.connected?"لم يفعّل المدير أي منصة لحسابك.":"لم يُربط Google Meet بالمنصة بعد. يتم الربط من «إدارة المنصة ← القاعات الذكية»."}</p></div>`}
+   ${can0?"":`<div class="card"><b>القاعات الذكية غير متاحة لحسابك بعد.</b><p class="small muted">${Object.values(cfg.configured||{meet:cfg.connected}).some(Boolean)?"لم يفعّل المدير أي منصة لحسابك.":"لم تُربط أي منصة اجتماعات بعد (Google Meet أو Zoom أو Teams). يتم الربط من «إدارة المنصة ← القاعات الذكية»."}</p></div>`}
    <div id="lvList" class="stack"></div>`;
   if(can0){ const kk=()=>{ const k=$("#lvK").value; $("#lvKOL").classList.toggle("hidden",k!=="other"); if(k==="course"&&$("#lvR").value==="once"){ $("#lvR").value="weekly"; $("#lvR").onchange?.(); } };
+    const pp=()=>{ const v=$("#lvP").value; $("#lvCL").firstChild.textContent=v==="zoom"?"بريدك في Zoom (مضيف بديل — اختياري)":v==="teams"?"بريدك في Microsoft 365 (مقدّم — اختياري)":"بريدك في Google (لتدخل مضيفاً مشاركاً)"; }; $("#lvP").onchange=pp; pp();
     const cc=()=>{ const o=$("#lvCSel").value==="__other"; $("#lvCourseL").classList.toggle("hidden",!o); if(o) $("#lvCourse").focus(); };
     $("#lvK").onchange=kk; $("#lvCSel").onchange=cc;
     Promise.all([lsP,ssP]).then(([{data:ls},{data:all}])=>{ $("#lvVid").insertAdjacentHTML("beforeend",(ls||[]).map(l=>`<option value="${l.id}" data-sub="${esc(l.subject||"")}">${esc(l.title)}</option>`).join(""));
@@ -1773,9 +1774,9 @@ async function drawLiveList(cfg, pre){
       <div class="ubtns">${["scheduled","live"].includes(s.status)?`<button class="btn gold sm" data-la="host">${ico("play")} ادخل كمحاضر</button>`:""}
        ${["scheduled","live"].includes(s.status)?`<button class="btn ghost sm" data-la="pub">${s.published?"إلغاء النشر من البوابة":"نشر في بوابة المتدرّب"}</button>`:""}
        ${s.status!=="cancelled"&&can("live_attention")?`<button class="btn ghost sm" data-la="attn">🧠 مؤشر الانتباه</button>`:""}
-       ${isAdmin()?`<button class="btn ghost sm" data-la="adminlink">${ico("shield")} رابط Meet (للمدير)</button>`:""}
+       ${isAdmin()?`<button class="btn ghost sm" data-la="adminlink">${ico("shield")} رابط الاجتماع (للمدير)</button>`:""}
        ${["scheduled","live"].includes(s.status)?`<button class="btn ghost sm" data-la="end">إنهاء المحاضرة</button><button class="btn danger sm" data-la="cancel">إلغاء</button>`:`<button class="btn ghost sm" data-la="sync">تحديث التسجيل والحضور</button><button class="btn danger sm" data-la="delete">حذف</button>`}</div>
-      <div class="small">${s.recording_url?`🎥 <a href="${esc(s.recording_url)}" target="_blank" rel="noopener">فتح التسجيل في Drive</a>${(s.settings?.recordings||[]).slice(1).map((r,i)=>` · <a href="${esc(r.url)}" target="_blank" rel="noopener">جزء ${i+2}</a>`).join("")}`:`<span class="muted">${s.status==="ended"?LREC[s.recording_status]||"سيُبحث عن التسجيل تلقائياً بعد انتهاء المحاضرة":"يبدأ التسجيل تلقائياً عند دخولك، ويُنقل إلى Drive بعد الانتهاء."}</span>`}</div>
+      <div class="small">${s.recording_url?`🎥 <a href="${esc(s.recording_url)}" target="_blank" rel="noopener">فتح التسجيل في ${s.provider==="zoom"?"سحابة Zoom":s.provider==="teams"?"OneDrive":"Drive"}</a>${(s.settings?.recordings||[]).slice(1).map((r,i)=>` · <a href="${esc(r.url)}" target="_blank" rel="noopener">جزء ${i+2}</a>`).join("")}`:`<span class="muted">${s.status==="ended"?LREC[s.recording_status]||"سيُبحث عن التسجيل تلقائياً بعد انتهاء المحاضرة":(s.provider==="zoom"?"يبدأ التسجيل السحابي تلقائياً في Zoom، ويظهر رابطه هنا بعد الانتهاء.":s.provider==="teams"?"يبدأ التسجيل تلقائياً في Teams ويُحفظ في OneDrive، ويظهر رابطه هنا بعد الانتهاء.":"يبدأ التسجيل تلقائياً عند دخولك، ويُنقل إلى Drive بعد الانتهاء.")}</span>`}</div>
 
       ${s.settings?.attention?.avg!=null?`<div class="attsum"><span class="attpc" style="--c:${attColor(s.settings.attention.avg)}">${num(Math.round(s.settings.attention.avg*100))}%</span><div><b>متوسط انتباه المتدرّبين</b><div class="small muted">حتى ${num(s.settings.attention.max_faces)} متدرّب في الصورة · ${attDur(s.settings.attention)}</div></div>${attSpark(s.settings.attention.spark)}</div>`:""}
       ${inNow.length||bad?`<div class="small"><b>دخلوا عبر بوابة المتدرّب (اقبل هذه الأسماء فقط عند طرق الباب):</b> ${[...new Set(inNow.map(j=>j.reason))].map(n=>`<span class="ntag">${esc(n)}</span>`).join(" ")||"—"}${bad?`<br><span style="color:#b42318">محاولات دخول مرفوضة: ${num(bad)}</span>`:""}</div>`:""}
@@ -1854,7 +1855,7 @@ async function drawLiveList(cfg, pre){
       const a=b.dataset.la;
       if(a==="attn") return openAttention(s, ()=>drawLiveList(cfg));
       if(a==="pub"){ busy(b,true); await live("publish",{id:s.id,published:!s.published}); toast(s.published?"أُلغي النشر من بوابة المتدرّب":"نُشرت في بوابة المتدرّب"); return drawLiveList(cfg); }
-      if(a==="adminlink"){ busy(b,true); const r=await live("admin_link",{id:s.id}); busy(b,false); if(!r.url) return toast("لا يوجد رابط بعد",true); const box2=det.querySelector(".lvlink")||det.querySelector(".ubody").insertAdjacentElement("afterbegin",Object.assign(document.createElement("div"),{className:"lvlink hb-tip small"})); box2.innerHTML=`رابط Meet (لا تشاركه): <b dir="ltr">${esc(r.url)}</b> <button class="btn ghost sm" type="button" data-cp="${esc(r.url)}">نسخ</button>`; return; }
+      if(a==="adminlink"){ busy(b,true); const r=await live("admin_link",{id:s.id}); busy(b,false); if(!r.url) return toast("لا يوجد رابط بعد",true); const box2=det.querySelector(".lvlink")||det.querySelector(".ubody").insertAdjacentElement("afterbegin",Object.assign(document.createElement("div"),{className:"lvlink hb-tip small"})); box2.innerHTML=`رابط الاجتماع (لا تشاركه): <b dir="ltr">${esc(r.url)}</b> <button class="btn ghost sm" type="button" data-cp="${esc(r.url)}">نسخ</button>`; return; }
       if(a==="copyall") return copy(A.filter(x=>!x.revoked).map(x=>liveInvite(s,x)).join("\n\n——————\n\n"));
       if(a==="host"){ const w=window.open("about:blank","_blank"); busy(b,true); try{ const r=await live("host_link",{id:s.id}); if(w) w.location=r.url; else location.href=r.url; } catch(err){ w?.close(); throw err; } finally{ busy(b,false); } return; }
       if(a==="add"){ const people=parsePeople(det.querySelector("[data-lp]").value); if(!people.length) return toast("اكتب اسماً واحداً على الأقل",true); busy(b,true); const r=await live("add_attendees",{id:s.id,people}); toast(`أُضيف ${num(r.added)} متدرّب برموز دخول`); return drawLiveList(cfg); }
@@ -2026,18 +2027,35 @@ async function showLiveGate(id){
 /* إعدادات الإدارة: المنصات المتاحة والإعدادات الموحّدة */
 async function adminLive(){
   const m=$("#main"); if(!m||m.querySelector("#adLive")) return;
-  m.insertAdjacentHTML("beforeend",`<details class="card fold" id="adLive"><summary class="foldh"><span><b class="row" style="gap:8px">${ico("live")}القاعات الذكية</b><small class="muted">ربط Meet وZoom وTeams، والإعدادات الموحّدة للحماية والتسجيل</small></span><span class="uchev" aria-hidden="true"></span></summary><div class="stack" id="adLiveB" style="margin-top:12px"><p class="small muted">جارٍ التحميل…</p></div></details>`);
+  m.insertAdjacentHTML("beforeend",`<details class="card fold" id="adLive"><summary class="foldh"><span><b class="row" style="gap:8px">${ico("live")}القاعات الذكية</b><small class="muted">ربط Google Meet وZoom وMicrosoft Teams، والإعدادات الموحّدة للحماية والتسجيل</small></span><span class="uchev" aria-hidden="true"></span></summary><div class="stack" id="adLiveB" style="margin-top:12px"><p class="small muted">جارٍ التحميل…</p></div></details>`);
   $("#adLive").addEventListener("toggle",async e=>{ if(!e.target.open||e.target.dataset.l) return; e.target.dataset.l="1"; await drawAdminLive(); });
 }
 async function drawAdminLive(){
   const B=$("#adLiveB"); let c; try{ c=await live("config"); }catch(e){ B.innerHTML=esc(e.message); return; }
   const cfg=c.config||{}, P=cfg.providers||{}, D=cfg.defaults||{};
-  const prov=(k,n,ready,note)=>`<div class="item" style="align-items:flex-start"><div style="flex:1"><b>${n}</b> ${ready?(k==="meet"&&!c.connected?'<span class="pill red">غير مربوط</span>':'<span class="pill green">جاهز</span>'):'<span class="pill">المرحلة التالية</span>'}<br><span class="small muted">${note}</span></div><label class="chk"><input type="checkbox" data-pv="${k}" ${P[k]?.enabled?"checked":""} ${ready?"":"disabled"}> مفعّل للمنصة</label></div>`;
+  const K=c.configured||{meet:c.connected}, CR=c.creds||{};
+  const prov=(k,n,note)=>`<div class="item" style="align-items:flex-start"><div style="flex:1"><b>${n}</b> ${K[k]?'<span class="pill green">مربوط</span>':'<span class="pill red">غير مربوط</span>'}${P[k]?.enabled&&K[k]?' <span class="pill gold">مفعّل للمدرّبين</span>':""}<br><span class="small muted">${note}</span><div class="small" data-tr="${k}"></div></div><div class="stack" style="gap:6px;align-items:flex-end"><label class="chk"><input type="checkbox" data-pv="${k}" ${P[k]?.enabled?"checked":""}> مفعّل للمنصة</label><button class="btn ghost sm" type="button" data-test="${k}">اختبار الاتصال</button></div></div>`;
+  const fld=(p,k,label,ph,secret)=>`<label>${label}<input data-cr="${p}:${k}" dir="ltr" ${secret?'type="password" autocomplete="new-password"':'autocomplete="off"'} placeholder="${esc(ph||"")}" value="${secret||/_id$/.test(k)?"":esc(CR[p]?.[k]||"")}"></label>`;
+  const credBox=(p,title,body,steps)=>`<details class="card fold" style="padding:12px"><summary class="foldh"><span><b>${title}</b><small class="muted">${K[p]?"مربوط — يمكنك تحديث البيانات":"أدخل بيانات الربط مرة واحدة"}</small></span><span class="uchev" aria-hidden="true"></span></summary>
+    <div class="stack" style="margin-top:10px">${body}<div class="row"><button class="btn gold sm" type="button" data-savecr="${p}">حفظ بيانات الربط</button><span class="small muted">تُحفظ في الخادم فقط ولا تظهر لأحد بعد الحفظ.</span></div>
+    <details class="helpbox"><summary><span class="hb-i">؟</span>خطوات الحصول على البيانات</summary><ol>${steps}</ol></details></div></details>`;
   B.innerHTML=`<div class="stack" style="gap:8px">
-    ${prov("meet","Google Meet",true,"عبر حساب Google Workspace للمركز (Apps Script). تسجيل تلقائي إلى Drive وتقرير حضور.")}
-    ${prov("zoom","Zoom",false,"يحتاج تطبيق Server-to-Server OAuth وخطة Pro للتسجيل السحابي.")}
-    ${prov("teams","Microsoft Teams",false,"يحتاج تسجيل تطبيق في Microsoft Entra (Azure) وترخيص Microsoft 365.")}</div>
-   <div class="row"><button class="btn ghost sm" id="alTest">اختبار الاتصال بـ Google Meet</button><span id="alTestR" class="small"></span></div>
+    ${prov("meet","Google Meet","عبر حساب Google Workspace للمركز (Apps Script). تسجيل تلقائي إلى Drive وتقرير حضور.")}
+    ${prov("zoom","Zoom","Server-to-Server OAuth. غرفة انتظار، والتسجيل السحابي وتقرير الحضور مع خطة Pro.")}
+    ${prov("teams","Microsoft Teams","Microsoft Graph. ردهة انتظار وتسجيل تلقائي إلى OneDrive وتقرير حضور مع Microsoft 365.")}</div>
+   ${credBox("zoom","ربط Zoom",`<div class="grid2">${fld("zoom","account_id","Account ID",CR.zoom?.account_id||"")}${fld("zoom","client_id","Client ID",CR.zoom?.client_id||"")}${fld("zoom","client_secret","Client Secret",CR.zoom?.client_secret?"محفوظ — اتركه فارغاً للإبقاء عليه":"",1)}${fld("zoom","host","بريد المستخدم المضيف في Zoom (اختياري)","افتراضياً: صاحب الحساب")}</div>`,
+     `<li>ادخل <a href="https://marketplace.zoom.us" target="_blank" rel="noopener">marketplace.zoom.us</a> بحساب Zoom الخاص بالمركز ← Develop ← Build App ← <b>Server-to-Server OAuth App</b>.</li>
+      <li>من «App Credentials» انسخ <b>Account ID</b> و<b>Client ID</b> و<b>Client Secret</b> والصقها هنا.</li>
+      <li>من «Scopes» أضف: <code dir="ltr">meeting:write:meeting:admin</code> و<code dir="ltr">meeting:read:meeting:admin</code> و<code dir="ltr">meeting:update:status:admin</code> و<code dir="ltr">cloud_recording:read:list_recording_files:admin</code> و<code dir="ltr">report:read:list_meeting_participants:admin</code> و<code dir="ltr">user:read:user:admin</code>.</li>
+      <li>فعّل التطبيق (Activate)، ثم احفظ هنا واضغط «اختبار الاتصال».</li>
+      <li>الحساب المجاني يحدّ الاجتماع بـ 40 دقيقة ولا يدعم التسجيل السحابي ولا تقرير الحضور؛ يُنصح بخطة Pro.</li>`)}
+   ${credBox("teams","ربط Microsoft Teams",`<div class="grid2">${fld("teams","tenant_id","Directory (tenant) ID",CR.teams?.tenant_id||"")}${fld("teams","client_id","Application (client) ID",CR.teams?.client_id||"")}${fld("teams","client_secret","Client Secret (Value)",CR.teams?.client_secret?"محفوظ — اتركه فارغاً للإبقاء عليه":"",1)}${fld("teams","organizer","بريد حساب المنظِّم في Microsoft 365","teams@your-domain.com")}</div>`,
+     `<li>ادخل <a href="https://entra.microsoft.com" target="_blank" rel="noopener">entra.microsoft.com</a> بحساب مدير Microsoft 365 ← App registrations ← New registration (اسم: القاعات الذكية).</li>
+      <li>انسخ <b>Application (client) ID</b> و<b>Directory (tenant) ID</b>، ومن «Certificates &amp; secrets» أنشئ <b>Client secret</b> وانسخ قيمته (Value).</li>
+      <li>من «API permissions ← Microsoft Graph ← Application permissions» أضف: <code dir="ltr">OnlineMeetings.ReadWrite.All</code> و<code dir="ltr">OnlineMeetingArtifact.Read.All</code> و<code dir="ltr">OnlineMeetingRecording.Read.All</code> و<code dir="ltr">Calendars.ReadWrite</code> و<code dir="ltr">User.Read.All</code> و<code dir="ltr">Files.Read.All</code>، ثم <b>Grant admin consent</b>.</li>
+      <li>اختر حساب المنظِّم (حساب مرخّص لـ Teams يُنشأ باسمه كل الاجتماعات) واكتب بريده هنا.</li>
+      <li>للردهة والتسجيل التلقائي وتقرير الحضور: من Teams PowerShell نفّذ مرة واحدة:<br><code dir="ltr" style="display:block;white-space:pre-wrap;margin-top:4px">New-CsApplicationAccessPolicy -Identity SmartHalls -AppIds "&lt;Client ID&gt;"
+Grant-CsApplicationAccessPolicy -PolicyName SmartHalls -Identity "&lt;بريد المنظِّم&gt;"</code>بدونها تُنشأ الاجتماعات كأحداث تقويم بإعدادات Teams الافتراضية.</li>`)}
    <b>الإعدادات الموحّدة لكل المحاضرات</b>
    <div class="grid2">
     <label>من يدخل دون طرق الباب<select id="alAcc"><option value="TRUSTED"${D.access!=="RESTRICTED"?" selected":""}>أعضاء حساب المركز والمدعوون فقط</option><option value="RESTRICTED"${D.access==="RESTRICTED"?" selected":""}>المدعوون فقط (الأكثر تشدداً)</option></select></label>
@@ -2046,8 +2064,8 @@ async function drawAdminLive(){
     <label>السماح بالدخول بعد نهاية الوقت (دقيقة)<input id="alWa" type="number" min="0" max="240" value="${D.window_after??30}"></label>
     <label>أقصى عدد مرات دخول لكل رمز (0 = بلا حد)<input id="alMax" type="number" min="0" max="50" value="${D.max_joins??5}"></label></div>
    <div class="stack" style="gap:6px">
-    <label class="chk"><input type="checkbox" id="alRec" ${D.auto_record!==false?"checked":""}> تسجيل تلقائي عند دخول المضيف، ونقل التسجيل إلى مجلد المنصة في Drive</label>
-    <label class="chk"><input type="checkbox" id="alAtt" ${D.attendance_report!==false?"checked":""}> تقرير حضور من Meet</label>
+    <label class="chk"><input type="checkbox" id="alRec" ${D.auto_record!==false?"checked":""}> تسجيل تلقائي عند بدء الاجتماع (Meet ← Drive، Zoom ← السحابة، Teams ← OneDrive)</label>
+    <label class="chk"><input type="checkbox" id="alAtt" ${D.attendance_report!==false?"checked":""}> تقرير حضور من منصة الاجتماع</label>
     <label class="chk"><input type="checkbox" id="alDev" ${D.one_device!==false?"checked":""}> ربط كل رمز بجهاز واحد (يمنع مشاركة الرمز)</label>
     <label class="chk"><input type="checkbox" id="alChat" ${D.chat_hosts_only?"checked":""}> الدردشة للمضيفين فقط</label></div>
    <p class="small muted" style="margin:0">لإخفاء الخاصية أو منصة بعينها عن مدرّب: «إدارة المستخدمين ← خصائص المنصة ← منصّات القاعات الذكية».</p>
@@ -2061,7 +2079,12 @@ async function drawAdminLive(){
     <li>انشر: «نشر ← نشر جديد ← تطبيق ويب»، التنفيذ باسمك، والوصول: Anyone. انسخ رابط النشر.</li>
     <li>في Supabase ← Edge Functions ← Secrets أضف <code>LIVE_HOOK_URL</code> (رابط النشر) و<code>LIVE_HOOK_KEY</code> (نفس المفتاح)، ثم اضغط «اختبار الاتصال» هنا.</li></ol>
     <div class="hb-tip">التسجيل التلقائي يتطلب خطة Workspace تدعم تسجيل Meet، وتفعيل «التسجيل» للمستخدمين من لوحة مدير Google Workspace.</div></details>`;
-  $("#alTest").onclick=async e=>{ const b=e.currentTarget; busy(b,true,"جارٍ الاختبار…"); try{ const r=await live("test"); $("#alTestR").innerHTML=`<span style="color:#15803d">✓ متصل بحساب ${esc(r.account||"")}${r.folder?` · مجلد التسجيلات: ${esc(r.folder)}`:" · ⚠ لم يُحدد مجلد التسجيلات"}${r.meet?" · Meet يعمل":""}</span>`; }catch(err){ $("#alTestR").innerHTML=`<span style="color:#b42318">${esc(err.message)}</span>`; } finally{ busy(b,false); } };
+  B.querySelectorAll("[data-test]").forEach(b=>b.onclick=async()=>{ const k=b.dataset.test, out=B.querySelector(`[data-tr="${k}"]`); busy(b,true,"جارٍ الاختبار…");
+    try{ const r=await live("test",{provider:k}); out.innerHTML=`<span style="color:#15803d">✓ متصل بحساب ${esc(r.account||"")}${r.name?` (${esc(r.name)})`:""}${r.plan?` · الخطة: ${esc(r.plan)}`:""}${k==="meet"?(r.folder?` · مجلد التسجيلات: ${esc(r.folder)}`:" · ⚠ لم يُحدد مجلد التسجيلات"):""}${k==="teams"?(r.policy?" · سياسة الوصول مفعّلة ✓":" · ⚠ سياسة الوصول للتطبيقات غير مفعّلة (انظر الخطوة 5)"):""}</span>`; }
+    catch(err){ out.innerHTML=`<span style="color:#b42318">${esc(err.message)}</span>`; } finally{ busy(b,false); } });
+  B.querySelectorAll("[data-savecr]").forEach(b=>b.onclick=async()=>{ const p=b.dataset.savecr, values={}; B.querySelectorAll(`[data-cr^="${p}:"]`).forEach(i=>{ if(i.value.trim()) values[i.dataset.cr.split(":")[1]]=i.value.trim(); });
+    if(!Object.keys(values).length) return toast("لم تُدخل أي قيمة جديدة",true); busy(b,true,"جارٍ الحفظ…");
+    try{ await live("save_creds",{provider:p,values}); LCFG=null; toast("حُفظت بيانات الربط. جارٍ الاختبار…"); await drawAdminLive(); B.querySelector(`[data-test="${p}"]`)?.click(); }catch(err){ toast(err.message,true); busy(b,false); } });
   $("#alSave").onclick=async e=>{ const b=e.currentTarget; busy(b,true);
     const providers={}; B.querySelectorAll("[data-pv]").forEach(x=>providers[x.dataset.pv]={...(P[x.dataset.pv]||{}),enabled:x.checked});
     const defaults={...D, access:$("#alAcc").value, recording_share:$("#alShare").value, window_before:+$("#alWb").value, window_after:+$("#alWa").value, max_joins:+$("#alMax").value, auto_record:$("#alRec").checked, attendance_report:$("#alAtt").checked, one_device:$("#alDev").checked, chat_hosts_only:$("#alChat").checked};
