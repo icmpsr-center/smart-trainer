@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v29" />
+<meta name="app-version" content="v30" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -320,6 +320,36 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 /* لوحة المساعد العائم */
 .vpin{display:flex;gap:6px}.vpin input{flex:1;min-width:0;padding:8px 10px;font-size:14px}
 .vpanel header button{min-width:28px}
+
+/* اختيار ملفات قاعدة المعرفة */
+.kbpick{display:grid;gap:6px;max-height:300px;overflow:auto;padding:2px}
+.kbrow{display:grid!important;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)!important;font:500 14px/1.5 Cairo,sans-serif!important;cursor:pointer;margin:0}
+.kbrow:has(input:checked){border-color:var(--navy);background:#f2f6fc}
+.kbrow input{width:18px!important;height:18px;margin:0;padding:0;accent-color:var(--navy)}
+.kbt{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.kbf{font-size:11.5px;font-weight:600;color:var(--navy);background:#eef3fb;border-radius:999px;padding:2px 9px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.linkbtn{border:0;background:none;color:var(--navy);font:600 13px Cairo,sans-serif;cursor:pointer;padding:0;text-decoration:underline}
+/* الأخبار والإعلانات */
+.nlist{display:grid;gap:12px}
+.ncard{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+.ncard.pin{border-color:var(--gold)}
+.ncard:not(:has(.nimg)){grid-template-columns:minmax(0,1fr)}
+.nimg{width:100%;height:100%;min-height:120px;max-height:200px;object-fit:cover;display:block}
+.nbody{padding:12px 14px 12px 0;display:grid;gap:6px;align-content:start;min-width:0}
+.ncard:not(:has(.nimg)) .nbody{padding:12px 14px}
+.nbody h3{margin:0;font-size:16px;color:var(--navy);overflow-wrap:anywhere}
+.nmeta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ntag{font-size:11.5px;font-weight:700;color:var(--navy);background:#eef3fb;border-radius:999px;padding:1px 10px}.ntag.gold{background:#fbf3e2;color:#8a6a1e}
+.ntext{margin:0;font-size:14px;line-height:1.8;overflow-wrap:anywhere}.ntext.clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.nbody .btn{justify-self:start}
+.nimgpick{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.nimgpick img{width:110px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.naud{border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:8px 18px;margin:0}
+.naud legend{font-size:13.5px;font-weight:600;color:var(--navy);padding:0 6px}
+.naud label,.chk{display:flex!important;align-items:center;gap:6px;font-weight:500!important;color:var(--ink)}
+.naud input,.chk input{width:auto!important;margin:0}
+.pubnews{max-width:1100px;margin:0 auto 28px;width:calc(100% - 32px)}.pubnews:empty{display:none}
+#newsBox:empty{display:none}
+@media(max-width:600px){.ncard{grid-template-columns:minmax(0,1fr)}.nimg{max-height:190px;min-height:0;aspect-ratio:16/9}.nbody{padding:0 12px 12px}.ncard:not(:has(.nimg)) .nbody{padding:12px}}
 </style>
 </head>
 <body>
@@ -352,6 +382,7 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
       </form>
     </div>
   </div>
+  <section class="card stack pubnews" id="pubNews"></section>
 </div>
 
 <!-- ===== App ===== -->
@@ -438,6 +469,7 @@ const P = {
   tooth:'<path d="M7 3c-3 0-4 3-3 6 1 2 1 4 2 8 .5 2 2.5 2 3 0l1-4h4l1 4c.5 2 2.5 2 3 0 1-4 1-6 2-8 1-3 0-6-3-6-2 0-3 1-5 1S9 3 7 3z"/>',
   eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   bone:'<path d="M7 4a2.5 2.5 0 0 0-3 3 2.5 2.5 0 0 0 3 3l7 7a2.5 2.5 0 0 0 3 3 2.5 2.5 0 0 0 3-3 2.5 2.5 0 0 0-3-3l-7-7a2.5 2.5 0 0 0-3-3z"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/>',
   copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
   support:'<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19a3 3 0 0 1-3 3h-3"/>'
 };
@@ -573,7 +605,8 @@ async function kbDocs(force=false){ if(kbCache && !force) return kbCache; const 
 function kbPicker(id){ return `<div class="stack" id="${id}"><span class="small muted">جاري تحميل الملفات…</span></div>`; }
 async function fillKbPicker(id){
   const docs = await kbDocs(); const el = document.getElementById(id); if(!el) return;
-  el.innerHTML = docs.length ? `<div class="row">${docs.map(d=>`<label class="row" style="gap:6px;color:var(--ink);font-weight:400"><input type="checkbox" value="${d.id}"> ${esc(d.title)} <span class="pill">${esc(d.folder||"عام")}</span></label>`).join("")}</div>` : `<span class="small muted">لا توجد ملفات في قاعدة المعرفة بعد. أضفها من قسم «قاعدة المعرفة».</span>`;
+  el.innerHTML = docs.length ? `<div class="kbpick">${docs.map(d=>`<label class="kbrow"><input type="checkbox" value="${d.id}"><span class="kbt" title="${esc(d.title)}">${esc(d.title)}</span><span class="kbf">${esc(d.folder||"عام")}</span></label>`).join("")}</div>${docs.length>1?`<div class="row small" style="gap:10px"><button type="button" class="linkbtn" data-kball="1">تحديد الكل</button><button type="button" class="linkbtn" data-kball="0">إلغاء التحديد</button></div>`:""}` : `<span class="small muted">لا توجد ملفات في قاعدة المعرفة بعد. أضفها من قسم «قاعدة المعرفة».</span>`;
+  el.onclick=e=>{ const b=e.target.closest("[data-kball]"); if(b) el.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=b.dataset.kball==="1"); };
 }
 const pickedDocs = id => [...document.querySelectorAll(`#${id} input:checked`)].map(i=>i.value);
 
@@ -637,6 +670,7 @@ const HELP={
     ["المربعات الأربعة (العدادات)","عدد المحاضرات، والاختبارات المحفوظة، وملفات قاعدة المعرفة، والمحاضرات المنشورة. كل مربع زر يفتح القسم الخاص به."],
     ["الاستهلاك هذا الشهر","شريط يوضح التوكنز المستهلكة من حدك الشهري. التوكن وحدة قياس النص الذي يعالجه الذكاء الاصطناعي؛ المحاضرة من 5 دقائق تستهلك عادة بضعة آلاف. يتجدد الحد أول كل شهر."],
     ["آخر المحاضرات","أحدث محاضراتك مع حالتها (منشورة أو غير مكتملة الصوت). اضغط أي محاضرة لفتحها."],
+    ["الأخبار والإعلانات","أخبار المركز وإعلاناته التي ينشرها مدير المنصة: صورة وعنوان ونص وتاريخ، والمثبّت يظهر أولاً. «اقرأ المزيد» يفتح النص كاملاً، و«التفاصيل» يفتح الرابط المرفق."],
     ["لوحة «طلبات أليكسا»","تتابع فيها لحظة بلحظة المحاضرات التي طلبتها بالصوت: المرحلة الحالية (المخطط، الشرائح، الصوت)، والجاهزة للتصدير، وأي عطل مع سببه بلغة واضحة."],
     ["زر الميكروفون العائم","الدائرة الكحلية أسفل الشاشة: اضغطها وتكلم، ثم اضغط مرة أخرى للإرسال. يجيب عن أسئلتك (طبية أو عن استخدام المنصة) بالصوت، أو ينفّذ أمرك وينقلك إلى الصفحة المناسبة. يمكن للمدير إيقافه لأي مستخدم."]]]],
    steps:["لبدء محاضرة: اضغط «محاضرة متحركة جديدة»، أو قل للميكروفون العائم: «أنشئ محاضرة عن …».","لمتابعة طلب أرسلته عبر Alexa: انتظر في هذه الصفحة؛ عند اكتمال المحاضرة تُفتح تلقائياً ويبدأ تصدير الفيديو بإعداداتك المحفوظة. أبقِ الصفحة ظاهرة حتى ينتهي.","لمراجعة استهلاكك: راقب شريط الاستهلاك؛ إذا تجاوز 80% فاطلب رفع الحد من مدير المنصة."],
@@ -796,6 +830,11 @@ const HELP={
     ["الدخول إلى حسابه","تدخل حساب المدرّب بكل الخصائص لتنشئ أو تنشر أو تصدّر نيابة عنه، وتعود من الشريط الذهبي أو زر الخروج."],
     ["كلمة المرور","«تعيين كلمة المرور»: اكتب كلمة أو اتركها فارغة لتوليد كلمة قوية، وتظهر بجوار المستخدم مع «نسخ». كلمات المرور التي أنشأها المستخدم بنفسه مشفّرة ولا تُعرض."],
     ["خصائص المنصة لهذا المستخدم","مفاتيح «الأقسام الرئيسية» (الملف المهني، الاستوديو، الفيديو، Drive، الاستنساخ، Alexa، المساعد، زر المساعد العائم، قاعدة المعرفة، الاختبارات، الأدوات، محادثة الدورة) و«صفحة المحاضرة» (النشر، الروابط، إعادة التسجيل، الشعار، الاسم، الخلفية، السرعة، الصوت). يُحفظ كل تغيير فوراً، و«تفعيل الكل» و«إيقاف الكل» للسرعة."]]],
+   ["الأخبار والإعلانات",[
+    ["إضافة خبر","العنوان، والنص، والصورة (حتى 5 ميغابايت)، والتاريخ، والنوع (خبر، إعلان، دورة جديدة، فعالية)، ثم «نشر الخبر»."],
+    ["مكان الظهور","«المدرّبون فقط»: في لوحة تحكم المدرّبين. «الموقع العام فقط»: في الصفحة الرئيسية للمنصة قبل الدخول وفي موقع المركز. «الاثنين»: في المكانين."],
+    ["خيارات إضافية","رابط التفاصيل، وتاريخ انتهاء الظهور (يختفي الخبر تلقائياً بعده)، و«منشور» لإظهاره أو حفظه مسودة، و«تثبيت في الأعلى»."],
+    ["إدارة الأخبار","لكل خبر: «تعديل» يعيده إلى النموذج، و«إخفاء/نشر»، و«حذف» بضغطتين للتأكيد."]]],
    ["الأعطال والدعم",[
     ["الأعطال التقنية","سجل كل عطل مع مصدره ومرحلته وسببه وتفاصيله التقنية، وزر نسخ لكل بند."],
     ["دليل الأعطال","كل رسالة خطأ محتملة مع معناها وأسبابها وخطوات إصلاحها."],
@@ -941,6 +980,71 @@ async function adminTrouble(){
    <div class="trq"><a href="#trouble" data-trtab="log" class="trqb"><b>${num(oe||0)}</b><span>الأعطال التقنية</span></a><a href="#trouble" data-trtab="guide" class="trqb"><b>${TROUBLE.length}</b><span>دليل الأعطال</span></a><a href="#trouble" data-trtab="support" class="trqb"><b>${num(ot||0)}</b><span>الدعم الفني</span></a></div></div>`);
 }
 
+/* ================= الأخبار والإعلانات ================= */
+const NKIND={news:"خبر",announcement:"إعلان",course:"دورة جديدة",event:"فعالية"};
+const NAUD={trainers:"المدرّبون فقط",public:"الموقع العام فقط",both:"المدرّبون والموقع العام"};
+function newsCard(n,admin=false){ const long=(n.body||"").length>220;
+  return `<article class="ncard${n.pinned?" pin":""}">${n.image_url?`<img class="nimg" src="${esc(n.image_url)}" alt="" loading="lazy">`:""}<div class="nbody">
+   <div class="nmeta"><span class="ntag">${esc(NKIND[n.kind]||"خبر")}</span>${n.pinned?`<span class="ntag gold">مثبّت</span>`:""}<span class="small muted">${fmtDate(n.news_date)}</span>${admin?`<span class="small muted">· ${esc(NAUD[n.audience])}${n.published?"":" · مخفي"}</span>`:""}</div>
+   <h3>${esc(n.title)}</h3>${n.body?`<p class="ntext${long?" clamp":""}">${esc(n.body).replace(/\n/g,"<br>")}</p>${long?`<button type="button" class="linkbtn" data-nmore>اقرأ المزيد</button>`:""}`:""}
+   ${n.link_url?`<a class="btn sm ghost" href="${esc(n.link_url)}" target="_blank" rel="noopener">التفاصيل</a>`:""}
+   ${admin?`<div class="row" style="gap:6px;margin-top:6px"><button class="btn sm ghost" type="button" data-nedit="${n.id}">تعديل</button><button class="btn sm ghost" type="button" data-npub="${n.id}">${n.published?"إخفاء":"نشر"}</button><button class="btn sm danger" type="button" data-ndel="${n.id}">حذف</button></div>`:""}</div></article>`; }
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-nmore]"); if(!b) return; const t=b.previousElementSibling; t.classList.toggle("clamp"); b.textContent=t.classList.contains("clamp")?"اقرأ المزيد":"عرض أقل"; });
+const newsSort=(a,b)=>(b.pinned-a.pinned)||String(b.news_date).localeCompare(String(a.news_date))||String(b.created_at).localeCompare(String(a.created_at));
+async function newsBox(el){
+  const today=new Date().toISOString().slice(0,10);
+  const { data } = await sb.from("announcements").select("*").eq("published",true).in("audience",["trainers","both"]).order("news_date",{ascending:false}).limit(12);
+  const L=(data||[]).filter(n=>!n.expires_on||n.expires_on>=today).sort(newsSort);
+  if(!L.length){ el.innerHTML=""; return; }
+  el.innerHTML=`<div class="card stack"><h2 class="row" style="gap:8px">${ico("bell")}الأخبار والإعلانات</h2><div class="nlist">${L.slice(0,6).map(n=>newsCard(n)).join("")}</div></div>`;
+}
+async function publicNews(){
+  const el=$("#pubNews"); if(!el) return;
+  try{ const { data } = await sb.from("site_news").select("*").limit(6); if(!(data||[]).length){ el.innerHTML=""; return; }
+    el.innerHTML=`<h2 class="row" style="gap:8px;margin:0">${ico("bell")}الأخبار والإعلانات</h2><div class="nlist">${data.map(n=>newsCard(n)).join("")}</div>`; }catch(_){ el.innerHTML=""; }
+}
+async function adminNews(){
+  const m=$("#main"); if(!m||m.querySelector("#adNews")) return;
+  const today=new Date().toISOString().slice(0,10);
+  m.insertAdjacentHTML("beforeend",`<div class="card stack" id="adNews"><h2 class="row" style="gap:8px;margin:0">${ico("bell")}الأخبار والإعلانات</h2>
+   <p class="small muted">أضف خبراً أو إعلاناً بصورة ونص وتاريخ، واختر أين يظهر: للمدرّبين في لوحة التحكم، أو في الصفحة الرئيسية للموقع، أو في الاثنين.</p>
+   <form class="stack" id="nForm"><input type="hidden" id="nId">
+    <label for="nTitle">العنوان<input id="nTitle" maxlength="200" placeholder="مثال: افتتاح دورة الصيدلة السريرية المتقدمة"></label>
+    <label for="nBody">النص<textarea id="nBody" rows="4" placeholder="تفاصيل الخبر أو الإعلان"></textarea></label>
+    <div class="nimgpick"><img id="nPrev" alt="" style="display:none"><div class="stack" style="gap:6px"><label for="nImg">الصورة (اختياري)<input id="nImg" type="file" accept="image/*"></label><button type="button" class="linkbtn" id="nImgDel" style="display:none">إزالة الصورة</button></div></div>
+    <div class="grid2"><label for="nDate">التاريخ<input id="nDate" type="date" value="${today}"></label>
+     <label for="nKind">النوع<select id="nKind">${Object.entries(NKIND).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></label></div>
+    <fieldset class="naud"><legend>مكان الظهور</legend>${Object.entries(NAUD).map(([k,v],i)=>`<label><input type="radio" name="nAud" value="${k}"${i===0?" checked":""}> ${v}</label>`).join("")}</fieldset>
+    <div class="grid2"><label for="nLink">رابط التفاصيل (اختياري)<input id="nLink" dir="ltr" inputmode="url" placeholder="https://"></label>
+     <label for="nExp">ينتهي ظهوره في (اختياري)<input id="nExp" type="date"></label></div>
+    <div class="row" style="gap:16px"><label class="chk"><input type="checkbox" id="nPub" checked> منشور</label><label class="chk"><input type="checkbox" id="nPin"> تثبيت في الأعلى</label></div>
+    <div class="row" style="gap:8px"><button class="btn gold" id="nSave" type="submit">نشر الخبر</button><button class="btn ghost" id="nReset" type="button" style="display:none">إلغاء التعديل</button></div>
+   </form><div class="nlist" id="nList"></div></div>`);
+  let items=[], img=null, keepUrl=null;
+  const F=$("#nForm");
+  const reset=()=>{ F.reset(); $("#nId").value=""; $("#nDate").value=today; img=null; keepUrl=null; $("#nPrev").style.display="none"; $("#nImgDel").style.display="none"; $("#nSave").textContent="نشر الخبر"; $("#nReset").style.display="none"; };
+  const list=async()=>{ const { data, error } = await sb.from("announcements").select("*").order("news_date",{ascending:false}).limit(60); if(error){ $("#nList").innerHTML=`<div class="empty">${esc(error.message)}</div>`; return; }
+    items=(data||[]).sort(newsSort); $("#nList").innerHTML=items.length?items.map(n=>newsCard(n,true)).join(""):`<div class="empty">لا توجد أخبار بعد.</div>`; };
+  $("#nImg").onchange=()=>{ const f=$("#nImg").files[0]; if(!f) return; if(f.size>5e6){ toast("الصورة أكبر من 5 ميغابايت",true); $("#nImg").value=""; return; } img=f; $("#nPrev").src=URL.createObjectURL(f); $("#nPrev").style.display=""; $("#nImgDel").style.display=""; };
+  $("#nImgDel").onclick=()=>{ img=null; keepUrl=null; $("#nImg").value=""; $("#nPrev").style.display="none"; $("#nImgDel").style.display="none"; };
+  $("#nReset").onclick=reset;
+  F.onsubmit=async e=>{ e.preventDefault(); const title=$("#nTitle").value.trim(); if(title.length<2) return toast("اكتب عنوان الخبر",true);
+    const btn=$("#nSave"); busy(btn,true,"جارٍ الحفظ…");
+    try{ let image_url=keepUrl;
+      if(img){ const ext=(img.type.split("/")[1]||"jpg").replace("jpeg","jpg"); const path=`${session.user.id}/news-${Date.now()}.${ext}`; const up=await sb.storage.from("audio").upload(path,img,{contentType:img.type||"image/jpeg",upsert:true}); if(up.error) throw up.error; image_url=sb.storage.from("audio").getPublicUrl(path).data.publicUrl; }
+      const row={ title, body:$("#nBody").value.trim(), image_url:image_url||null, news_date:$("#nDate").value||today, kind:$("#nKind").value, audience:(F.querySelector("[name=nAud]:checked")||{}).value||"trainers", link_url:$("#nLink").value.trim()||null, expires_on:$("#nExp").value||null, published:$("#nPub").checked, pinned:$("#nPin").checked, updated_at:new Date().toISOString() };
+      const id=$("#nId").value; const { error } = id ? await sb.from("announcements").update(row).eq("id",id) : await sb.from("announcements").insert(row);
+      if(error) throw error; toast(id?"حُفظ التعديل":"نُشر الخبر"); reset(); list();
+    }catch(err){ toast("تعذّر الحفظ: "+err.message,true); logErr("admin","الأخبار والإعلانات",err.message,JSON.stringify(err)); } finally{ busy(btn,false); } };
+  $("#nList").onclick=async e=>{ const ed=e.target.closest("[data-nedit]"), pb=e.target.closest("[data-npub]"), dl=e.target.closest("[data-ndel]");
+    if(ed){ const n=items.find(x=>x.id===ed.dataset.nedit); $("#nId").value=n.id; $("#nTitle").value=n.title; $("#nBody").value=n.body||""; $("#nDate").value=n.news_date; $("#nKind").value=n.kind; F.querySelector(`[name=nAud][value=${n.audience}]`).checked=true; $("#nLink").value=n.link_url||""; $("#nExp").value=n.expires_on||""; $("#nPub").checked=n.published; $("#nPin").checked=n.pinned;
+      img=null; keepUrl=n.image_url||null; if(keepUrl){ $("#nPrev").src=keepUrl; $("#nPrev").style.display=""; $("#nImgDel").style.display=""; } else { $("#nPrev").style.display="none"; $("#nImgDel").style.display="none"; }
+      $("#nSave").textContent="حفظ التعديل"; $("#nReset").style.display=""; F.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+    if(pb){ const n=items.find(x=>x.id===pb.dataset.npub); const { error } = await sb.from("announcements").update({published:!n.published,updated_at:new Date().toISOString()}).eq("id",n.id); if(error) return toast(error.message,true); toast(n.published?"أُخفي الخبر":"نُشر الخبر"); return list(); }
+    if(dl){ if(dl.dataset.c!=="1"){ dl.dataset.c="1"; dl.textContent="تأكيد الحذف"; return; } const { error } = await sb.from("announcements").delete().eq("id",dl.dataset.ndel); if(error) return toast(error.message,true); toast("حُذف الخبر"); list(); } };
+  list();
+}
+
 /* ================= Navigation ================= */
 const TABS = [
   {id:"dash", t:"لوحة التحكم", i:"dash"},
@@ -1003,7 +1107,7 @@ $("#authForm").addEventListener("submit", async e=>{
   }catch(err){ toast(err.message==="Invalid login credentials"?"البريد أو كلمة المرور غير صحيحة":err.message, true); }
   finally{ busy(btn,false); }
 });
-function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); }
+function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); publicNews(); }
 $("#logout").onclick=$("#logout2").onclick=async()=>{ if(asAdmin()) return backToAdmin(); await sb.auth.signOut(); };
 async function loadProfile(){
   let { data, error } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url,features").eq("id", session.user.id).single();
@@ -1032,6 +1136,7 @@ async function vDash(){
   const main=$("#main");
   main.innerHTML = `<div class="welcome"><div class="wtext"><span class="muted small">أهلاً</span><h1>${esc(profile?.full_name||"")}</h1><p class="muted">ابدأ محاضرة جديدة، أو تابع عملك.</p></div>${MYPHOTO?`<img class="havatar" src="${esc(MYPHOTO)}" alt="">`:`<a class="havatar hph" href="#settings" title="أضف صورتك الشخصية">${esc(String(profile?.full_name||"؟").replace(/^(د|أ\.?د)\.?\s*/,"").trim()[0]||"؟")}</a>`}</div><div class="row wbtns">${can("studio")?`<a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a>`:""}${can("exams")?`<a class="btn ghost" href="#exams">اختبار جديد</a>`:""}</div></div>${pending()}
   <div class="stats" id="stats">${"<div class='card stat'><b>…</b></div>".repeat(4)}</div>
+  <div id="newsBox"></div>
   <div id="alexaBox"></div>
   <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2>الاستهلاك هذا الشهر</h2><div id="usage"></div></div></div>`;
   const [l,e,d,u] = await Promise.all([
@@ -1043,6 +1148,7 @@ async function vDash(){
   const used = u.data?.[0]?.used||0, lim = u.data?.[0]?.lim||0;
   $("#stats").innerHTML = [["المحاضرات",l.count,"lessons","lessons"],["الاختبارات",e.count,"exams","exam"],["ملفات المعرفة",d.count,"kb","kb"],["توكنز هذا الشهر",used,"settings","gear"]].map(([t,v,h,i])=>`<a class="card stat" href="#${h}"><span class="si">${ico(i)}</span><span><b>${num(v)}</b><span class="muted small">${t}</span></span></a>`).join("");
   $("#recentL").innerHTML = (l.data||[]).length ? l.data.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">${fmtDate(x.created_at)} · ${num((x.slides||[]).length)} شريحة</span></div><a class="btn sm ghost" href="#play-${x.id}">${ico("play")} تشغيل</a></div>`).join("") : `<div class="empty">لا توجد محاضرات بعد.</div>`;
+  newsBox($("#newsBox")).catch(e=>console.error(e));
   if(can("alexa")) alexaPanel().catch(e=>console.error(e));
   const pct = lim? Math.min(100, used/lim*100):0;
   $("#usage").innerHTML = `<p><b style="font-size:22px">${num(used)}</b> <span class="muted">من ${num(lim)} توكن</span></p><div class="meter"><i style="width:${pct}%"></i></div><p class="small muted" style="margin-top:10px">يشمل الشرح والصوت والبحث في الملفات. يحدّد مدير المنصة الحد الشهري لكل مدرّب. الخدمة مجانية ضمن الحدود اليومية لـ Google Gemini.</p>`;
@@ -1912,7 +2018,7 @@ function adminBanner(){ let b=$("#asAdminBar"); if(!asAdmin()){ b?.remove(); ret
   if(!b){ b=document.createElement("div"); b.id="asAdminBar"; b.style.cssText="position:sticky;top:0;z-index:50;background:#c9a13b;color:#0b2a5b;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-weight:600"; document.body.prepend(b); }
   b.innerHTML=`<span>أنت داخل حساب «${esc(profile?.full_name||"")}» بصفتك المدير — كل الخصائص متاحة لك هنا.</span><button class="btn sm" type="button" id="backAdm">العودة إلى حسابي</button>`; $("#backAdm").onclick=backToAdmin; }
 
-async function vAdmin(){ await vAdmin0(); if(profile?.role==="admin"){ appendHelp("admin"); await adminTrouble().catch(e=>console.error(e)); } }
+async function vAdmin(){ await vAdmin0(); if(profile?.role==="admin"){ await adminNews().catch(e=>console.error(e)); appendHelp("admin"); await adminTrouble().catch(e=>console.error(e)); } }
 async function vAdmin0(){
   if(profile?.role!=="admin"){ location.hash="dash"; return; }
   $("#main").innerHTML=`<div class="head"><div><h1>إدارة المنصة</h1><p class="muted">فعّل الحسابات، وحدّد الدور والحد الشهري، وتحكّم في خصائص كل مستخدم وكلمة مروره.</p></div></div>
