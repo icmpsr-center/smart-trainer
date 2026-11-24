@@ -251,6 +251,17 @@ th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:start;vert
 .pe{background:#fff;border-radius:18px;padding:16px;width:min(420px,100%);display:grid;gap:10px}
 .pe canvas{width:100%;aspect-ratio:1;border-radius:50%;background:#eef3fb;touch-action:none;cursor:grab;box-shadow:0 0 0 4px #fff,0 0 0 6px var(--gold)}
 .pe label{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:8px;font-size:13px}
+.helpbox{background:linear-gradient(180deg,#fbfcfe,#f4f7fc);border-style:dashed}
+.helpbox summary{cursor:pointer;font:700 15px Cairo,sans-serif;color:var(--navy);display:flex;align-items:center;gap:10px;list-style:none}
+.helpbox summary::-webkit-details-marker{display:none}
+.hb-i{width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--gold2);display:grid;place-items:center;font-size:14px;flex:none}
+.helpbox ol{margin:12px 0 0;padding-inline-start:22px;display:grid;gap:8px;line-height:1.8;font-size:14.5px}
+.hb-tip{margin-top:12px;padding:10px 12px;border-radius:10px;background:#fff8e6;border:1px solid #f1dfa8;font-size:14px;line-height:1.8}
+.tguide{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.7;min-width:640px}
+.tguide th{background:var(--navy);color:#fff;padding:8px 10px;text-align:start;font-weight:600}
+.tguide td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tguide tr:nth-child(even) td{background:#f8fafc}
+.tguide .tsrc{font-weight:700;color:var(--navy);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -539,6 +550,69 @@ const can=f=>asAdmin() || profile?.features?.[f]!==false;
 const hid=f=>can(f)?"":' style="display:none"';
 const offNote=n=>`<div class="card" style="border-color:#e5e7eb;background:#f8fafc"><b>خاصية «${esc(n)}» غير مفعّلة لحسابك.</b> <span class="muted">تواصل مع مدير المنصة لتفعيلها.</span></div>`;
 
+
+/* ================= دليل الاستخدام أسفل كل صفحة + دليل المشاكل للمدير ================= */
+const HELP={
+  dash:{t:"لوحة التحكم",s:["تعرض اللوحة ملخص عملك: عدد المحاضرات والاختبارات وملفات المعرفة، واستهلاك التوكنز هذا الشهر.","ابدأ محاضرة جديدة من زر «محاضرة متحركة جديدة»، أو اختباراً من «اختبار جديد».","لوحة «طلبات أليكسا» تعرض مراحل المحاضرات التي طلبتها بالصوت لحظة بلحظة، والمحاضرات الجاهزة التي تنتظر تصدير الفيديو، وأي عطل مع سببه.","عند وجود محاضرة جاهزة من أليكسا تفتحها المنصة تلقائياً ويبدأ تصدير الفيديو بإعداداتك؛ أبقِ الصفحة ظاهرة حتى ينتهي.","زر الميكروفون العائم يتيح لك إصدار الأوامر بصوتك من أي صفحة."],tip:"إذا اقترب الاستهلاك من الحد الشهري فاطلب من مدير المنصة رفعه من «إدارة المنصة»."},
+  studio:{t:"استوديو المحاضرة",s:["اكتب عنواناً واضحاً ومحدداً للمحاضرة، ثم صف ما تريد شرحه: النقاط الأساسية، والجمهور، وأي حالة سريرية.","اختر المستوى ولغة المحاضرة: «عربي فقط»، أو «عربي + المصطلحات بالإنجليزية»، أو «English only».","حدد المدة: كل دقيقة تعادل شريحة إلى شريحتين تقريباً.","اختر صوت الشرح، واستمع إليه أولاً بزر التشغيل بجانبه، أو استخدم صوتك المستنسخ إن كان مفعّلاً.","لبناء المحاضرة من مراجعك فعّل ملفات قاعدة المعرفة المناسبة؛ سيلتزم الشرح بمحتواها.","اضغط «أنشئ المحاضرة» وأبقِ الصفحة مفتوحة حتى يكتمل المخطط والشرائح والصوت."],tip:"محاضرة 5 دقائق تستغرق دقيقة إلى دقيقتين. إذا توقف الصوت بسبب الحد اليومي تُحفظ المحاضرة وتُكمل صوتها لاحقاً من صفحتها."},
+  lessons:{t:"محاضراتي",s:["تعرض القائمة كل محاضراتك مع عدد الشرائح والمدة وتاريخ الإنشاء.","اضغط «تشغيل» لفتح المحاضرة، ومنها تنشرها وتصدّر الفيديو وتعدّل إعداداتها.","الحذف يحتاج ضغطتين للتأكيد، ويحذف معها ملفات الصوت المرتبطة بها."],tip:"المحاضرة غير المنشورة لا يراها أحد حتى لو امتلك رابطها."},
+  play:{t:"صفحة المحاضرة",s:["شغّل المحاضرة على السبورة، وتنقّل بين الشرائح بالأزرار أو بالسحب.","فعّل «منشورة للمتدرّبين» ثم انسخ الرابط أو شاركه؛ يُنشر تلقائياً عند النسخ.","«تحميل فيديو MP4» يسجّل المحاضرة فيديو بالسرعة الطبيعية، ثم يحفظه على جهازك وفي Google Drive، ويظهر رابط Drive في «روابط المحاضرة».","من «إعدادات الفيديو والصوت» اختر الشعار (شعار المركز، أو شعارك الخاص، أو بدون)، واسم المحاضر، ولون الخلفية، وسرعة الكلام، ثم صدّر الفيديو.","لتغيير صوت الشرح اختر الصوت الجديد ثم اضغط «إعادة تسجيل الصوت» مرتين للتأكيد.","«اختبار من هذه المحاضرة» يفتح منشئ الاختبارات بمحتواها جاهزاً."],tip:"للتصدير استخدم Chrome أو Edge، وأبقِ الصفحة ظاهرة طوال التسجيل؛ إخفاؤها يوقف التسجيل في بعض المتصفحات."},
+  assistant:{t:"المساعد الصوتي",s:["اضغط الميكروفون وتكلم، ثم اضغط مرة أخرى للإرسال؛ أو اكتب الأمر واضغط «نفّذ».","أمثلة: «أنشئ محاضرة عن مضادات التخثر للمستوى المتقدم»، «اعمل اختبار عشرة أسئلة عن السكري»، «افتح قاعدة المعرفة».","يرد المساعد بالصوت المختار، ثم ينقلك إلى الصفحة المناسبة مع تعبئة البيانات.","من «أصوات المنصة» استمع لكل صوت أو جرّب جملة من عندك."],tip:"تكلم بجمل كاملة وواضحة، واذكر الموضوع والمستوى والعدد عند الحاجة."},
+  kb:{t:"قاعدة المعرفة",s:["ارفع مراجعك بصيغة PDF أو Word أو PowerPoint أو صورة أو نص، أو ضع رابط ملف من Google Drive، أو الصق نصاً مباشرة.","اختر مجلداً لتنظيم المراجع حسب الدورة أو التخصص.","بعد الرفع تُقسَّم المراجع وتُفهرس، فتعتمد عليها المحاضرات والاختبارات ومحادثة الدورة.","استخدم «ابحث في مراجعك» للتحقق من أن المعلومة موجودة قبل بناء المحاضرة عليها."],tip:"الملفات الممسوحة ضوئياً تُقرأ بالذكاء الاصطناعي وقد تستغرق وقتاً أطول. صيغ Office القديمة (.doc/.ppt) غير مدعومة؛ احفظها PDF أولاً."},
+  exams:{t:"منشئ الاختبارات",s:["اكتب الموضوع، أو اختر محاضرة أو ملفات من قاعدة المعرفة ليُبنى الاختبار منها.","حدد نوع الأسئلة وعددها ومستوى الصعوبة، ثم اضغط «أنشئ الأسئلة».","راجع الأسئلة: اضغط على أي نص لتعديله، وحدد الإجابة الصحيحة بالدائرة.","احفظ الاختبار في بنك الأسئلة، أو جرّبه بنفسك، أو انسخه نصاً."],tip:"راجع الأسئلة علمياً قبل استخدامها مع المتدرّبين؛ الذكاء الاصطناعي قد يخطئ."},
+  tools:{t:"أدوات المحتوى",s:["اختر الأداة: مولّد التكليفات، أو مولّد الشرائح، أو سكربت فيديو، أو تبسيط وإعادة صياغة، أو تصميم دورة، أو ملخص مراجعة.","اكتب المدخلات المطلوبة، ويمكنك الاستعانة بملفات قاعدة المعرفة.","انسخ النتيجة أو احفظها، وعدّلها حسب حاجتك."],tip:"كلما كانت المدخلات أدق (الجمهور، المدة، الأهداف) كانت النتيجة أفضل."},
+  coursechat:{t:"محادثة الدورة",s:["اختر المراجع التي تريد أن تُبنى عليها الإجابات.","اسأل بالكتابة أو بالصوت؛ تأتي الإجابة من المراجع المختارة مع ذكر المصدر والصفحة.","إذا لم تُختر مراجع يجيب المساعد من معرفته العامة باختصار وينبّه إلى ذلك."],tip:"مناسبة لتجهيز أسئلة المتدرّبين المتوقعة ومراجعة المحتوى قبل المحاضرة."},
+  settings:{t:"حسابي",s:["«الملف المهني»: ارفع سيرتك الذاتية ليرتّبها الذكاء الاصطناعي في الحقول، ثم راجعها واضغط «حفظ الملف المهني».","الصورة الشخصية تُعدّل في المحرّر (تكبير، سحب، إضاءة، تباين، تدوير) وتُحفظ فوراً عند «اعتماد الصورة».","اختر ظهور ملفك للمتدرّبين في صفحات محاضراتك، أو في الصفحة الرئيسية لموقع المركز.","«صوتي المستنسخ»: سجّل عيّنة صوتك وعبارة الموافقة ليُستخدم صوتك في الشرح.","«ربط Alexa»: اضبط رمزاً من 4 إلى 8 أرقام، ثم قل لأليكسا: «افتح المدرب الذكي» ثم «الرمز» وأرقامك مرة واحدة."],tip:"زر «طباعة / حفظ PDF» يخرج سيرتك بترويسة المركز جاهزة للإرسال."},
+  admin:{t:"إدارة المنصة",s:["فعّل حسابات المدرّبين الجدد؛ يصلك بريد عند كل تسجيل، ويصل المدرّب بريد عند تفعيله.","عدّل الاسم والبريد، والدور، والحد الشهري للتوكنز، ثم اضغط «حفظ».","«تعيين كلمة المرور»: اكتب كلمة جديدة أو اتركها فارغة لتوليد كلمة قوية؛ تظهر بجوار المستخدم مع زر النسخ.","«خصائص المنصة لهذا المستخدم»: أطفئ أو فعّل أي خاصية أو عنصر في صفحة المحاضرة؛ يُحفظ التغيير فوراً.","«الدخول إلى حسابه»: تدخل حساب المدرّب بكل الخصائص، وتعود إلى حسابك من الشريط الذهبي أو زر الخروج."],tip:"راجع «سجل الأعطال» و«دليل المشاكل» أسفل هذه الصفحة بانتظام."}
+};
+function appendHelp(id){
+  const h=HELP[id]; const m=$("#main"); if(!h||!m||m.querySelector(".helpbox")) return;
+  m.insertAdjacentHTML("beforeend",`<details class="card helpbox"><summary><span class="hb-i">؟</span>طريقة استخدام «${esc(h.t)}»</summary><ol>${h.s.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>${h.tip?`<p class="hb-tip"><b>نصيحة:</b> ${esc(h.tip)}</p>`:""}</details>`);
+}
+/* دليل المشاكل للمدير: الرسالة ← معناها ← طريقة الإصلاح */
+const TROUBLE=[
+  ["المصدر","رسالة الخطأ","المعنى","طريقة الإصلاح"],
+  ["Gemini","بلغت خدمة الصوت / النصوص في Gemini حدها","انتهت الحصة المجانية اليومية أو الدقيقة لمفتاح Google Gemini.","انتظر دقيقة للحد اللحظي، أو حتى منتصف الليل بتوقيت المحيط الهادئ للحد اليومي، أو فعّل الدفع على Gemini لرفع الحدود. المحاضرات تُحفظ وتُكمل لاحقاً من «أكمل تسجيل الصوت»."],
+  ["Gemini","خدمة Gemini لم تستجب / رمز 500 أو 503","خوادم Google مشغولة مؤقتاً.","أعد المحاولة بعد دقائق؛ المنصة تعيد المحاولة تلقائياً 3 مرات."],
+  ["الخادم","تجاوز الخادم حدّ الموارد المجانية (رمز 546)","الطلب ثقيل على الخادم المجاني (محاضرة طويلة جداً دفعة واحدة).","قلّل مدة المحاضرة أو قسّمها إلى محاضرتين."],
+  ["الذكاء الاصطناعي","رد الذكاء الاصطناعي جاء بصيغة غير صحيحة / لم يُكتب المخطط","النموذج أعاد نصاً لا يمكن قراءته كبيانات.","أعد المحاولة؛ غالباً ينجح في المرة التالية. إن تكرر فبسّط عنوان المحاضرة ووصفها."],
+  ["الحساب","تم بلوغ الحد الشهري للاستهلاك","وصل المدرّب إلى حده الشهري من التوكنز.","ارفع حده من «إدارة المنصة ← الحد الشهري»."],
+  ["الحساب","حسابك بانتظار موافقة مدير المنصة","الحساب غير مفعّل.","فعّله من «إدارة المنصة ← الحساب مفعّل ← حفظ»."],
+  ["الفيديو","المتصفح لا يدعم تسجيل الفيديو","المتصفح لا يدعم MediaRecorder (مثل Safari القديم).","استخدم Chrome أو Edge على الكمبيوتر."],
+  ["الفيديو","لم يكتمل صوت المحاضرة بعد","بعض الشرائح بلا صوت بسبب الحد اليومي.","اضغط «أكمل تسجيل الصوت» في صفحة المحاضرة بعد تجدد الحد، ثم صدّر الفيديو."],
+  ["الفيديو","اكتمل الفيديو بصيغة WebM","المتصفح لا يدعم MP4 مباشرة.","الملف سليم ويعمل؛ لصيغة MP4 استخدم Chrome حديثاً أو حوّله بأي محوّل."],
+  ["Drive","لم يُحفظ في Drive / Google Drive 401 أو 403","انتهت صلاحية ربط Apps Script أو تغيّر المجلد.","افتح Apps Script وشغّل authorize ووافق، وتأكد أن النشر «Execute as: Me» و«Anyone»."],
+  ["Drive","الحفظ التلقائي في Google Drive غير مفعّل","رابط Apps Script غير مضبوط في الخادم.","انشر Code.gs كتطبيق ويب وأرسل الرابط للدعم الفني لضبطه."],
+  ["البريد","نشر Apps Script لا يحتوي دالة البريد / ليست لديك صلاحية MailApp","النشر قديم، أو لم تُمنح صلاحية إرسال البريد.","حدّث Code.gs، وأضف صلاحية script.send_mail في appsscript.json، وشغّل authorize، ثم انشر New version."],
+  ["البريد","مفتاح Apps Script غير صحيح","المفتاح KEY في Code.gs لا يطابق المسجّل في الخادم.","أعد نسخ Code.gs الأصلي دون تعديل المفتاح، ثم انشر New version."],
+  ["الملفات","صيغة Office القديمة غير مدعومة","ملف .doc أو .ppt أو .xls.","احفظه بصيغة PDF أو .docx أو .pptx ثم ارفعه."],
+  ["الملفات","لم يُستخرج نص كافٍ من الملف","الملف صورة ممسوحة رديئة أو محمي.","ارفع نسخة أوضح أو PDF نصياً، أو الصق النص مباشرة."],
+  ["الملفات","تعذّر جلب الملف من Google Drive","الملف خاص أو الرابط غير صحيح.","اجعل مشاركة الملف «أي شخص لديه الرابط» أو ارفعه مباشرة."],
+  ["الصوت","المتصفح لا يدعم تسجيل الصوت / رُفض الإذن","لم يُسمح للموقع باستخدام الميكروفون.","اسمح بالميكروفون من إعدادات المتصفح للموقع، ويجب أن يُفتح الموقع عبر https."],
+  ["الصوت","ElevenLabs غير مفعّل على الخادم","استنساخ الصوت المدفوع غير مضبوط.","استخدم خيار Gemini المجاني، أو أضف مفتاح ElevenLabs في أسرار Supabase."],
+  ["Alexa","الرمز غير صحيح","الرمز المنطوق لا يطابق الرمز المحفوظ.","أعد ضبط الرمز من «حسابي ← ربط Alexa» وانطقه أرقاماً متصلة."],
+  ["Alexa","لم أفهم / لا يُنفَّذ الأمر","نموذج التفاعل في Amazon قديم.","ارفع ملف interaction-model-ar-SA.json الأحدث في JSON Editor ثم Save و Build."],
+  ["Alexa","خاصية Alexa موقوفة لحسابك","المدير أوقف الخاصية لهذا المستخدم، فأُلغي ربطه.","فعّلها من «إدارة المنصة ← خصائص المنصة لهذا المستخدم»، ثم يعيد المستخدم ضبط رمزه."],
+  ["الشبكة","تعذّر الاتصال بالخادم","انقطاع الإنترنت أو بطء شديد.","تحقق من الاتصال وأعد المحاولة؛ المنصة تعيد المحاولة تلقائياً."],
+  ["العرض","تظهر نسخة قديمة من المنصة","ذاكرة المتصفح تحتفظ بالنسخة السابقة.","حدّث الصفحة مرتين، أو احذف التطبيق المثبت وثبّته من جديد."]
+];
+async function adminTrouble(){
+  const m=$("#main"); if(!m||m.querySelector("#adTrouble")) return;
+  const { data: errs } = await sb.from("system_errors").select("id,source,stage,reason,detail,context,status,created_at,owner").order("created_at",{ascending:false}).limit(40);
+  const open=(errs||[]).filter(e=>e.status==="open");
+  const SRC={"alexa-job":"إنشاء عبر أليكسا","alexa":"أليكسا","video-export":"تصدير الفيديو","drive-upload":"الحفظ في Drive","email":"البريد","profile":"الملف المهني","admin":"الإدارة","logo-upload":"رفع الشعار"};
+  m.insertAdjacentHTML("beforeend",`<div class="card stack" id="adTrouble"><div class="row" style="justify-content:space-between"><h2 style="margin:0">سجل الأعطال</h2><span class="pill ${open.length?"red":"green"}">${open.length?`${num(open.length)} مفتوح`:"لا أعطال مفتوحة"}</span></div>
+   ${(errs||[]).length?`<div class="list">${errs.map(e=>`<div class="item" data-eid="${e.id}" style="${e.status==="open"?"border-color:#f3c7c2;background:#fff8f7":"opacity:.65"}"><div style="flex:1;min-width:0"><h3 style="font-size:15px">${esc(SRC[e.source]||e.source)}${e.stage?` · ${esc(e.stage)}`:""} <span class="small muted">· ${fmtDate(e.created_at)}</span></h3><span class="small">${esc(e.reason)}</span>${e.context?.title||e.context?.topic?`<div class="small muted">${esc(e.context.title||e.context.topic)}</div>`:""}<details class="small" style="margin-top:4px"><summary class="muted" style="cursor:pointer">التفاصيل التقنية</summary><pre dir="ltr" style="white-space:pre-wrap;font-size:11.5px;background:#f8fafc;padding:8px;border-radius:8px;margin-top:4px">${esc(e.detail||"—")}</pre></details></div>${e.status==="open"?`<button class="btn sm" data-fix="${e.id}">تم الإصلاح</button>`:`<span class="pill green">أُصلح</span>`}</div>`).join("")}</div>`:`<div class="empty">لم يُسجَّل أي عطل حتى الآن.</div>`}
+   ${open.length?`<button class="btn sm ghost" id="fixAll" style="justify-self:start">إغلاق كل الأعطال المفتوحة</button>`:""}</div>
+   <details class="card stack helpbox" id="adGuide" open><summary><span class="hb-i">!</span>دليل المشاكل ومعاني رسائل الخطأ</summary>
+   <p class="small muted">كل رسالة خطأ تظهر في المنصة أو في سجل الأعطال، مع معناها وطريقة إصلاحها خطوة بخطوة.</p>
+   <div style="overflow:auto"><table class="tguide"><thead><tr>${TROUBLE[0].map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${TROUBLE.slice(1).map(r=>`<tr>${r.map((x,i)=>`<td${i===0?' class="tsrc"':""}>${esc(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+   <p class="hb-tip"><b>عند عطل غير مذكور:</b> افتح «التفاصيل التقنية» في سجل الأعطال وانسخها، وأرسلها للدعم الفني مع وقت حدوث العطل.</p></details>`);
+  const T=$("#adTrouble");
+  T.onclick=async e=>{ const b=e.target.closest("[data-fix]"); if(b){ const { error } = await sb.from("system_errors").update({status:"fixed",fixed_at:new Date().toISOString()}).eq("id",b.dataset.fix); if(error) return toast(error.message,true); toast("أُغلق العطل"); T.remove(); $("#adGuide")?.remove(); return adminTrouble(); }
+    if(e.target.closest("#fixAll")){ const { error } = await sb.from("system_errors").update({status:"fixed",fixed_at:new Date().toISOString()}).eq("status","open"); if(error) return toast(error.message,true); toast("أُغلقت كل الأعطال"); T.remove(); $("#adGuide")?.remove(); adminTrouble(); } };
+}
+
 /* ================= Navigation ================= */
 const TABS = [
   {id:"dash", t:"لوحة التحكم", i:"dash"},
@@ -572,9 +646,9 @@ function route(){
   renderTabs(id);
   if (curAudio) curAudio.pause();
   const views = {settings:vSettings, dash:vDash, studio:vStudio, lessons:vLessons, assistant:vAssistant, kb:vKb, exams:vExams, tools:vTools, coursechat:vCourseChat, admin:vAdmin};
-  if (h.startsWith("play-")) return vPlay(h.slice(5));
+  if (h.startsWith("play-")) return vPlay(h.slice(5)).then(()=>appendHelp("play")).catch(e=>toast(e.message,true));
   if (FEATURES.some(f=>f[0]===id) && !can(id)){ $("#main").innerHTML=offNote(FEATURES.find(f=>f[0]===id)[1]); return; }
-  (views[id]||vDash)().catch(e=>toast(e.message,true));
+  (views[id]||vDash)().then(()=>{ appendHelp(views[id]?id:"dash"); }).catch(e=>toast(e.message,true));
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", route);
@@ -1490,7 +1564,8 @@ function adminBanner(){ let b=$("#asAdminBar"); if(!asAdmin()){ b?.remove(); ret
   if(!b){ b=document.createElement("div"); b.id="asAdminBar"; b.style.cssText="position:sticky;top:0;z-index:50;background:#c9a13b;color:#0b2a5b;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-weight:600"; document.body.prepend(b); }
   b.innerHTML=`<span>أنت داخل حساب «${esc(profile?.full_name||"")}» بصفتك المدير — كل الخصائص متاحة لك هنا.</span><button class="btn sm" type="button" id="backAdm">العودة إلى حسابي</button>`; $("#backAdm").onclick=backToAdmin; }
 
-async function vAdmin(){
+async function vAdmin(){ await vAdmin0(); if(profile?.role==="admin"){ appendHelp("admin"); await adminTrouble().catch(e=>console.error(e)); } }
+async function vAdmin0(){
   if(profile?.role!=="admin"){ location.hash="dash"; return; }
   $("#main").innerHTML=`<div class="head"><div><h1>إدارة المنصة</h1><p class="muted">فعّل الحسابات، وحدّد الدور والحد الشهري، وتحكّم في خصائص كل مستخدم وكلمة مروره.</p></div></div>
    <div class="stack" id="adList"><div class="card">جارٍ التحميل…</div></div>`;

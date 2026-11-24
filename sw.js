@@ -1,5 +1,5 @@
 // المدرب الذكي — Service Worker: يحفظ ملفات الواجهة فقط، ولا يخزّن طلبات Supabase أو الذكاء الاصطناعي
-const CACHE = "smart-trainer-v25";
+const CACHE = "smart-trainer-v26";
 const SHELL = ["./", "./index.html", "./manifest.json", "./logo.jpg", "./header-bg.jpg", "./icon-192.png", "./icon-512.png", "./icon-192-maskable.png", "./icon-512-maskable.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
