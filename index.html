@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v33" />
+<meta name="app-version" content="v34" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2094,7 +2094,7 @@ async function vAdmin0(){
       <div class="stack" style="gap:8px;margin-top:10px">${[["main","الأقسام الرئيسية"],["lesson","صفحة المحاضرة"]].map(([g,gt])=>`<b class="small" style="margin-top:6px">${gt}</b>`+FEATURES.filter(x=>x[3]===g).map(([k,n,d])=>`<label class="row" style="justify-content:space-between;gap:10px;color:var(--ink);padding:8px 10px;border:1px solid var(--line,#e5e7eb);border-radius:10px;background:${f[k]===false?"#fff6f5":"#fff"}"><span><b>${n}</b><br><span class="small muted">${d}</span></span><span class="row" style="gap:6px;white-space:nowrap"><span class="small" data-lbl="${k}" style="color:${f[k]===false?"#b42318":"#067647"}">${f[k]===false?"موقوفة":"مفعّلة"}</span><input type="checkbox" data-feat="${k}" ${f[k]===false?"":"checked"} style="width:22px;height:22px"></span></label>`).join("")).join("")}
        <div class="row" style="gap:8px"><button class="btn sm ghost" data-allon>تفعيل الكل</button><button class="btn sm ghost" data-alloff>إيقاف الكل</button></div></div></details>
     </div></details>`; };
-  people.sort((a,b)=>(a.approved-b.approved)||String(a.full_name||a.email).localeCompare(String(b.full_name||b.email),"ar"));
+  people.sort((a,b)=>((b.id===session.user.id)-(a.id===session.user.id))||((b.role==="admin")-(a.role==="admin"))||(a.approved-b.approved)||String(a.full_name||a.email).localeCompare(String(b.full_name||b.email),"ar"));
   $("#adList").innerHTML=people.map(card).join("")||`<div class="empty">لا يوجد مستخدمون.</div>`;
   $("#adList").addEventListener("toggle",e=>{ const d=e.target; if(!d.matches?.(".ucard")) return; d.open?ADOPEN.add(d.dataset.id):ADOPEN.delete(d.dataset.id); },true);
   let uf=""; const filt=()=>{ const q=$("#adQ").value.trim().toLowerCase(); let n=0;
