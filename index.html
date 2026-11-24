@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v36" />
+<meta name="app-version" content="v37" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -416,6 +416,20 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .arow .mdot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--gold)}
 .arow .uchev.side{width:24px;height:24px;transform:rotate(90deg)}
 .usagemini{display:grid;gap:6px;margin-top:4px;padding-top:10px;border-top:1px dashed var(--line)}
+
+/* الصور والرسومات في الشرائح */
+.slide.hasviz{grid-template-columns:minmax(0,1fr) minmax(0,40%)}
+.slide .sviz{align-self:center;animation:pop .8s ease both;min-width:0}
+.slide .sviz svg,.slide .sviz img{width:100%;height:auto;max-height:min(62vh,440px);display:block;border-radius:16px}
+.slide .sviz img{background:#fff;border:3px solid var(--gold);object-fit:contain}
+.slide.simg{grid-template-columns:minmax(0,1fr);align-content:start}
+.simgw{display:grid;gap:16px;align-items:center;min-height:0}
+.simgw.hasb{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.simgw figure{margin:0;display:grid;gap:8px;justify-items:center;min-width:0}
+.simgw img{max-width:100%;max-height:min(52vh,420px);object-fit:contain;background:#fff;border:3px solid var(--gold);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);-webkit-user-drag:none;user-select:none}
+.simgw figcaption{font-size:clamp(13px,1.5vw,17px);color:#dbe4f3;text-align:center}
+@media(max-width:600px){.slide.hasviz{grid-template-columns:minmax(0,1fr)}.slide .sviz{order:2;max-width:340px;justify-self:center;width:100%}.simgw.hasb{grid-template-columns:minmax(0,1fr)}}
+.vzrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff}.vzrow img{width:64px;height:48px;object-fit:cover;border-radius:8px;flex:none}.vzrow>span{flex:1;display:grid;min-width:0;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -730,7 +744,8 @@ const FEATURES=[
   ["vname","اسم المحاضر","إظهار الاسم في الفيديو وتعديله","lesson"],
   ["vbg","لون الخلفية","تغيير لون خلفية الشرائح","lesson"],
   ["vrate","سرعة الكلام","تغيير سرعة الكلام","lesson"],
-  ["vvoice","صوت المحاضرة","تغيير صوت الشرح","lesson"]
+  ["vvoice","صوت المحاضرة","تغيير صوت الشرح","lesson"],
+  ["visuals","الصور والرسومات","رفع الصور كشرائح، والمخططات الذكية، والصور التوضيحية بالذكاء الاصطناعي","lesson"]
 ];
 const asAdmin=()=>{ try{ return !!localStorage.getItem("st_admin_return"); }catch(_){ return false; } };
 const can=f=>asAdmin() || profile?.features?.[f]!==false;
@@ -764,7 +779,9 @@ const HELP={
     ["لغة المحاضرة","«عربي فقط»: كل شيء بالعربية. «عربي + المصطلحات بالإنجليزية»: الشرح بالعربية مع المصطلح العلمي بين قوسين (الأنسب للتعليم الطبي). «English»: المحاضرة كاملة بالإنجليزية."],
     ["مدة المحاضرة","من دقيقة إلى 60 دقيقة. كل دقيقة تقارب شريحة إلى شريحتين. المحاضرات الطويلة تُبنى على أقسام متتابعة."],
     ["صوت الشرح","ستة أصوات: نور وشيماء (أنثى)، وأليكس وفارس وإياد وعمر (ذكر). زر التشغيل بجانب كل صوت يُسمعك عيّنة. يظهر «صوتي المستنسخ» إذا استنسخت صوتك من «حسابي»."],
-    ["ابنِ المحاضرة من ملفات قاعدة المعرفة","اختياري: ضع علامة على المراجع، فيلتزم المخطط والشرح بمحتواها ويستشهد بها بدل المعرفة العامة."]]],
+    ["ابنِ المحاضرة من ملفات قاعدة المعرفة","اختياري: ضع علامة على المراجع، فيلتزم المخطط والشرح بمحتواها ويستشهد بها بدل المعرفة العامة."],
+    ["المخططات الذكية","مفعّلة افتراضياً: يرسم الذكاء الاصطناعي بجانب كل شريحة مخططاً يناسب ما يُشرح (مسار مرضي، آلية عمل دواء، دورة، تصنيف، مقارنة، أرقام)، ويظهر في المحاضرة والفيديو."],
+    ["صورك ورسوماتك الطبية","ارفع صور أشعة أو رسومات تشريحية أو جداول؛ تُعرض كما هي داخل إطار شريحة مستقلة، ويقرأها الذكاء الاصطناعي ويكتب عنوانها وشرحها المسموع ويضعها في المكان الأنسب."]]],
     ["أثناء الإنشاء",[
     ["شريط التقدم","يمر بثلاث مراحل: كتابة المخطط، ثم الشرائح قسماً قسماً، ثم تسجيل الصوت لكل شريحة."],
     ["كيف يعمل؟","البطاقة الجانبية تلخص المراحل والزمن المتوقع."]]]],
@@ -797,6 +814,11 @@ const HELP={
     ["اختبار من هذه المحاضرة","يفتح منشئ الاختبارات ومحتوى المحاضرة جاهز مصدراً للأسئلة."]]],
    ["الفيديو",[
     ["تحميل فيديو MP4","يسجّل المحاضرة فيديو بسرعتها الطبيعية (5 دقائق تحتاج 5 دقائق تقريباً)، ثم يظهر «حفظ الفيديو على الجهاز» و«مشاركة / حفظ في المعرض» و«نسخ رابط الفيديو»، ويُرفع تلقائياً إلى Google Drive إن كان مفعّلاً."]]],
+   ["الصور والرسومات التوضيحية",[
+    ["إضافة صور كشرائح","اختر صورة أو أكثر، وحدد المكان (أو دع الذكاء الاصطناعي يختاره)، واكتب ملاحظة إن أردت. تُرفع الصورة وتُضغط، ويكتب الذكاء الاصطناعي عنوانها ووصفها وشرحها المسموع، ثم يُسجَّل صوتها."],
+    ["مخططات ذكية","«أضف مخططات ذكية للشرائح» يحلل كل الشرائح ويضيف لكل منها مخططاً مناسباً مجاناً، و«إزالة المخططات» يعيدها كما كانت."],
+    ["صور توضيحية بالذكاء الاصطناعي","يرسم صورة طبية توضيحية بلا نص لحتى 6 شرائح. يحتاج تفعيل الدفع في Gemini."],
+    ["شرائح الصور","قائمة بالصور المضافة مع زر الحذف."]]],
    ["إعدادات الفيديو والصوت",[
     ["الشعار أعلى يسار الفيديو","شعار المركز، أو شعارك الخاص (PNG بخلفية شفافة حتى 2 ميغابايت)، أو بدون شعار."],
     ["إظهار اسم المحاضر","مفتاح، ومعه حقل الاسم كما يظهر مع اللقب العلمي."],
@@ -1409,6 +1431,10 @@ async function vStudio(){
     <label for="sDur">مدة المحاضرة: <b id="durV">${p.duration||5} دقائق</b><input id="sDur" type="range" min="1" max="60" value="${p.duration||5}"></label>
     <div class="stack"><span class="small muted" style="font-weight:500">صوت الشرح</span>${voicePicker(p.voice||"nova")}</div>
     <div class="stack"><span class="small muted" style="font-weight:500">ابنِ المحاضرة من ملفات قاعدة المعرفة (اختياري)</span>${kbPicker("sKb")}</div>
+    <div class="stack sviztools"${hid("visuals")}><span class="small muted" style="font-weight:500">الصور والرسومات</span>
+     <label class="chk"><input type="checkbox" id="sDiag" checked> أضف مخططات ذكية تعزز الشرح (مسارات، آليات عمل، تصنيفات، مقارنات)</label>
+     <label for="sImgs">صورك ورسوماتك الطبية (اختياري، يمكن اختيار أكثر من صورة)<input id="sImgs" type="file" accept="image/*" multiple></label>
+     <span class="small muted">تُعرض الصور كما هي داخل إطار الشريحة، ويضعها الذكاء الاصطناعي في المكان الأنسب ويكتب شرحها المسموع.</span></div>
     <button class="btn gold" id="genBtn" type="submit">${ico("studio")} أنشئ المحاضرة</button>
    </form>
    <div class="stack">
@@ -1424,7 +1450,7 @@ async function vStudio(){
 
 async function generateLesson(){
   const title=$("#sTitle").value.trim(); if(!title) return toast("اكتب عنوان المحاضرة", true);
-  const cfg = { title, description:$("#sDesc").value.trim(), subject:$("#sSubj").value.trim(), level:$("#sLevel").value, duration:+$("#sDur").value, voice:pickedVoice(), docs:pickedDocs("sKb"), lang: $("#sLang")?.value || (/[\u0600-\u06FF]/.test(title)?"ar":"en") };
+  const cfg = { title, description:$("#sDesc").value.trim(), subject:$("#sSubj").value.trim(), level:$("#sLevel").value, duration:+$("#sDur").value, voice:pickedVoice(), docs:pickedDocs("sKb"), lang: $("#sLang")?.value || (/[\u0600-\u06FF]/.test(title)?"ar":"en"), diagrams: $("#sDiag")?.checked!==false, images:[...($("#sImgs")?.files||[])] };
   const btn=$("#genBtn"); busy(btn,true,"جارٍ الإنشاء…"); $("#genBox").classList.remove("hidden"); $("#genHint").classList.add("hidden");
   const bar=$("#genBar"), step=$("#genStep"), logEl=$("#genLog");
   const log = t => { logEl.insertAdjacentHTML("beforeend", `<div>✓ ${esc(t)}</div>`); logEl.scrollTop=1e6; };
@@ -1454,11 +1480,17 @@ async function generateLesson(){
   const slides=[];
   for (let i=0;i<secs.length;i++){
     const s=secs[i]; setP(10+Math.round(i/secs.length*45), `كتابة شرائح القسم ${i+1} من ${secs.length}: ${s.title}`);
-    const out = await chat(LSYS2, `${baseL}\n\nمخطط المحاضرة: ${secs.map((x,k)=>`${k+1}. ${x.title}`).join(" | ")}\n\nاكتب الآن شرائح القسم ${i+1} «${s.title}» (هدفه: ${s.goal||""}) وعددها ${Math.max(1,Math.min(6,s.slides||3))}.\nلكل شريحة:\n- title: عنوان قصير\n- layout: واحد من [bullets, definition, steps, compare, quote, summary]\n- bullets: من 2 إلى 4 نقاط قصيرة (للـ compare اجعلها فارغة)\n- definition: نص التعريف إن كان layout=definition\n- compare: {"a":"عنوان","a_points":[],"b":"عنوان","b_points":[]} إن كان layout=compare\n- icon: واحد من [${SLIDE_ICONS.join(",")}]\n- narration: نص الشرح المسموع بالفصحى بنحو ${wordsPer} كلمة، يشرح الشريحة بأسلوب مدرّب ودود دون قراءة النقاط حرفياً، ويربط بما قبلها.\nأعد JSON: {"slides":[...]}`, {json:true, maxTokens:Math.min(6000, 600+wordsPer*12)});
+    const out = await chat(LSYS2, `${baseL}\n\nمخطط المحاضرة: ${secs.map((x,k)=>`${k+1}. ${x.title}`).join(" | ")}\n\nاكتب الآن شرائح القسم ${i+1} «${s.title}» (هدفه: ${s.goal||""}) وعددها ${Math.max(1,Math.min(6,s.slides||3))}.\nلكل شريحة:\n- title: عنوان قصير\n- layout: واحد من [bullets, definition, steps, compare, quote, summary]\n- bullets: من 2 إلى 4 نقاط قصيرة (للـ compare اجعلها فارغة)\n- definition: نص التعريف إن كان layout=definition\n- compare: {"a":"عنوان","a_points":[],"b":"عنوان","b_points":[]} إن كان layout=compare\n- icon: واحد من [${SLIDE_ICONS.join(",")}]\n- narration: نص الشرح المسموع بالفصحى بنحو ${wordsPer} كلمة، يشرح الشريحة بأسلوب مدرّب ودود دون قراءة النقاط حرفياً، ويربط بما قبلها.\n${cfg.diagrams?DIAG_SPEC+"\n":""}أعد JSON: {"slides":[...]}`, {json:true, maxTokens:Math.min(6000, 600+wordsPer*12)});
     (out.slides||[]).forEach(x=>slides.push({ ...x, section:s.title, sec:i }));
     log(`القسم ${i+1}: ${(out.slides||[]).length} شرائح`);
   }
   if(!slides.length) throw new Error("لم تُكتب الشرائح، أعد المحاولة");
+  if(cfg.images.length){ const tmp={ ...row, slides };
+    for(const [fi,f] of cfg.images.entries()){ setP(55, `قراءة الصورة ${fi+1} من ${cfg.images.length} ووضعها في مكانها…`);
+      try{ const p=await prepImage(f); const url=await uploadLessonImage(row.id,p.blob); const d=await describeImage(p.b64,tmp,"",cfg.lang);
+        const at=Math.min(slides.length, Math.max(1, +d.after||slides.length)); const near=slides[at-1]||{};
+        slides.splice(at,0,{ layout:"image", image:url, iw:p.w, ih:p.h, title:d.title||"صورة توضيحية", caption:d.caption||"", bullets:(d.bullets||[]).slice(0,3), narration:d.narration||d.caption||"", section:near.section||"", sec:1000+fi });
+        log(`أُضيفت الصورة ${fi+1} بعد الشريحة ${at}`); }catch(err){ log(`تعذّرت الصورة ${fi+1}: ${err.message}`); } } }
   await sb.from("lessons").update({ slides }).eq("id", row.id);
   const lesson = { ...row, slides };
   const r = await fillAudio(lesson, (k,n)=>setP(56+Math.round(k/n*42), `تسجيل الصوت: القسم ${k+1} من ${n}`), log);
@@ -1505,8 +1537,138 @@ async function fillAudio(lesson, onP=()=>{}, log=()=>{}){
 }
 
 /* ================= Player ================= */
+/* ================= الرسومات: مخططات ذكية + صور مرفوعة كشرائح + صور توضيحية بالذكاء الاصطناعي ================= */
+const DIAG_SPEC = `- diagram (اختياري لكن مستحسن في أغلب الشرائح العلمية): رسم توضيحي يعزز فكرة الشريحة والشرح، بأحد الأشكال:
+  {"kind":"flow","items":["خطوة","خطوة","خطوة"]} تسلسل أو مسار مرضي/علاجي (3-6 عناصر)
+  {"kind":"chain","items":[{"label":"الدواء"},{"label":"المستقبل","rel":"inhibits"},{"label":"الأثر","rel":"leads"}]} آلية عمل؛ rel من [activates, inhibits, leads]
+  {"kind":"cycle","items":["","",""]} دورة متكررة (3-6)
+  {"kind":"tree","root":"","children":["","",""]} تصنيف أو أنواع (2-5)
+  {"kind":"bars","unit":"%","items":[{"label":"","value":0}]} أرقام موثوقة فقط (2-6)
+  {"kind":"compare","a":"","b":"","rows":[["المعيار","أ","ب"]]} مقارنة مختصرة (2-5 صفوف)
+  اجعل نصوص الرسم قصيرة جداً (1-4 كلمات)، وبنفس لغة المحاضرة. لا تضف رسماً للمقدمة أو الخلاصة إن لم يفد.`;
+const VZ = dark => dark ? {bg:"rgba(255,255,255,.06)",box:"rgba(255,255,255,.10)",stroke:"#e2c271",txt:"#f5f7fb",acc:"#e2c271",muted:"#c9d6ec",line:"rgba(226,194,113,.85)",inh:"#ff8a80"} : {bg:"rgba(11,42,91,.04)",box:"#ffffff",stroke:"#0b2a5b",txt:"#0b2a5b",acc:"#c9a13b",muted:"#475569",line:"#0b2a5b",inh:"#b42318"};
+function svgWrap(t, max){ const w=String(t||"").split(/\s+/); const ls=[]; let c=""; for(const x of w){ if((c+" "+x).trim().length>max && c){ ls.push(c); c=x; } else c=(c+" "+x).trim(); } if(c) ls.push(c); return ls.slice(0,3); }
+function svgText(t, x, y, max, size, col, weight=600){ const ls=svgWrap(t,max); const y0=y-(ls.length-1)*size*0.62; return `<text x="${x}" y="${y0}" text-anchor="middle" dominant-baseline="middle" direction="rtl" font-family="Cairo, 'Noto Sans Arabic', Tahoma, sans-serif" font-size="${size}" font-weight="${weight}" fill="${col}">${ls.map((l,k)=>`<tspan x="${x}" dy="${k?size*1.24:0}">${esc(l)}</tspan>`).join("")}</text>`; }
+function diagramSVG(d, dark=true){
+  if(!d||!d.kind) return ""; const c=VZ(dark); const W=480, H=540; let g="";
+  const box=(x,y,w,h,t,opt={})=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="16" fill="${opt.fill||c.box}" stroke="${opt.stroke||c.stroke}" stroke-width="${opt.sw||2.5}"/>`+svgText(t,x+w/2,y+h/2,opt.max||18,opt.size||22,opt.col||c.txt,opt.weight||700);
+  const defs=`<defs><marker id="ah${dark?1:0}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${c.line}"/></marker></defs>`;
+  const arrow=(x1,y1,x2,y2,col=c.line,dash="")=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="3.5" ${dash?`stroke-dasharray="${dash}"`:""} marker-end="url(#ah${dark?1:0})"/>`;
+  if(d.kind==="flow"||d.kind==="chain"){
+    const it=(d.items||[]).slice(0,6).map(x=>typeof x==="string"?{label:x}:x); const n=it.length||1; const bh=Math.min(74,(H-40-(n-1)*34)/n), gap=(H-40-n*bh)/Math.max(1,n-1);
+    it.forEach((x,k)=>{ const y=20+k*(bh+gap); g+=box(70,y,340,bh,x.label,{fill:k===0?c.acc:c.box,col:k===0?(dark?"#1d1606":"#fff"):c.txt});
+      if(k<n-1){ const nx=it[k+1], inh=nx.rel==="inhibits"; const y1=y+bh+3, y2=y+bh+gap-5;
+        if(inh){ g+=`<line x1="240" y1="${y1}" x2="240" y2="${y2}" stroke="${c.inh}" stroke-width="3.5"/><line x1="222" y1="${y2}" x2="258" y2="${y2}" stroke="${c.inh}" stroke-width="5"/>`; }
+        else g+=arrow(240,y1,240,y2-2,c.line);
+        if(nx.rel) g+=svgText({activates:"يُنشّط",inhibits:"يُثبّط",leads:"يؤدي إلى"}[nx.rel]||"",330,(y1+y2)/2,14,17,inh?c.inh:c.muted,600); } });
+  } else if(d.kind==="cycle"){
+    const it=(d.items||[]).slice(0,6); const n=Math.max(3,it.length); const cx=240, cy=270, R=150;
+    g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${c.line}" stroke-width="2.5" stroke-dasharray="7 9" opacity=".7"/>`;
+    it.forEach((t,k)=>{ const a=-Math.PI/2+k*2*Math.PI/n; const x=cx+R*Math.cos(a), y=cy+R*Math.sin(a); const a2=a+Math.PI/n; g+=`<path d="M${cx+(R+0)*Math.cos(a2-0.12)} ${cy+R*Math.sin(a2-0.12)} L${cx+R*Math.cos(a2+0.05)} ${cy+R*Math.sin(a2+0.05)}" stroke="${c.acc}" stroke-width="4" marker-end="url(#ah${dark?1:0})"/>`; g+=box(x-70,y-36,140,72,t,{max:12,size:17,fill:k===0?c.acc:c.box,col:k===0?(dark?"#1d1606":"#fff"):c.txt}); });
+  } else if(d.kind==="tree"){
+    const ch=(d.children||[]).slice(0,5); const n=ch.length||1; g+=box(110,24,260,84,d.root||"",{fill:c.acc,col:dark?"#1d1606":"#fff",size:24});
+    const bw=Math.min(200,(W-30)/Math.min(n,3)-14);
+    ch.forEach((t,k)=>{ const row=n>3&&k>=3?1:0; const inRow=row? n-3 : Math.min(3,n); const idx=row?k-3:k; const x=(W-(inRow*bw+(inRow-1)*14))/2+idx*(bw+14); const y=row?400:220;
+      g+=`<path d="M240 108 C240 ${y-50} ${x+bw/2} ${y-60} ${x+bw/2} ${y-4}" fill="none" stroke="${c.line}" stroke-width="2.5"/>`+box(x,y,bw,96,t,{max:12,size:19}); });
+  } else if(d.kind==="bars"){
+    const it=(d.items||[]).slice(0,6).filter(x=>isFinite(+x.value)); const mx=Math.max(1,...it.map(x=>+x.value)); const n=it.length||1; const bw=Math.min(70,(W-80)/n-20);
+    g+=`<line x1="40" y1="470" x2="${W-20}" y2="470" stroke="${c.muted}" stroke-width="2"/>`;
+    it.forEach((x,k)=>{ const h=Math.max(6,(+x.value/mx)*360); const bx=W-60-k*((W-80)/n)-bw; g+=`<rect x="${bx}" y="${470-h}" width="${bw}" height="${h}" rx="8" fill="${k%2?c.stroke:c.acc}" opacity=".92"/>`+svgText(`${x.value}${d.unit||""}`,bx+bw/2,470-h-18,10,18,c.txt,700)+svgText(x.label,bx+bw/2,500,10,15,c.muted,600); });
+  } else if(d.kind==="compare"){
+    const rows=(d.rows||[]).slice(0,5); const rh=Math.min(108,(H-110)/Math.max(1,rows.length));
+    g+=box(250,20,210,64,d.a||"",{fill:c.acc,col:dark?"#1d1606":"#fff",size:20})+box(20,20,210,64,d.b||"",{fill:c.stroke,col:dark?"#0b2a5b":"#fff",size:20,stroke:c.stroke});
+    rows.forEach((r,k)=>{ const y=100+k*rh; g+=svgText(r[0]||"",240,y+16,24,15,c.muted,700)+box(250,y+30,210,rh-38,r[1]||"",{size:19,max:16,sw:1.5})+box(20,y+30,210,rh-38,r[2]||"",{size:19,max:16,sw:1.5}); });
+  } else return "";
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">${defs}<rect x="0" y="0" width="${W}" height="${H}" rx="22" fill="${c.bg}"/>${g}</svg>`;
+}
+/* تحويل الرسم أو الصورة إلى صورة جاهزة لرسمها في الفيديو */
+function svgImage(svg){ return new Promise(r=>{ const im=new Image(); im.onload=()=>r(im); im.onerror=()=>r(null); im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg); }); }
+/* ضغط الصورة قبل الرفع (أقصى بعد 1800 بكسل) مع الحفاظ على الشفافية بخلفية بيضاء */
+async function prepImage(file, max=1800){
+  const url=URL.createObjectURL(file); const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error("تعذّر قراءة الصورة")); i.src=url; });
+  const r=Math.min(1, max/Math.max(im.naturalWidth, im.naturalHeight)); const cv=document.createElement("canvas"); cv.width=Math.round(im.naturalWidth*r); cv.height=Math.round(im.naturalHeight*r);
+  const x=cv.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,cv.width,cv.height); x.drawImage(im,0,0,cv.width,cv.height); URL.revokeObjectURL(url);
+  const blob=await new Promise(res=>cv.toBlob(res,"image/jpeg",.9)); const b64=cv.toDataURL("image/jpeg",.82); return { blob, b64, w:cv.width, h:cv.height };
+}
+async function uploadLessonImage(lessonId, blob){ const path=`${session.user.id}/${lessonId}/img-${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`;
+  const up=await sb.storage.from("audio").upload(path,blob,{contentType:"image/jpeg",upsert:true}); if(up.error) throw up.error; return sb.storage.from("audio").getPublicUrl(path).data.publicUrl; }
+/* الذكاء الاصطناعي يقرأ الصورة الطبية ويكتب عنوانها وشرحها في سياق المحاضرة */
+async function describeImage(b64, lesson, hint, lang){
+  const ctx=(lesson.slides||[]).map((s,k)=>`${k+1}. ${s.title}`).join(" | ").slice(0,1500);
+  const L = lang==="en" ? "Write in English only." : lang==="ar_only" ? "اكتب بالعربية الفصحى فقط دون أي كلمة إنجليزية." : "اكتب بالعربية الفصحى مع كتابة كل مصطلح طبي واسم دواء بالإنجليزية بين قوسين.";
+  const r=await ai("chat",{ messages:[{role:"system",content:SYS+" "+L},{role:"user",content:[{type:"text",text:`هذه صورة/رسم توضيحي يضيفه المحاضر إلى محاضرة «${lesson.title}». شرائح المحاضرة: ${ctx}\n${hint?`ملاحظة المحاضر عن الصورة: ${hint}\n`:""}صف ما في الصورة بدقة علمية دون اختراع تفاصيل غير ظاهرة، واكتب شرحاً مسموعاً يربطها بموضوع المحاضرة.\nأعد JSON: {"title":"عنوان قصير","caption":"وصف مختصر يظهر تحت الصورة","bullets":["نقطة","نقطة"],"narration":"شرح مسموع بنحو 70-110 كلمة","after":رقم الشريحة الأنسب لوضعها بعدها}`},{type:"image_url",image_url:{url:b64}}]}], json:true, maxTokens:1200, temperature:0.3 });
+  try{ return JSON.parse(r.text); }catch(_){ const m=String(r.text).match(/\{[\s\S]*\}/); if(m) return JSON.parse(m[0]); throw new Error("لم يُفهم وصف الصورة، أعد المحاولة"); }
+}
+/* إضافة مخططات ذكية لشرائح محاضرة موجودة (طلب واحد لكل 8 شرائح) */
+async function addDiagrams(lesson, onP=()=>{}){
+  const slides=lesson.slides||[]; const L = /[؀-ۿ]/.test(lesson.title)?"":" Write diagram labels in English.";
+  for(let a=0;a<slides.length;a+=8){ onP(a,slides.length);
+    const part=slides.slice(a,a+8).map((s,k)=>({n:a+k, layout:s.layout, title:s.title, bullets:s.bullets, narration:(s.narration||"").slice(0,300)}));
+    const out=await chat(SYS+L, `لكل شريحة من هذه الشرائح اقترح رسماً توضيحياً يعزز الشرح المسموع، أو null إن كانت صورة أو لا يفيدها رسم.\n${DIAG_SPEC}\n\nالشرائح:\n${JSON.stringify(part)}\nأعد JSON: {"diagrams":[{"n":رقم الشريحة,"diagram":{...}|null}]}`, {json:true, maxTokens:2500, temperature:0.3});
+    (out.diagrams||[]).forEach(x=>{ const s=slides[x.n]; if(s && s.layout!=="image" && x.diagram?.kind) s.diagram=x.diagram; });
+  }
+  return slides;
+}
+/* صورة توضيحية مولّدة بالذكاء الاصطناعي لشريحة (تحتاج Gemini مدفوعاً) */
+async function genIllustration(lesson, s){
+  const r=await ai("image",{ prompt:`Clean, scientifically accurate medical education illustration for a lecture slide titled "${s.title}". Key points: ${(s.bullets||[]).join("; ")}. Style: modern flat medical illustration, soft navy and gold palette, white background, no text, no letters, no watermark.` });
+  const bin=atob(r.data); const u8=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) u8[k]=bin.charCodeAt(k);
+  const p=await prepImage(new File([u8],"ai.png",{type:r.mime||"image/png"}),1400); return uploadLessonImage(lesson.id,p.blob);
+}
+/* بطاقة «الصور والرسومات» في صفحة المحاضرة */
+function visualsCard(l){
+  const sl=l.slides||[]; const imgs=sl.map((s,k)=>[s,k]).filter(([s])=>s.layout==="image"); const dg=sl.filter(s=>s.diagram).length, ai=sl.filter(s=>s.visual_url).length;
+  return `<details class="card" id="vizBox"><summary style="cursor:pointer;font-weight:600">الصور والرسومات التوضيحية <span class="small muted">· ${num(imgs.length)} صورة · ${num(dg)} مخطط · ${num(ai)} صورة ذكية</span></summary><div class="stack" style="margin-top:12px">
+   <div class="usec" style="border-top:0;padding-top:0"><h4>إضافة صور أو رسومات كشرائح</h4>
+    <p class="small muted">ارفع صوراً طبية أو رسومات أو جداول؛ تُعرض كما هي داخل إطار الشريحة في المحاضرة والفيديو، ويكتب الذكاء الاصطناعي عنوانها وشرحها المسموع ويسجّل صوتها.</p>
+    <label for="vzFiles">الصور (يمكن اختيار أكثر من صورة)<input id="vzFiles" type="file" accept="image/*" multiple></label>
+    <label for="vzPos">مكان الإضافة<select id="vzPos"><option value="auto">يختار الذكاء الاصطناعي المكان الأنسب</option>${sl.map((s,k)=>`<option value="${k}">بعد الشريحة ${k+1}: ${esc(String(s.title).slice(0,40))}</option>`).join("")}<option value="end">في نهاية المحاضرة</option></select></label>
+    <label for="vzHint">ملاحظة عن الصورة (اختياري)<input id="vzHint" placeholder="مثال: صورة أشعة لمريض تشمّع كبد، ركّز على حجم الطحال"></label>
+    <label class="chk"><input type="checkbox" id="vzAI" checked> يكتب الذكاء الاصطناعي العنوان والشرح من الصورة</label>
+    <label for="vzNar" id="vzNarW" style="display:none">الشرح المسموع (إن لم تستخدم الذكاء الاصطناعي)<textarea id="vzNar" rows="3"></textarea></label>
+    <div class="ubtns"><button class="btn gold" type="button" id="vzAdd">أضف الصور كشرائح</button></div><div class="small muted" id="vzStep"></div></div>
+   <div class="usec"><h4>تعزيز الشرائح بالرسومات</h4>
+    <p class="small muted"><b>مخططات ذكية (مجانية):</b> يقترح الذكاء الاصطناعي لكل شريحة مخططاً يناسب الكلام المشروح: مسار، آلية عمل دواء، دورة، تصنيف، مقارنة، أو أرقام، ويرسمه بألوان المنصة في المحاضرة والفيديو.</p>
+    <div class="ubtns"><button class="btn" type="button" id="vzDiag">${dg?"أعد توليد المخططات":"أضف مخططات ذكية للشرائح"}</button>${dg?`<button class="btn ghost" type="button" id="vzDiagOff">إزالة المخططات</button>`:""}</div>
+    <p class="small muted"><b>صور توضيحية بالذكاء الاصطناعي (تجريبي):</b> يرسم صورة طبية توضيحية لكل شريحة بلا نص. تحتاج تفعيل الدفع في Gemini؛ في الطبقة المجانية قد ترفض Google الطلب.</p>
+    <div class="ubtns"><button class="btn ghost" type="button" id="vzGen">ولّد صوراً توضيحية (حتى 6 شرائح)</button>${ai?`<button class="btn ghost" type="button" id="vzGenOff">إزالة الصور الذكية</button>`:""}</div></div>
+   ${imgs.length?`<div class="usec"><h4>شرائح الصور</h4><div class="stack" style="gap:8px">${imgs.map(([s,k])=>`<div class="vzrow"><img src="${esc(s.image)}" alt=""><span><b>الشريحة ${k+1}: ${esc(s.title||"")}</b><span class="small muted">${s.audio?"الصوت مسجّل":"بلا صوت بعد"}</span></span><button class="btn sm danger" type="button" data-vzdel="${k}">حذف</button></div>`).join("")}</div></div>`:""}
+  </div></details>`;
+}
+function bindVisuals(l){
+  const box=$("#vizBox"); if(!box) return; const step=t=>{ $("#vzStep").textContent=t; };
+  const save=async(msg)=>{ const { error } = await sb.from("lessons").update({ slides:l.slides }).eq("id",l.id); if(error) throw error; toast(msg); };
+  $("#vzAI").onchange=()=>{ $("#vzNarW").style.display=$("#vzAI").checked?"none":""; };
+  $("#vzAdd").onclick=async e=>{ const files=[...($("#vzFiles").files||[])]; if(!files.length) return toast("اختر صورة واحدة على الأقل",true); const b=e.currentTarget; busy(b,true,"جارٍ الإضافة…");
+    try{ const lang=/[؀-ۿ]/.test(l.title)?"ar":"en"; let added=0;
+      for(const [fi,f] of files.entries()){ step(`الصورة ${fi+1} من ${files.length}: تجهيز ورفع…`);
+        const p=await prepImage(f); const url=await uploadLessonImage(l.id,p.blob);
+        let d={ title:f.name.replace(/\.[^.]+$/,""), caption:"", bullets:[], narration:$("#vzNar").value.trim() };
+        if($("#vzAI").checked){ step(`الصورة ${fi+1}: يقرأها الذكاء الاصطناعي ويكتب شرحها…`); d=await describeImage(p.b64,l,$("#vzHint").value.trim(),lang); }
+        const pos=$("#vzPos").value; let at = pos==="end" ? l.slides.length : pos==="auto" ? Math.min(l.slides.length, Math.max(0, (+d.after||l.slides.length))) : (+pos+1+added);
+        const near=l.slides[Math.max(0,at-1)]||{};
+        l.slides.splice(at,0,{ layout:"image", image:url, iw:p.w, ih:p.h, title:d.title||"صورة توضيحية", caption:d.caption||"", bullets:(d.bullets||[]).slice(0,3), narration:d.narration||d.caption||d.title||"", section:near.section||"", sec:1000+Math.floor(Math.random()*1e6) });
+        added++; }
+      await save(`أُضيفت ${added} شريحة صورة`); step("تسجيل صوت الشرائح الجديدة…");
+      const r=await fillAudio(l,(k,n)=>step(`تسجيل الصوت ${k+1} من ${n}…`)); await sb.from("lessons").update({ slides:l.slides }).eq("id",l.id);
+      if(r.missing) toast("أُضيفت الصور، وبعض الصوت ينتظر تجدد الحد اليومي",true); vPlay(l.id).then(()=>appendHelp("play"));
+    }catch(err){ toast("تعذّرت الإضافة: "+err.message,true); logErr("lesson","إضافة صورة",err.message,String(err.stack||err),{lesson:l.id,title:l.title}); step(""); } finally{ busy(b,false); } };
+  $("#vzDiag").onclick=async e=>{ const b=e.currentTarget; busy(b,true,"جارٍ رسم المخططات…");
+    try{ await addDiagrams(l,(a,n)=>step(`تحليل الشرائح ${a+1}–${Math.min(n,a+8)} من ${n}…`)); await save(`أُضيفت مخططات لـ ${l.slides.filter(s=>s.diagram).length} شريحة`); vPlay(l.id).then(()=>appendHelp("play")); }
+    catch(err){ toast(err.message,true); step(""); } finally{ busy(b,false); } };
+  $("#vzDiagOff")&&($("#vzDiagOff").onclick=async()=>{ l.slides.forEach(s=>delete s.diagram); await save("أُزيلت المخططات"); vPlay(l.id).then(()=>appendHelp("play")); });
+  $("#vzGen").onclick=async e=>{ const b=e.currentTarget; busy(b,true,"جارٍ التوليد…"); let ok=0;
+    try{ const targets=l.slides.filter(s=>s.layout!=="image"&&!s.visual_url&&!/مقدمة|خلاصة|ملخص|تلخيص|summary|intro/i.test(s.title+" "+(s.layout||""))).slice(0,6);
+      for(const [k,s] of targets.entries()){ step(`توليد صورة ${k+1} من ${targets.length}: ${s.title}`); s.visual_url=await genIllustration(l,s); ok++; await save(`صورة ${ok}`); }
+      toast(`وُلّدت ${ok} صورة توضيحية`); vPlay(l.id).then(()=>appendHelp("play"));
+    }catch(err){ toast((ok?`وُلّدت ${ok} صورة ثم توقف: `:"")+err.message,true); step(""); if(ok) vPlay(l.id).then(()=>appendHelp("play")); } finally{ busy(b,false); } };
+  $("#vzGenOff")&&($("#vzGenOff").onclick=async()=>{ l.slides.forEach(s=>delete s.visual_url); await save("أُزيلت الصور الذكية"); vPlay(l.id).then(()=>appendHelp("play")); });
+  box.querySelectorAll("[data-vzdel]").forEach(bt=>bt.onclick=async()=>{ if(bt.dataset.c!=="1"){ bt.dataset.c="1"; bt.textContent="تأكيد الحذف"; return; } l.slides.splice(+bt.dataset.vzdel,1); await save("حُذفت شريحة الصورة"); vPlay(l.id).then(()=>appendHelp("play")); });
+}
+
 function slideHTML(s, i, n){
   const b = (s.bullets||[]).filter(Boolean);
+  if(s.layout==="image") return `<div class="slide simg"><div class="sec">${esc(s.section||"")} · الشريحة ${i+1} من ${n}</div><h2>${esc(s.title||"")}</h2><div class="uline"></div><div class="simgw${b.length?" hasb":""}"><figure><img src="${esc(s.image)}" alt="${esc(s.title||"")}" draggable="false">${s.caption?`<figcaption>${esc(s.caption)}</figcaption>`:""}</figure>${b.length?`<ul>${b.map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul>`:""}</div></div>`;
   let body="";
   switch(s.layout){
     case "definition": body = `<div class="defn">${esc(s.definition||b.join(" "))}</div>${b.length&&s.definition?`<ul style="margin-top:12px">${b.map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul>`:""}`; break;
@@ -1515,7 +1677,8 @@ function slideHTML(s, i, n){
     case "quote": body = `<div class="quote">${esc(b[0]||s.definition||"")}</div>${b.length>1?`<ul style="margin-top:12px">${b.slice(1).map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul>`:""}`; break;
     default: body = `<ul>${b.map(x=>`<li><i></i>${esc(x)}</li>`).join("")}</ul>`;
   }
-  return `<div class="slide"><div><div class="sec">${esc(s.section||"")} · الشريحة ${i+1} من ${n}</div><h2>${esc(s.title)}</h2><div class="uline"></div>${body}</div>${ico(SLIDE_ICONS.includes(s.icon)?s.icon:"bulb","ico")}</div>`;
+  const viz = s.visual_url ? `<div class="sviz"><img src="${esc(s.visual_url)}" alt="" draggable="false"></div>` : s.diagram ? `<div class="sviz">${diagramSVG(s.diagram,true)}</div>` : ico(SLIDE_ICONS.includes(s.icon)?s.icon:"bulb","ico");
+  return `<div class="slide${s.visual_url||s.diagram?" hasviz":""}"><div><div class="sec">${esc(s.section||"")} · الشريحة ${i+1} من ${n}</div><h2>${esc(s.title)}</h2><div class="uline"></div>${body}</div>${viz}</div>`;
 }
 // لا نستخدم صوت المتصفح إطلاقاً: الشريحة التي لم يُسجَّل صوتها تُعرض صامتة بقدر زمن قراءتها
 function browserSay(text, onend){
@@ -1593,14 +1756,15 @@ function saveVset(o){ try{ localStorage.setItem("st_vset", JSON.stringify(o)); }
 let VS=vset();
 // خلفية الفيديو: صورة التدرّج المعتمدة للمركز
 const VBG=new Image(); VBG.src="data:image/jpeg;base64,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";
-function drawSlideCanvas(ctx, W, H, s, i, n, shown, icons, logo){
+function drawSlideCanvas(ctx, W, H, s, i, n, shown, icons, logo, vis){
   const D=VS.bg==="navy";
   const C={title:D?"#ffffff":"#0b2a5b", body:D?"#eef2f9":"#1e2b45", sec:D?"#e2c271":"#a8812a", panel:D?"rgba(255,255,255,.08)":"rgba(255,255,255,.75)", stroke:D?"rgba(255,255,255,.22)":"rgba(11,42,91,.12)"};
   const bgc=(VBGS[VS.bg]||VBGS.center)[1];
   if(bgc){ ctx.fillStyle=bgc; ctx.fillRect(0,0,W,H); }
   else { ctx.fillStyle="#fbfcfe"; ctx.fillRect(0,0,W,H); if(VBG.complete&&VBG.naturalWidth){ ctx.imageSmoothingQuality="high"; ctx.drawImage(VBG,0,0,W,H); } }
   ctx.direction="rtl"; ctx.textAlign="right"; ctx.textBaseline="alphabetic";
-  const R=W-90, iconW=210, textW=W-90-90-iconW-40;
+  const VI=vis&&vis[i]; const imgSlide=s.layout==="image"&&VI;
+  const R=W-90, iconW=210, textW=imgSlide?W-180:VI?W-90-60-460-40:W-90-90-iconW-40;
   ctx.fillStyle=C.sec; ctx.font="600 24px Cairo, sans-serif"; ctx.fillText(`${s.section||""} · الشريحة ${i+1} من ${n}`, R, 100);
   ctx.fillStyle=C.title; ctx.font="700 50px Cairo, sans-serif"; let y=170; for(const l of wrapLines(ctx,s.title,textW).slice(0,2)){ ctx.fillText(l,R,y); y+=62; }
   ctx.fillStyle="#c9a13b"; ctx.fillRect(R-170,y-30,170,6); y+=24;
@@ -1614,8 +1778,16 @@ function drawSlideCanvas(ctx, W, H, s, i, n, shown, icons, logo){
     [[c.a,c.a_points,R],[c.b,c.b_points,R-colW-30]].forEach(([h,pts,x],ci)=>{ y=y0; ctx.fillStyle=C.panel; ctx.fillRect(x-colW,y-40,colW,H-y0-60); ctx.strokeStyle=C.stroke; ctx.lineWidth=2; ctx.strokeRect(x-colW,y-40,colW,H-y0-60); ctx.fillStyle=C.title; ctx.font="700 32px Cairo"; ctx.fillText(h||"",x-18,y); y+=52; ctx.font="500 28px Cairo"; (pts||[]).forEach((p,k)=>{ if(k+ci*3<shown||shown>=99){ ctx.fillStyle=C.body; wrapLines(ctx,"• "+p,colW-36).forEach(l=>{ ctx.fillText(l,x-18,y); y+=40; }); y+=6; } }); });
   } else if(s.layout==="definition"){ const ls=wrapLines(ctx,s.definition||b.join(" "),textW-40); ctx.fillStyle=C.panel; ctx.fillRect(R-textW,y-40,textW,ls.length*46+30); ctx.strokeStyle="#c9a13b"; ctx.lineWidth=3; ctx.strokeRect(R-textW,y-40,textW,ls.length*46+30); ctx.fillStyle=C.body; ls.forEach(l=>{ ctx.fillText(l,R-20,y); y+=46; }); y+=30; b.forEach((t,k)=>item(t,k,R,textW));
   } else if(s.layout==="quote"){ ctx.fillStyle="#c9a13b"; ctx.fillRect(R-6,y-40,6,120); ctx.fillStyle=C.title; ctx.font="600 38px Cairo"; wrapLines(ctx,b[0]||s.definition||"",textW-30).forEach(l=>{ ctx.fillText(l,R-24,y); y+=54; }); ctx.font="500 32px Cairo"; y+=14; b.slice(1).forEach((t,k)=>item(t,k,R,textW));
+  } else if(imgSlide){ const hasB=b.length>0; const bw=hasB?400:0; const ax=60, ay=y-20, aw=W-120-(hasB?bw+30:0), ah=H-ay-(s.caption?110:60);
+    const r=Math.min(aw/VI.naturalWidth, ah/VI.naturalHeight); const w=VI.naturalWidth*r, h=VI.naturalHeight*r; const x0=ax+(aw-w)/2, y0=ay+(ah-h)/2;
+    ctx.save(); ctx.shadowColor="rgba(11,42,91,.25)"; ctx.shadowBlur=22; ctx.fillStyle="#fff"; ctx.fillRect(x0-8,y0-8,w+16,h+16); ctx.restore(); ctx.strokeStyle="#c9a13b"; ctx.lineWidth=3; ctx.strokeRect(x0-8,y0-8,w+16,h+16); ctx.drawImage(VI,x0,y0,w,h);
+    if(s.caption){ ctx.textAlign="center"; ctx.fillStyle=C.body; ctx.font="500 24px Cairo, sans-serif"; wrapLines(ctx,s.caption,aw).slice(0,2).forEach((l,k)=>ctx.fillText(l,ax+aw/2,y0+h+48+k*32)); ctx.textAlign="right"; }
+    if(hasB){ ctx.font="500 28px Cairo, sans-serif"; y=ay+40; b.forEach((t,k)=>item(t,k,R,bw)); }
   } else b.forEach((t,k)=>item(t,k,R,textW,s.layout==="steps"?k+1:0));
-  const im=icons[s.icon]||icons.bulb; if(im) ctx.drawImage(im,100,H/2-iconW/2+40,iconW,iconW);
+  if(VI && !imgSlide){ const bw=460, bh=520, r=Math.min(bw/VI.naturalWidth||1, bh/VI.naturalHeight||1); const w=(VI.naturalWidth||480)*r, h=(VI.naturalHeight||540)*r; const x0=60+(bw-w)/2, y0=(H-h)/2+30;
+    if(s.visual_url){ ctx.save(); ctx.shadowColor="rgba(11,42,91,.22)"; ctx.shadowBlur=20; ctx.fillStyle="#fff"; ctx.fillRect(x0-6,y0-6,w+12,h+12); ctx.restore(); }
+    ctx.drawImage(VI,x0,y0,w,h); }
+  else if(!imgSlide){ const im=icons[s.icon]||icons.bulb; if(im) ctx.drawImage(im,100,H/2-iconW/2+40,iconW,iconW); }
   // الشعار الدائري أعلى يسار الشاشة (اختياري)
   // اسم المحاضر مع لقبه العلمي أسفل يسار الشاشة (اختياري)
   if(VS.showName && VS.name){ ctx.save(); ctx.direction="rtl"; ctx.textAlign="left"; ctx.font="700 28px Cairo, sans-serif"; const tw=ctx.measureText(VS.name).width; ctx.fillStyle=D?"rgba(255,255,255,.1)":"rgba(255,255,255,.8)"; ctx.fillRect(34,H-82,tw+44,52); ctx.fillStyle="#c9a13b"; ctx.fillRect(34,H-82,6,52); ctx.fillStyle=C.title; ctx.fillText(VS.name,56,H-46); ctx.restore(); }
@@ -1631,6 +1803,8 @@ async function exportVideo(lesson, onP){
   const loadImg=(src,cors)=>new Promise(r=>{ const im=new Image(); if(cors) im.crossOrigin="anonymous"; im.onload=()=>r(im); im.onerror=()=>r(null); im.src=src; });
   let logo=null; if(VS.logo==="custom"){ logo=await loadImg(profile.custom_logo_url,true); if(!logo){ VS.logo="center"; logErr("video-export","تحميل الشعار الخاص","تعذّر تحميل الشعار الخاص، استُخدم شعار المركز",profile.custom_logo_url,{lesson:lesson.id,title:lesson.title}); } }
   if(!logo && VS.logo!=="none") logo=await loadImg("./icon-512.png");
+  const vis={}; for(const [k,s] of slides.entries()){ onP(`تجهيز الصور والرسومات ${k+1} من ${slides.length}`,0);
+    if(s.layout==="image"&&s.image) vis[k]=await loadImg(s.image,true); else if(s.visual_url) vis[k]=await loadImg(s.visual_url,true); else if(s.diagram){ const svg=diagramSVG(s.diagram, VS.bg==="navy"); if(svg) vis[k]=await svgImage(svg); } }
   const ac=new (window.AudioContext||window.webkitAudioContext)(); const dest=ac.createMediaStreamDestination();
   const bufs={}; let k=0; const urls=[...new Set(slides.map(s=>s.audio).filter(Boolean))];
   for(const u of urls){ onP(`تحميل الصوت ${++k} من ${urls.length}`,0); const ab=await (await fetch(u)).arrayBuffer(); bufs[u]=await ac.decodeAudioData(ab); }
@@ -1641,14 +1815,14 @@ async function exportVideo(lesson, onP){
   const types=["video/mp4;codecs=avc1.42E01E,mp4a.40.2","video/mp4;codecs=avc1.42E01E,opus","video/mp4;codecs=avc1,opus","video/mp4;codecs=vp9,opus","video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"]; const mime=types.find(x=>MediaRecorder.isTypeSupported(x))||"";
   const stream=new MediaStream([...cv.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
   const rec=new MediaRecorder(stream, mime?{mimeType:mime, videoBitsPerSecond:2_500_000}:undefined); const chunks=[]; rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
-  drawSlideCanvas(ctx,W,H,slides[0],0,slides.length,0,icons,logo);
+  drawSlideCanvas(ctx,W,H,slides[0],0,slides.length,0,icons,logo,vis);
   rec.start(1000); const start=ac.currentTime+0.4;
   if(RATE===1) plan.forEach(p=>{ const src=ac.createBufferSource(); src.buffer=p.buf; src.connect(dest); src.start(start+p.at, p.from); });
   else for(const p of plan){ const el=new Audio(); el.crossOrigin="anonymous"; el.preload="auto"; el.src=p.url; el.preservesPitch=true; el.defaultPlaybackRate=el.playbackRate=RATE; ac.createMediaElementSource(el).connect(dest); p.el=el; }
   await new Promise(res=>{ const iv=setInterval(()=>{ const now=ac.currentTime-start; let j=slides.findIndex(s=>now>=s._t0&&now<s._t1); if(j<0) j=now<0?0:slides.length-1; const s=slides[j];
       if(RATE!==1) plan.forEach(p=>{ if(!p.go && now>=p.at){ p.go=1; p.el.currentTime=p.from; p.el.playbackRate=RATE; p.el.play().catch(()=>{}); } });
       const nb=Math.max((s.bullets||[]).length, s.layout==="compare"?6:0); const frac=(now-s._t0)/Math.max(0.5,s._t1-s._t0); const shown=Math.min(99, Math.floor(frac*1.25*(nb+0.5)+0.5));
-      drawSlideCanvas(ctx,W,H,s,j,slides.length,shown,icons,logo); onP(`تسجيل الفيديو ${Math.round(Math.max(0,now)/total*100)}٪ — أبقِ هذه الصفحة ظاهرة`, Math.max(0,now)/total);
+      drawSlideCanvas(ctx,W,H,s,j,slides.length,shown,icons,logo,vis); onP(`تسجيل الفيديو ${Math.round(Math.max(0,now)/total*100)}٪ — أبقِ هذه الصفحة ظاهرة`, Math.max(0,now)/total);
       if(now>=total){ clearInterval(iv); res(); } }, 1000/30); });
   await new Promise(r=>{ rec.onstop=r; rec.stop(); }); ac.close();
   VS=vset();
@@ -1681,8 +1855,12 @@ async function saveToDrive(blob, name, type, onP){
 }
 
 async function vPlay(id){
+  await vPlay0(id); const l=window.__curLesson; if(l && can("visuals") && $("#vsBox") && !$("#vizBox")){ $("#vsBox").insertAdjacentHTML("afterend", visualsCard(l)); bindVisuals(l); }
+}
+async function vPlay0(id){
   const { data: l, error } = await sb.from("lessons").select("*").eq("id",id).single();
-  if(error||!l){ $("#main").innerHTML=`<div class="empty">المحاضرة غير موجودة.</div>`; return; }
+  if(error||!l){ $("#main").innerHTML=`<div class="empty">المحاضرة غير موجودة.</div>`; window.__curLesson=null; return; }
+  window.__curLesson=l;
   const link = `${location.origin}${location.pathname}#lesson-${l.id}`;
   const missing=(l.slides||[]).filter(s=>!s.audio).length;
   const EV = effVS(l);
