@@ -1,10 +1,10 @@
 // منصة المحاضر الذكية — Service Worker
 // الواجهة: تُعرض فوراً من الذاكرة ثم تُحدَّث في الخلفية. المكتبات والخطوط الخارجية: تُحفظ بعد أول تحميل.
 // لا يخزّن أي طلب لـ Supabase أو الذكاء الاصطناعي.
-const CACHE = "smart-trainer-v52";
+const CACHE = "smart-trainer-v53";
 const LIBS = "smart-trainer-libs-v1";
 const SHELL = ["./", "./index.html", "./manifest.json", "./logo.jpg", "./icon-192.png", "./icon-512.png", "./icon-192-maskable.png", "./icon-512-maskable.png"];
-const CDN = /^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
+const CDN = /^https:\/\/(cdn\.jsdelivr\.net|storage\.googleapis\.com\/mediapipe-models|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== LIBS).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
