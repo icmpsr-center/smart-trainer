@@ -6,12 +6,15 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v40" />
+<meta name="app-version" content="v41" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link rel="preconnect" href="https://xrjzmnnonrlpejyxlkat.supabase.co" crossorigin>
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js">
 <style>
 /* VOICE work tool for medical trainers — calm, precise, the centre's own navy and gold
    IDEA a lecture hall: a projection board that draws each slide while the trainer's voice explains it
@@ -446,9 +449,17 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 
 .item:has(.xdis){position:relative;padding-inline-end:46px}.xdis{position:absolute;top:8px;inset-inline-end:8px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#64748b;font-size:18px;line-height:1;cursor:pointer;align-self:flex-start}
 .xdis:hover{color:#b42318;border-color:#f3c7c2}
+
+#boot{position:fixed;inset:0;z-index:200;display:grid;place-content:center;justify-items:center;gap:14px;background:linear-gradient(170deg,#0b2a5b,#123b7a);color:#fff;transition:opacity .35s}
+#boot img{width:96px;height:96px;border-radius:24px;background:#fff;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+#boot b{font:800 20px Cairo,Tahoma,sans-serif;color:#f3e6c8}
+#boot i{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#c9a13b;animation:bspin .8s linear infinite}
+#boot.off{opacity:0;pointer-events:none}
+@keyframes bspin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<div id="boot" aria-hidden="true"><img src="./icon-192.png" alt=""><b>منصة المحاضر الذكية</b><i></i></div>
 
 <!-- ===== Public lesson viewer (for trainees) ===== -->
 <div id="publicView" class="hidden">
@@ -1322,7 +1333,8 @@ function renderTabs(cur){
   let nav=$("#bnav"); if(!nav){ nav=document.createElement("nav"); nav.id="bnav"; nav.className="bnav"; $("#appView").append(nav); }
   nav.innerHTML=main.map(id=>{ const t=vis.find(x=>x.id===id); return `<a href="#${id}" class="${id===cur?"on":""}">${ico(t.i)}<span>${SHORT[id]||t.t}</span></a>`; }).join("")+(more.length?`<button type="button" class="${more.some(t=>t.id===cur)?"on":""}" id="bMore" data-inbox>${ico("dash")}<span>المزيد</span><i class="nbadge" hidden></i></button>`:"");
   nav.style.gridTemplateColumns=`repeat(${main.length+(more.length?1:0)},1fr)`; setTimeout(setBadges,0);
-  $("#bMore")?.addEventListener("click",()=>{ const sh=document.createElement("div"); sh.className="bsheet"; setTimeout(setBadges,0); sh.innerHTML=`<div><b>كل الأقسام</b>${more.map(t=>`<a href="#${t.id}" class="${t.id===cur?"on":""}"${t.id==="inbox"?" data-inbox":""}>${ico(t.i)}<span>${t.t}</span>${t.id==="inbox"?'<i class="nbadge" hidden></i>':""}</a>`).join("")}</div>`; sh.onclick=e=>{ if(e.target===sh||e.target.closest("a")) sh.remove(); }; document.body.append(sh); });
+  $("#bMore")?.addEventListener("click",()=>{ const sh=document.createElement("div"); sh.className="bsheet"; setTimeout(setBadges,0); sh.innerHTML=`<div><b>كل الأقسام</b>${more.map(t=>`<a href="#${t.id}" class="${t.id===cur?"on":""}"${t.id==="inbox"?" data-inbox":""}>${ico(t.i)}<span>${t.t}</span>${t.id==="inbox"?'<i class="nbadge" hidden></i>':""}</a>`).join("")}</div>`; sh.onclick=e=>{ const a=e.target.closest("a"); if(a){ e.preventDefault(); sh.remove(); history.replaceState(null,"",a.getAttribute("href")); route(); return; } if(e.target===sh){ sh.remove(); if(history.state?.bsheet) history.back(); } };
+    document.body.append(sh); history.pushState({bsheet:1},""); });
 }
 function route(){
   const h = location.hash.replace("#","");
@@ -1339,6 +1351,7 @@ function route(){
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", route);
+window.addEventListener("popstate", ()=>{ const sh=document.querySelector(".bsheet"); if(sh) sh.remove(); });
 
 /* ================= Auth ================= */
 const FEATS = ["محاضرة متحركة بصوت عربي من وصف قصير","تنزيل المحاضرة فيديو MP4","استنساخ صوت المدرّب","أسئلة المتدرّبين بالصوت أثناء المحاضرة","قاعدة معرفة واختبارات من مراجعك","مساعد صوتي وربط Alexa"];
@@ -1363,14 +1376,19 @@ $("#authForm").addEventListener("submit", async e=>{
 });
 function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); publicNews(); }
 $("#logout").onclick=$("#logout2").onclick=async()=>{ if(asAdmin()) return backToAdmin(); await sb.auth.signOut(); };
+function hideBoot(){ const b=$("#boot"); if(b&&!b.classList.contains("off")){ b.classList.add("off"); setTimeout(()=>b.remove(),400); } }
+setTimeout(hideBoot,6000);
+const PKEY=()=>"st_prof_"+session?.user?.id;
+function cachedProfile(){ try{ const c=JSON.parse(localStorage.getItem(PKEY())||"null"); if(c?.profile){ MYPHOTO=c.photo||""; return c.profile; } }catch(_){} return null; }
 async function loadProfile(){
-  let { data, error } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url,features").eq("id", session.user.id).single();
+  let [{ data, error }] = await Promise.all([ sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url,features").eq("id", session.user.id).single(), loadMyPhoto() ]);
   // احتياط: إن تعذّرت قراءة الأعمدة الجديدة نقرأ الأساسية حتى لا يبدو الحساب غير مفعّل
   if(error){ logErr("profile","تحميل الملف الشخصي",error.message,JSON.stringify(error)); ({ data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name").eq("id", session.user.id).single()); }
   profile = data || {role:"trainer", approved:false};
   $("#whoName").textContent = (profile.full_name||session.user.email) + (profile.role==="admin"?" · مدير":"");
   if(profile.role==="admin") syncAssets();
-  adminBanner(); await loadMyPhoto();
+  adminBanner();
+  try{ localStorage.setItem(PKEY(), JSON.stringify({ profile, photo:MYPHOTO })); }catch(_){}
   UNREAD=null; refreshUnread().catch(()=>{});
   if(can("voicefab")) mountVoiceFab(); else { $("#vfab")?.remove(); $("#vpanel")?.remove(); }
 }
@@ -1378,7 +1396,13 @@ async function loadProfile(){
 let authSeq=0;
 // لا نعيد رسم الصفحة إلا عند تغيّر المستخدم فعلاً (دخول/خروج)؛ تجديد الجلسة عند العودة من منتقي الملفات كان يمسح الملف المختار
 let authUid;
-sb.auth.onAuthStateChange((_ev, s)=>{ session=s; const uid=s?.user?.id||null; if(uid===authUid && _ev!=="USER_UPDATED") return; authUid=uid; const my=++authSeq; setTimeout(async()=>{ if(my!==authSeq) return; if(s){ try{ await loadProfile(); }catch(e){ console.error(e); } } else { profile=null; } route(); },0); });
+sb.auth.onAuthStateChange((_ev, s)=>{ session=s; const uid=s?.user?.id||null; if(uid===authUid && _ev!=="USER_UPDATED") return; authUid=uid; const my=++authSeq; setTimeout(async()=>{ if(my!==authSeq) return;
+    if(s){ const c=cachedProfile();
+      if(c){ profile=c; $("#whoName").textContent=(c.full_name||s.user.email)+(c.role==="admin"?" · مدير":""); route(); hideBoot();
+        const before=JSON.stringify(c); try{ await loadProfile(); }catch(e){ console.error(e); }
+        if(my===authSeq && JSON.stringify(profile)!==before) route(); return; }
+      try{ await loadProfile(); }catch(e){ console.error(e); } } else { profile=null; }
+    route(); hideBoot(); },0); });
 
 function pending(){ return profile && !profile.approved ? `<div class="card row" style="border-color:#ead9a6;background:#fffaf0;justify-content:space-between;flex-wrap:wrap;gap:10px"><span><b>حسابك بانتظار موافقة مدير المنصة.</b> <span class="muted">أُرسل طلبك إلى المدير بالبريد، وسيصلك بريد عند التفعيل. يمكنك التصفح حتى ذلك الحين.</span></span><button class="btn sm gold" type="button" onclick="askApproval(this)">إرسال تذكير للمدير</button></div>` : ""; }
 window.askApproval=(b)=>askApproval(b);
@@ -1453,8 +1477,8 @@ async function vDash(){
   const main=$("#main");
   main.innerHTML = `<div class="welcome"><div class="wtext"><span class="muted small">أهلاً</span><h1>${esc(profile?.full_name||"")}</h1><p class="muted wsub">ابدأ محاضرة جديدة<br>أو تابع عملك</p></div>${MYPHOTO?`<img class="havatar" src="${esc(MYPHOTO)}" alt="">`:`<a class="havatar hph" href="#settings" title="أضف صورتك الشخصية">${esc(String(profile?.full_name||"؟").replace(/^(د|أ\.?د)\.?\s*/,"").trim()[0]||"؟")}</a>`}</div><div class="row wbtns">${can("studio")?`<a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a>`:""}${can("exams")?`<a class="btn ghost" href="#exams">اختبار جديد</a>`:""}</div></div>${pending()}
   <div class="stats" id="stats">${"<div class='card stat'><b>…</b></div>".repeat(4)}</div>
-  <div id="quotaBox"></div>
   <div id="newsBox"></div>
+  <div id="quotaBox"></div>
   <div id="alexaBox"></div>
   <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2 class="row" style="gap:8px">${ico("bell")}التنبيهات</h2><div id="alerts" class="stack" style="gap:8px"><span class="small muted">جارٍ التحميل…</span></div><div id="usage" class="usagemini"></div></div></div>`;
   newsBox($("#newsBox")).catch(e=>console.error(e));
