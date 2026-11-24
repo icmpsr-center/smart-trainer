@@ -1,7 +1,7 @@
 // منصة المحاضر الذكية — Service Worker
 // الواجهة: تُعرض فوراً من الذاكرة ثم تُحدَّث في الخلفية. المكتبات والخطوط الخارجية: تُحفظ بعد أول تحميل.
 // لا يخزّن أي طلب لـ Supabase أو الذكاء الاصطناعي.
-const CACHE = "smart-trainer-v53";
+const CACHE = "smart-trainer-v54";
 const LIBS = "smart-trainer-libs-v1";
 const SHELL = ["./", "./index.html", "./manifest.json", "./logo.jpg", "./icon-192.png", "./icon-512.png", "./icon-192-maskable.png", "./icon-512-maskable.png"];
 const CDN = /^https:\/\/(cdn\.jsdelivr\.net|storage\.googleapis\.com\/mediapipe-models|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
