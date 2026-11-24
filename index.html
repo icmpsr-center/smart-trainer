@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v41" />
+<meta name="app-version" content="v42" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -450,16 +450,21 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .item:has(.xdis){position:relative;padding-inline-end:46px}.xdis{position:absolute;top:8px;inset-inline-end:8px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#64748b;font-size:18px;line-height:1;cursor:pointer;align-self:flex-start}
 .xdis:hover{color:#b42318;border-color:#f3c7c2}
 
-#boot{position:fixed;inset:0;z-index:200;display:grid;place-content:center;justify-items:center;gap:14px;background:linear-gradient(170deg,#0b2a5b,#123b7a);color:#fff;transition:opacity .35s}
-#boot img{width:96px;height:96px;border-radius:24px;background:#fff;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-#boot b{font:800 20px Cairo,Tahoma,sans-serif;color:#f3e6c8}
-#boot i{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#c9a13b;animation:bspin .8s linear infinite}
+#boot{position:fixed;inset:0;z-index:200;display:grid;place-content:center;justify-items:center;gap:12px;padding:24px;text-align:center;transition:opacity .4s;
+  background:radial-gradient(60% 45% at 50% 108%,#c8d6ee 0%,rgba(200,214,238,0) 70%),radial-gradient(45% 50% at 92% 22%,#f5efe4 0%,rgba(245,239,228,0) 70%),linear-gradient(170deg,#ffffff 0%,#f7f8fb 45%,#e9eef8 100%);background-color:#eef2f9}
+#boot img{width:150px;height:150px;border-radius:50%;box-shadow:0 14px 40px rgba(11,42,91,.18);animation:bpop .7s ease both}
+#boot b{font:800 24px/1.4 Cairo,Tahoma,sans-serif;background:linear-gradient(100deg,#0b2a5b,#1d4e9a 55%,#a8812a);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:6px}
+#boot small{font:500 13px Cairo,Tahoma,sans-serif;color:#475569;max-width:280px}
+#boot .bbar{width:min(240px,70vw);height:8px;border-radius:99px;background:rgba(11,42,91,.10);overflow:hidden;margin-top:14px}
+#boot .bbar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#c9a13b,#e2c271,#9fb7e0,#2f5fa8);transition:width .2s}
+#boot #bootPct{font:700 14px Cairo,Tahoma,sans-serif;color:#0b2a5b;font-variant-numeric:tabular-nums}
 #boot.off{opacity:0;pointer-events:none}
-@keyframes bspin{to{transform:rotate(360deg)}}
+@keyframes bpop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 </style>
 </head>
 <body>
-<div id="boot" aria-hidden="true"><img src="./icon-192.png" alt=""><b>منصة المحاضر الذكية</b><i></i></div>
+<div id="boot" aria-hidden="true"><img src="./icon-512.png" alt=""><b>منصة المحاضر الذكية</b><small>المركز الدولي للدراسات والأبحاث الطبية والصيدلانية</small><div class="bbar"><i id="bootBar"></i></div><span id="bootPct">0٪</span></div>
+<script>(function(){var t=0,c=0;window.bootP=function(n){t=Math.max(t,n)};function f(){if(c<t)c+=Math.max(1,Math.round((t-c)/6));var b=document.getElementById("bootBar"),p=document.getElementById("bootPct");if(!b)return;b.style.width=c+"%";p.textContent=c+"٪";if(c<100)requestAnimationFrame(f)}bootP(12);requestAnimationFrame(f);setInterval(function(){if(t<88)t+=2},350)})();</script>
 
 <!-- ===== Public lesson viewer (for trainees) ===== -->
 <div id="publicView" class="hidden">
@@ -519,7 +524,7 @@ async function syncAssets(){}
 const SB_URL = "https://xrjzmnnonrlpejyxlkat.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyanptbm5vbnJscGVqeXhsa2F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MTkyNjQsImV4cCI6MjExMDk5NTI2NH0.rEQLFvcCHNG99Ctn_RNOWJm2jaT_a33KveWQQsmHnaU";
 const FN = SB_URL + "/functions/v1/ai";
-const sb = window.supabase.createClient(SB_URL, SB_KEY);
+const sb = window.supabase.createClient(SB_URL, SB_KEY); window.bootP?.(40);
 /* المكتبات الثقيلة تُحمَّل عند الحاجة فقط (قارئ PDF وتحويل MP3) حتى تفتح المنصة بسرعة */
 const loadScript=src=>new Promise((res,rej)=>{ if(document.querySelector(`script[src="${src}"]`)) return res(); const sc=document.createElement("script"); sc.src=src; sc.async=true; sc.onload=res; sc.onerror=()=>rej(new Error("تعذّر تحميل مكتبة: "+src.split("/").pop())); document.head.append(sc); });
 async function ensurePdf(){ if(!window.pdfjsLib) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"); if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }
@@ -1376,11 +1381,12 @@ $("#authForm").addEventListener("submit", async e=>{
 });
 function showAuth(){ $("#appView").classList.add("hidden"); $("#publicView").classList.add("hidden"); $("#authView").classList.remove("hidden"); publicNews(); }
 $("#logout").onclick=$("#logout2").onclick=async()=>{ if(asAdmin()) return backToAdmin(); await sb.auth.signOut(); };
-function hideBoot(){ const b=$("#boot"); if(b&&!b.classList.contains("off")){ b.classList.add("off"); setTimeout(()=>b.remove(),400); } }
+function hideBoot(){ const b=$("#boot"); if(b&&!b.classList.contains("off")){ window.bootP?.(100); setTimeout(()=>{ b.classList.add("off"); setTimeout(()=>b.remove(),450); },260); } }
 setTimeout(hideBoot,6000);
 const PKEY=()=>"st_prof_"+session?.user?.id;
 function cachedProfile(){ try{ const c=JSON.parse(localStorage.getItem(PKEY())||"null"); if(c?.profile){ MYPHOTO=c.photo||""; return c.profile; } }catch(_){} return null; }
 async function loadProfile(){
+  window.bootP?.(70);
   let [{ data, error }] = await Promise.all([ sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name,custom_logo_url,features").eq("id", session.user.id).single(), loadMyPhoto() ]);
   // احتياط: إن تعذّرت قراءة الأعمدة الجديدة نقرأ الأساسية حتى لا يبدو الحساب غير مفعّل
   if(error){ logErr("profile","تحميل الملف الشخصي",error.message,JSON.stringify(error)); ({ data } = await sb.from("profiles").select("id,full_name,email,role,approved,monthly_token_limit,cloned_voice_name").eq("id", session.user.id).single()); }
@@ -1396,7 +1402,7 @@ async function loadProfile(){
 let authSeq=0;
 // لا نعيد رسم الصفحة إلا عند تغيّر المستخدم فعلاً (دخول/خروج)؛ تجديد الجلسة عند العودة من منتقي الملفات كان يمسح الملف المختار
 let authUid;
-sb.auth.onAuthStateChange((_ev, s)=>{ session=s; const uid=s?.user?.id||null; if(uid===authUid && _ev!=="USER_UPDATED") return; authUid=uid; const my=++authSeq; setTimeout(async()=>{ if(my!==authSeq) return;
+sb.auth.onAuthStateChange((_ev, s)=>{ session=s; const uid=s?.user?.id||null; if(uid===authUid && _ev!=="USER_UPDATED") return; authUid=uid; const my=++authSeq; setTimeout(async()=>{ if(my!==authSeq) return; window.bootP?.(55);
     if(s){ const c=cachedProfile();
       if(c){ profile=c; $("#whoName").textContent=(c.full_name||s.user.email)+(c.role==="admin"?" · مدير":""); route(); hideBoot();
         const before=JSON.stringify(c); try{ await loadProfile(); }catch(e){ console.error(e); }
