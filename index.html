@@ -6,7 +6,7 @@
 <title>منصة المحاضر الذكية · ICMPSR</title>
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0f172a" />
-<meta name="app-version" content="v37" />
+<meta name="app-version" content="v38" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -430,6 +430,8 @@ pre{white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;max-width:
 .simgw figcaption{font-size:clamp(13px,1.5vw,17px);color:#dbe4f3;text-align:center}
 @media(max-width:600px){.slide.hasviz{grid-template-columns:minmax(0,1fr)}.slide .sviz{order:2;max-width:340px;justify-self:center;width:100%}.simgw.hasb{grid-template-columns:minmax(0,1fr)}}
 .vzrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff}.vzrow img{width:64px;height:48px;object-fit:cover;border-radius:8px;flex:none}.vzrow>span{flex:1;display:grid;min-width:0;overflow-wrap:anywhere}
+
+.gexp{background:#f5f8fd;border:1px solid #dbe5f3;border-radius:10px;padding:8px 10px;line-height:1.85}.gexp summary{cursor:pointer;font-weight:700;color:var(--navy)}.gexp ul,.gexp ol{margin:4px 0 6px;padding-inline-start:20px}.gexp p{margin:6px 0}
 </style>
 </head>
 <body>
@@ -565,9 +567,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 let toastT;
 function logErr(source, stage, reason, detail, context={}){ try{ const uid=session?.user?.id; if(!uid) return; sb.from("system_errors").insert({ owner:uid, source, stage, reason:String(reason||"خطأ غير معروف").slice(0,300), detail:String(detail||"").slice(0,2000), context:{ ...context, ua:navigator.userAgent.slice(0,160) } }).then(()=>{}); }catch(_){} }
 const CLIENT_ERRS=[]; const pushCErr=(k,m)=>{ try{ CLIENT_ERRS.unshift({t:new Date().toISOString(),k,m:String(m||"").slice(0,600),page:location.hash||"#"}); CLIENT_ERRS.length=Math.min(CLIENT_ERRS.length,20); }catch(_){} };
-window.addEventListener("error",e=>pushCErr("js",(e.message||"")+(e.filename?` @${e.filename.split("/").pop()}:${e.lineno}`:"")));
-window.addEventListener("unhandledrejection",e=>pushCErr("promise",e.reason?.message||e.reason));
-function toast(msg, err=false){ if(err) pushCErr("toast",msg); const t=$("#toast"); t.textContent=msg; t.className="toast"+(err?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.add("hidden"), err?6000:3200); }
+const LOGGED={}; const logOnce=(src,stage,msg,detail)=>{ const k=src+msg; if(LOGGED[k]&&Date.now()-LOGGED[k]<6e5) return; LOGGED[k]=Date.now(); try{ logErr(src,stage,String(msg).slice(0,280),detail,{page:location.hash}); }catch(_){} };
+window.addEventListener("error",e=>{ const m=(e.message||"")+(e.filename?` @${e.filename.split("/").pop()}:${e.lineno}`:""); pushCErr("js",m); if(e.message&&!/ResizeObserver|Script error/i.test(e.message)) logOnce("client","خطأ برمجي في الصفحة",e.message,m+"\n"+(e.error?.stack||"")); });
+window.addEventListener("unhandledrejection",e=>{ const m=e.reason?.message||String(e.reason); pushCErr("promise",m); if(m&&!/AbortError|NotAllowedError/i.test(m)) logOnce("client","عملية لم تكتمل في الصفحة",m,String(e.reason?.stack||m)); });
+function toast(msg, err=false){ if(err){ pushCErr("toast",msg); if(/تعذّر|فشل|Failed|Error|رمز \d{3}|خطأ|لم يُرجع|لم يُكتب|انقطع|Load failed/i.test(String(msg))) logOnce("client","رسالة خطأ ظهرت للمستخدم",msg,String(msg)); } const t=$("#toast"); t.textContent=msg; t.className="toast"+(err?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.add("hidden"), err?6000:3200); }
 const fmtDate = d => new Date(d).toLocaleDateString("ar-EG-u-nu-latn",{day:"numeric",month:"short",year:"numeric"});
 const num = n => Number(n||0).toLocaleString("ar-EG-u-nu-latn");
 async function copy(text){ try{ await navigator.clipboard.writeText(text); toast("تم النسخ"); }catch{ toast("تعذّر النسخ، انسخ يدوياً", true); } }
@@ -576,17 +579,18 @@ function busy(btn, on, label){ if(!btn) return; if(on){ btn.dataset.l=btn.innerH
 let session=null, profile=null;
 async function token(){ const { data } = await sb.auth.getSession(); return data.session?.access_token || SB_KEY; }
 
+const AI_ST={chat:"الذكاء الاصطناعي: كتابة النص",tts:"الذكاء الاصطناعي: تسجيل الصوت",stt:"الذكاء الاصطناعي: تفريغ الصوت",embed:"البحث في قاعدة المعرفة",image:"توليد صورة توضيحية",ask_public:"سؤال متدرّب"};
 async function ai(action, payload={}){
   // يعيد المحاولة تلقائياً عند انشغال الخدمة أو انقطاع الاتصال (حتى 3 مرات)
   for (let tr=0;;tr++){
     let r; const lim=payload.fast?0:3;
     try{ r = await fetch(FN, { method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+await token(), apikey:SB_KEY }, body: JSON.stringify({ action, ...payload }) }); }
-    catch(e){ if(tr<lim){ await sleep(5000); continue; } throw new Error("تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة."); }
+    catch(e){ if(tr<lim){ await sleep(5000); continue; } logErr("ai",AI_ST[action]||action,"تعذّر الاتصال بالخادم",String(e?.message||e),{action,page:location.hash,online:navigator.onLine}); throw new Error("تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة."); }
     if ([429,500,502,503,504,546].includes(r.status) && tr<lim){ toast(`الخدمة مشغولة (رمز ${r.status})، إعادة المحاولة تلقائياً ${tr+1} من 3…`); await sleep(r.status===429?30000:8000); continue; }
     if (action === "tts" && r.ok) return await r.blob();
     let d; try{ d = await r.json(); }catch{ throw new Error("تعذّر الاتصال بخادم الذكاء الاصطناعي (رمز "+r.status+")"); }
     if (r.status===546) throw new Error("تجاوز الخادم حدّ الموارد المجانية لهذا الطلب (رمز 546). أعد المحاولة بمدة محاضرة أقصر.");
-    if (!r.ok || d.error) throw new Error(d.error || d.message || ("خطأ "+r.status));
+    if (!r.ok || d.error){ const m=d.error || d.message || ("خطأ "+r.status); if(r.status>=500||r.status===429) logErr("ai",AI_ST[action]||action,m,`HTTP ${r.status}: ${m}`,{action,page:location.hash}); throw new Error(m); }
     return d;
   }
 }
@@ -1014,13 +1018,45 @@ const TROUBLE=[
  {c:"الشبكة والتطبيق",m:"لا تظهر نافذة الطباعة / حفظ PDF",mean:"المتصفح يمنع النوافذ المنبثقة.",why:["حظر النوافذ المنبثقة"],fix:["اسمح بالنوافذ المنبثقة للموقع ثم أعد المحاولة."],who:"المدرّب"},
  {c:"الملف المهني",m:"تعذّر رفع الصورة / لا تُحفظ الصورة",mean:"فشل الرفع إلى التخزين.",why:["صورة كبيرة جداً","انقطاع الشبكة"],fix:["أعد الرفع واضغط «اعتماد الصورة».","استخدم صورة JPG أو PNG عادية."],who:"المدرّب"},
  {c:"الملف المهني",m:"تعذّر الاستيراد من السيرة الذاتية",mean:"لم يُقرأ نص كافٍ من الملف.",why:["صورة رديئة","ملف محمي"],fix:["ارفع PDF نصياً أو Word.","أو املأ الحقول يدوياً."],who:"المدرّب"},
- {c:"المحاضرة العامة",m:"المتدرّب لا يفتح رابط المحاضرة",mean:"المحاضرة غير منشورة أو الرابط ناقص.",why:["مفتاح النشر مطفأ","نسخ جزء من الرابط"],fix:["فعّل «منشورة للمتدرّبين».","انسخ الرابط بزر «نسخ رابط المتدرّبين»."],who:"المدرّب"}
+ {c:"المحاضرة العامة",m:"المتدرّب لا يفتح رابط المحاضرة",mean:"المحاضرة غير منشورة أو الرابط ناقص.",why:["مفتاح النشر مطفأ","نسخ جزء من الرابط"],fix:["فعّل «منشورة للمتدرّبين».","انسخ الرابط بزر «نسخ رابط المتدرّبين»."],who:"المدرّب"},
+{c:"Google Drive",m:"Failed to fetch أثناء الحفظ في Google Drive (رفع الملف ٪)",k:["failed to fetch","load failed","networkerror","رفع الملف","الحفظ في google drive","drive"],mean:"انقطع الاتصال بين المتصفح وخوادم Google في أثناء رفع الفيديو. الفيديو نفسه سليم وحُفظ على جهازك، والذي تعطّل هو نسخه إلى Drive فقط.",why:["شبكة الجوال ضعيفة أو تبدّل الاتصال بين الواي فاي وبيانات الجوال في أثناء الرفع","إخفاء المتصفح أو قفل الشاشة أو الانتقال لتطبيق آخر في أثناء الرفع؛ متصفح Samsung وiPhone يوقفان الطلبات في الخلفية","حجم الفيديو كبير مع اتصال بطيء","VPN أو شبكة تحجب googleapis.com"],fix:["لا تغلق الصفحة؛ الفيديو محفوظ على جهازك.","اضغط زر «أعد الحفظ في Drive» الظاهر تحت الفيديو؛ الرفع الآن على أجزاء من 8 ميغابايت ويعيد المحاولة تلقائياً لكل جزء.","أبقِ الشاشة مفتوحة والصفحة ظاهرة حتى ينتهي الرفع، ويُفضَّل واي فاي ثابت.","إن تكرر على متصفح Samsung فاستخدم Chrome.","بديل فوري: ارفع ملف الفيديو يدوياً إلى مجلد «فيديوهات المدرب الذكي» في Drive."],who:"المدرّب"},
+ {c:"Google Drive",m:"الحصول على صلاحية Drive من الخادم: …",k:["صلاحية drive","drive من الخادم","apps script"],mean:"لم يحصل التطبيق على تصريح الكتابة في Drive من خادم المنصة (دالة drive عبر Apps Script).",why:["نشر Apps Script قديم أو موقوف","صلاحية Google انتهت","انقطاع الإنترنت لحظة الطلب"],fix:["أعد المحاولة بعد التأكد من الإنترنت.","المدير: افتح Apps Script وشغّل authorize ثم Deploy ← New version.","إن ظهر «رابط Apps Script غير مضبوط» فأرسل الرابط للدعم الفني."],who:"المدير / الدعم الفني"},
+ {c:"Google Drive",m:"بدء جلسة الرفع في Google Drive: Google Drive 401 / 403 / 404",k:["بدء جلسة الرفع","google drive 401","google drive 403","google drive 404"],mean:"رفض Google بدء الرفع: التصريح منتهٍ (401)، أو لا صلاحية على المجلد (403)، أو المجلد محذوف (404).",why:["انتهاء صلاحية التصريح","حذف مجلد «فيديوهات المدرب الذكي» أو تغيير مالكه","امتلاء مساحة Drive"],fix:["تأكد من وجود المجلد وأن المساحة غير ممتلئة.","شغّل authorize في Apps Script وانشر New version.","أعد الحفظ من زر «أعد الحفظ في Drive»."],who:"المدير"},
+ {c:"Google Drive",m:"انتهى الرفع دون تأكيد من Google / لم يُرجع Google رابط الرفع",k:["دون تأكيد","رابط الرفع"],mean:"اكتمل الإرسال لكن Google لم يرد بمعرّف الملف.",why:["انقطاع في آخر لحظة","خلل مؤقت لدى Google"],fix:["افتح مجلد Drive وتحقق هل وصل الملف.","إن لم يصل فاضغط «أعد الحفظ في Drive»."],who:"المدرّب"},
+ {c:"الفيديو",m:"Failed to fetch في مرحلة «تحميل الصوت N من M» عند التصدير",k:["تحميل الصوت","تصدير الفيديو"],mean:"تعذّر تنزيل ملفات صوت المحاضرة إلى المتصفح لبدء التسجيل.",why:["انقطاع الإنترنت","ملف صوت محذوف من التخزين"],fix:["أعد التصدير بعد التأكد من الاتصال.","إن تكرر فاضغط «إعادة تسجيل الصوت» مرتين ثم صدّر."],who:"المدرّب"},
+ {c:"الذكاء الاصطناعي",m:"تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة.",k:["تعذّر الاتصال بالخادم","failed to fetch"],mean:"لم يصل طلبك إلى خادم المنصة بعد 3 محاولات تلقائية.",why:["انقطاع الإنترنت أو ضعفه","VPN أو شبكة تحجب supabase.co"],fix:["تحقق من الاتصال وأعد المحاولة.","جرّب شبكة أخرى أو أوقف VPN."],who:"المدرّب"},
+ {c:"الذكاء الاصطناعي",m:"تعذّر الاتصال بخادم الذكاء الاصطناعي (رمز 5xx) / خطأ غير متوقع في الخادم",k:["رمز 5","خطأ غير متوقع","خادم الذكاء الاصطناعي"],mean:"خادم المنصة رد بخطأ داخلي.",why:["خلل مؤقت في الخادم أو في Gemini","طلب كبير جداً"],fix:["أعد المحاولة بعد دقيقة.","إن تكرر فاترك الأمر للدعم الفني؛ يصله العطل تلقائياً."],who:"الدعم الفني"},
+ {c:"الذكاء الاصطناعي",m:"لم يُرجع Gemini صوتاً / تعذّر تسجيل الصوت من Gemini",k:["لم يُرجع gemini صوتاً","تعذّر تسجيل الصوت"],mean:"رد Gemini بلا ملف صوت.",why:["نص الشريحة فارغ أو طويل جداً","خلل مؤقت في نموذج الصوت"],fix:["اضغط «أكمل تسجيل الصوت» في صفحة المحاضرة.","إن تكرر فغيّر صوت الشرح وأعد التسجيل."],who:"المدرّب"},
+ {c:"الذكاء الاصطناعي",m:"لم يُرجع الذكاء الاصطناعي مخططاً صالحاً / لم يُكتب المخطط / لم تُكتب الشرائح",k:["مخططاً صالحاً","لم يُكتب المخطط","لم تُكتب الشرائح","no outline"],mean:"رد النموذج لم يحتوِ مخططاً أو شرائح بالصيغة المطلوبة.",why:["عنوان غامض جداً","وصف طويل متشعب","خلل عابر"],fix:["أعد المحاولة.","اكتب عنواناً محدداً ووصفاً من 3-5 نقاط."],who:"المدرّب"},
+ {c:"الذكاء الاصطناعي",m:"تعذّر البحث في قاعدة المعرفة (embed)",k:["قاعدة المعرفة","embed"],mean:"تعذّر حساب البحث بالمعنى في مراجعك.",why:["حد Gemini","مرجع تالف الفهرسة"],fix:["أعد المحاولة بعد دقيقة.","احذف المرجع وأعد رفعه إن تكرر معه وحده."],who:"المدرّب"},
+ {c:"الذكاء الاصطناعي",m:"لم يُضبط مفتاح Gemini على الخادم",k:["gemini_api_key","مفتاح gemini"],mean:"مفتاح Google Gemini غير موجود في أسرار الخادم.",why:["حذف المفتاح أو انتهاؤه"],fix:["الدعم الفني: أضف GEMINI_API_KEY في أسرار Supabase."],who:"الدعم الفني"},
+ {c:"الصور والرسومات",m:"لم يُفهم وصف الصورة، أعد المحاولة",k:["وصف الصورة"],mean:"لم يرجع الذكاء الاصطناعي وصفاً منظماً للصورة.",why:["صورة غير واضحة","خلل عابر"],fix:["أعد المحاولة، أو ألغِ خيار الذكاء الاصطناعي واكتب الشرح بنفسك."],who:"المدرّب"},
+ {c:"الصور والرسومات",m:"توليد الصور التوضيحية غير متاح في الطبقة المجانية / لم يُرجع Gemini صورة",k:["الصور التوضيحية","gemini صورة","توليد صورة"],mean:"نماذج توليد الصور في Gemini تحتاج حساباً مدفوعاً في الغالب.",why:["الطبقة المجانية","حد التوليد"],fix:["فعّل الدفع في Google AI Studio.","استخدم «المخططات الذكية» المجانية أو ارفع صورك."],who:"المدير"},
+ {c:"الصور والرسومات",m:"الصورة أكبر من 5 ميغابايت / حجم الشعار أكبر من 2 ميغابايت",k:["ميغابايت"],mean:"الملف أكبر من الحد المسموح.",why:["صورة بدقة عالية جداً"],fix:["صغّر الصورة أو التقطها بدقة أقل ثم ارفعها."],who:"المدرّب"},
+ {c:"الصوت والميكروفون",m:"لم يتحقق Google من تطابق الصوت مع عبارة الموافقة",k:["عبارة الموافقة","تطابق الصوت"],mean:"Google يتأكد أن صاحب العيّنة هو نفسه قارئ عبارة الموافقة، ولم يتطابقا.",why:["مكان أو ميكروفون مختلف بين التسجيلين","ضوضاء","قراءة غير حرفية"],fix:["سجّل التسجيلين متتاليين بنفس الهاتف والمكان الهادئ.","اقرأ العبارة حرفياً وبوضوح."],who:"المدرّب"},
+ {c:"الصوت والميكروفون",m:"انتهت صلاحية صوتك المستنسخ / لا يوجد صوت مستنسخ مفعّل / بلغ الحد اليومي لصوتك المستنسخ",k:["صوتك المستنسخ","صوت مستنسخ"],mean:"الصوت المستنسخ غير متاح الآن.",why:["انتهاء السنة دون تسجيلات محفوظة","حذف الصوت","حد Gemini اليومي"],fix:["أعد الاستنساخ من «حسابي ← صوتي المستنسخ».","للحد اليومي: انتظر حتى يتجدد، أو اختر صوتاً من أصوات المنصة."],who:"المدرّب"},
+ {c:"الصوت والميكروفون",m:"اضغط مرة أخرى لتشغيل الصوت / تعذّر تشغيل الصوت",k:["لتشغيل الصوت","تعذّر تشغيل"],mean:"المتصفح منع التشغيل التلقائي للصوت قبل لمسك للشاشة.",why:["سياسة التشغيل التلقائي في المتصفحات"],fix:["المس الشاشة مرة ثم اضغط التشغيل."],who:"المدرّب"},
+ {c:"قاعدة المعرفة",m:"لم أتعرّف على صيغة الملف / الملف المضغوط ليس Word أو PowerPoint / تعذّر تحميل قارئ PDF",k:["صيغة الملف","الملف المضغوط","قارئ pdf"],mean:"تعذّرت قراءة نوع الملف.",why:["امتداد غير مدعوم","ملف تالف","انقطاع أثناء تحميل قارئ PDF"],fix:["احفظه PDF أو .docx أو .pptx.","حدّث الصفحة وأعد الرفع."],who:"المدرّب"},
+ {c:"البريد",m:"رابط Apps Script غير مضبوط / تعذّر الاتصال بـ Apps Script / Apps Script: Exception",k:["apps script","تعذّر الاتصال بـ apps"],mean:"خادم المنصة لم يتمكن من استدعاء سكربت Google للبريد أو Drive.",why:["رابط النشر غير محفوظ أو قديم","السكربت يرمي استثناءً (صلاحيات)"],fix:["انشر Code.gs كتطبيق ويب New version.","أرسل الرابط الجديد للدعم الفني.","اقرأ نص الاستثناء في التفاصيل التقنية لمعرفة الصلاحية الناقصة."],who:"المدير / الدعم الفني"},
+ {c:"البريد",m:"لا يوجد مدير لإرسال الطلب إليه",k:["لا يوجد مدير"],mean:"لا يوجد حساب بدور «مدير» لتصله طلبات التفعيل.",why:["تغيير دور المدير الوحيد"],fix:["الدعم الفني: أعد دور المدير لحساب المركز."],who:"الدعم الفني"},
+ {c:"Alexa",m:"بلغت خدمة الصوت / النصوص في Gemini حدها (طلب أليكسا)",k:["بلغت خدمة","حدها اليومي","حدها المؤقت"],mean:"توقف إنشاء المحاضرة المطلوبة عبر أليكسا بسبب حد Gemini، وحُفظ ما أُنجز.",why:["حد الطبقة المجانية"],fix:["قل لأليكسا «أعد المحاولة» بعد تجدد الحد، أو افتح المحاضرة واضغط «أكمل تسجيل الصوت»."],who:"تلقائي / المدرّب"},
+ {c:"Alexa",m:"تعذّر رفع ملف الصوت إلى التخزين / خطأ في حفظ البيانات بقاعدة البيانات",k:["رفع ملف الصوت","حفظ البيانات"],mean:"فشل حفظ ناتج المعالجة في الخادم.",why:["خلل مؤقت في التخزين","تغيير في هيكل البيانات"],fix:["قل «أعد المحاولة».","إن تكرر فيعالجه الدعم الفني؛ يصله تلقائياً."],who:"الدعم الفني"},
+ {c:"الحساب والدخول",m:"سجّل الدخول أولاً / الحساب غير موجود / انتهت جلسة المدير",k:["سجّل الدخول أولاً","الحساب غير موجود","جلسة المدير"],mean:"جلسة الدخول انتهت أو لم تُقرأ.",why:["مرور وقت طويل","تسجيل خروج من جهاز آخر","انتهاء جلسة الدخول لحساب مدرّب"],fix:["سجّل الخروج ثم الدخول من جديد.","للمدير: عد لحسابك من الشريط الذهبي ثم ادخل حساب المدرّب مرة أخرى."],who:"المدرّب / المدير"},
+ {c:"الحساب والدخول",m:"نشر المحاضرات غير مفعّل لحسابك",k:["نشر المحاضرات غير مفعّل"],mean:"خاصية النشر موقوفة لهذا المستخدم.",why:["إعداد الخصائص"],fix:["المدير: فعّل «نشر المحاضرات» من خصائص المستخدم."],who:"المدير"},
+ {c:"الشبكة والتطبيق",m:"خطأ برمجي في الصفحة / عملية لم تكتمل في الصفحة (المتصفح)",k:["خطأ برمجي","عملية لم تكتمل","typeerror","referenceerror","cannot read"],mean:"خلل في كود الصفحة نفسها على هذا المتصفح، وليس منك.",why:["متصفح قديم","نسخة قديمة من التطبيق محفوظة","حالة لم تُختبر"],fix:["حدّث الصفحة مرتين.","يصل العطل تلقائياً للدعم الفني مع تفاصيله ويُصلح في التحديث التالي."],who:"الدعم الفني"},
+ {c:"الشبكة والتطبيق",m:"لا تصلني الإشعارات أو رقم الرسائل لا يتحدث",k:["الإشعارات"],mean:"عدّاد الرسائل يتحدث كل 30 ثانية تقريباً والصفحة ظاهرة.",why:["الصفحة في الخلفية","نسخة قديمة"],fix:["افتح التطبيق ليتحدث فوراً.","حدّث الصفحة مرتين."],who:"المدرّب"},
+ {c:"الفيديو",m:"تعذّر تحميل الشعار الخاص، استُخدم شعار المركز",k:["الشعار الخاص"],mean:"لم يُحمَّل شعارك عند التصدير فاستُخدم شعار المركز.",why:["ملف الشعار محذوف أو تالف"],fix:["ارفع الشعار من جديد من إعدادات الفيديو ثم صدّر."],who:"المدرّب"},
+ {c:"المحاضرة العامة",m:"المحاضرة غير متاحة (للمتدرّب)",k:["المحاضرة غير متاحة"],mean:"الرابط لمحاضرة غير منشورة أو محذوفة.",why:["إلغاء النشر","حذف المحاضرة","رابط ناقص"],fix:["فعّل «منشورة للمتدرّبين» وأرسل الرابط من زر النسخ."],who:"المدرّب"}
 ];
+const GUIDE_GENERAL=["افتح «التفاصيل التقنية» لترى نص الخطأ الأصلي.","حدّث الصفحة مرتين وأعد المحاولة.","تأكد من الإنترنت.","يصل كل عطل تلقائياً إلى المدير والدعم الفني، ويُتابَع من «الدعم الفني»."];
+function guideMatch(e){ const t=`${e.reason||""} ${e.stage||""} ${e.detail||""} ${e.source||""}`.toLowerCase(); let best=null, sc=0;
+  for(const g of TROUBLE){ const keys=[...(g.k||[]), ...g.m.toLowerCase().split(/\s*[\/·]\s*/).filter(x=>x.length>5)]; let n=0; for(const k of keys){ if(k&&t.includes(k.toLowerCase())) n+=k.length>12?2:1; } if(n>sc){ sc=n; best=g; } }
+  return sc?best:null; }
 let TRTAB=null;
 document.addEventListener("click",e=>{ const a=e.target.closest("[data-trtab]"); if(!a) return; TRTAB=a.dataset.trtab; if(location.hash==="#trouble"){ e.preventDefault(); route(); } });
 const isAdmin=()=>profile?.role==="admin";
-const SRC={"alexa-job":"إنشاء عبر أليكسا","alexa":"أليكسا","video-export":"تصدير الفيديو","drive-upload":"الحفظ في Drive","email":"البريد","profile":"الملف المهني","admin":"الإدارة","logo-upload":"رفع الشعار"};
-function errText(e){ return [`المصدر: ${SRC[e.source]||e.source} (${e.source})`, e.stage?`المرحلة: ${e.stage}`:"", `التاريخ: ${new Date(e.created_at).toLocaleString("ar-EG-u-nu-latn")}`, `الحالة: ${e.status==="open"?"مفتوح":"أُصلح"}`, `السبب: ${e.reason}`, e.context&&Object.keys(e.context).length?`السياق: ${JSON.stringify(e.context)}`:"", `المعرّف: ${e.id}`, `التفاصيل التقنية:\n${e.detail||"—"}`].filter(Boolean).join("\n"); }
+const SRC={"alexa-job":"إنشاء عبر أليكسا","alexa":"أليكسا","video-export":"تصدير الفيديو","drive-upload":"الحفظ في Drive","email":"البريد","profile":"الملف المهني","admin":"الإدارة","logo-upload":"رفع الشعار","ai":"الذكاء الاصطناعي","client":"المتصفح","lesson":"المحاضرة","kb":"قاعدة المعرفة"};
+function errText(e){ return [`المصدر: ${SRC[e.source]||e.source} (${e.source})`, e.stage?`المرحلة: ${e.stage}`:"", `التاريخ: ${new Date(e.created_at).toLocaleString("ar-EG-u-nu-latn")}`, `الحالة: ${e.status==="open"?"مفتوح":"أُصلح"}`, `السبب: ${e.reason}`, e.context&&Object.keys(e.context).length?`السياق: ${JSON.stringify(e.context)}`:"", `المعرّف: ${e.id}`, `التفاصيل التقنية:\n${e.detail||"—"}`, (()=>{ const g=guideMatch(e); return g?`\nالمعنى: ${g.mean}\nخطوات الإصلاح:\n${g.fix.map((x,k)=>`${k+1}. ${x}`).join("\n")}`:""; })()].filter(Boolean).join("\n"); }
 async function copyText(t,msg="نُسخ"){ try{ await navigator.clipboard.writeText(t); }catch(_){ const a=document.createElement("textarea"); a.value=t; document.body.append(a); a.select(); document.execCommand("copy"); a.remove(); } toast(msg); }
 async function vTrouble(){
   const tabs=isAdmin()?[["log","الأعطال التقنية"],["guide","دليل الأعطال"],["support","الدعم الفني"]]:[["guide","دليل الأعطال"],["support","الدعم الفني"]];
@@ -1039,7 +1075,8 @@ async function trLog(B){
    <div class="row" style="gap:8px">${open.length?`<button class="btn sm" id="cpAll" type="button">نسخ كل المفتوح</button><button class="btn sm ghost" id="fixAll" type="button">إغلاق كل المفتوح</button>`:""}</div>
    ${(errs||[]).length?`<div class="list">${errs.map(e=>`<div class="eitem ${e.status==="open"?"open":"done"}"><div class="ehead"><b>${esc(SRC[e.source]||e.source)}${e.stage?` · ${esc(e.stage)}`:""}</b><span class="small muted">${fmtDate(e.created_at)}</span></div>
     <div class="ereason">${esc(e.reason)}</div>${e.context?.title||e.context?.topic?`<div class="small muted">${esc(e.context.title||e.context.topic)}</div>`:""}
-    <details class="small"><summary class="muted">التفاصيل التقنية</summary><pre dir="ltr">${esc(e.detail||"—")}</pre></details>
+    ${(()=>{ const g=guideMatch(e); return `<details class="small gexp"${e.status==="open"?" open":""}><summary>${g?"المعنى وطريقة الإصلاح":"ماذا أفعل؟"}</summary>${g?`<p><b>المعنى:</b> ${esc(g.mean)}</p><b>الأسباب المحتملة:</b><ul>${g.why.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><b>خطوات الإصلاح:</b><ol>${g.fix.map(x=>`<li>${esc(x)}</li>`).join("")}</ol><p class="muted">من يصلح: ${esc(g.who)}</p>`:`<ol>${GUIDE_GENERAL.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`}</details>`; })()}
+    <details class="small"><summary class="muted">التفاصيل التقنية</summary><pre dir="ltr">${esc(e.detail||"—")}${e.context&&Object.keys(e.context).length?"\n\n"+esc(JSON.stringify(e.context,null,1)):""}</pre></details>
     <div class="row" style="gap:6px"><button class="btn sm ghost" type="button" data-cp="${e.id}">${ico("copy")}نسخ</button>${e.status==="open"?`<button class="btn sm" type="button" data-fix="${e.id}">تم الإصلاح</button>`:`<span class="pill green">أُصلح</span>`}</div></div>`).join("")}</div>`:`<div class="empty">لم يُسجَّل أي عطل حتى الآن.</div>`}</div>`;
   B.onclick=async e=>{ const c=e.target.closest("[data-cp]"); if(c) return copyText(errText(errs.find(x=>x.id===c.dataset.cp)),"نُسخ البند كاملاً مع التفاصيل التقنية");
     if(e.target.closest("#cpAll")) return copyText(open.map(errText).join("\n\n────────\n\n"),`نُسخ ${open.length} بند`);
@@ -1053,7 +1090,7 @@ function trGuide(B){
    <div class="chips" id="gCats"><button type="button" class="on" data-c="">الكل (${TROUBLE.length})</button>${cats.map(c=>`<button type="button" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>
    <div class="gcards" id="gList"></div>
    <p class="hb-tip"><b>لم تجد المشكلة؟</b> أرسل بلاغاً من <a href="#trouble" data-trtab="support">الدعم الفني</a> بوصف ما حدث؛ تُرفق معه تلقائياً معلومات الجهاز وآخر الأخطاء.</p></div>`;
-  let cat=""; const draw=()=>{ const q=$("#gQ").value.trim(); const L=TROUBLE.filter(t=>(!cat||t.c===cat)&&(!q||(t.m+t.mean+t.why.join()+t.fix.join()+t.c).includes(q)));
+  let cat=""; const draw=()=>{ const q=$("#gQ").value.trim(); const ql=q.toLowerCase(); const L=TROUBLE.filter(t=>(!cat||t.c===cat)&&(!ql||(t.m+" "+t.mean+" "+t.why.join()+" "+t.fix.join()+" "+t.c+" "+(t.k||[]).join(" ")).toLowerCase().includes(ql)));
     $("#gList").innerHTML=L.length?L.map(t=>`<details class="gcard"><summary><span class="gtag">${esc(t.c)}</span><b>${esc(t.m)}</b></summary>
       <div class="gsec"><h5>المعنى</h5><p>${esc(t.mean)}</p></div><div class="gsec"><h5>الأسباب المحتملة</h5><ul>${t.why.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
       <div class="gsec"><h5>خطوات الإصلاح</h5><ol>${t.fix.map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div><div class="gwho">من يصلح: <b>${esc(t.who)}</b></div></details>`).join(""):`<div class="empty">لا نتائج؛ جرّب كلمة أخرى.</div>`; };
@@ -1166,17 +1203,18 @@ async function adminNews(){
 }
 
 /* ================= الرسائل والإشعارات ================= */
+const inboxOr=(uid,admin)=>admin?`and(recipient.eq.${uid},sender.neq.${uid}),and(recipient.eq.${uid},system.eq.true),and(to_admin.eq.true,sender.neq.${uid})`:`and(recipient.eq.${uid},sender.neq.${uid}),and(recipient.eq.${uid},system.eq.true)`;
 let UNREAD=null; const MOPEN=new Set(); let INBOX_TAB="in", REPLY=null;
 function setBadges(){ document.querySelectorAll("[data-inbox] .nbadge").forEach(b=>{ b.textContent=UNREAD>99?"99+":String(UNREAD||0); b.hidden=!UNREAD; }); }
 async function refreshUnread(){
   if(!session||!profile) return; const uid=session.user.id;
-  let q=sb.from("messages").select("id",{count:"exact",head:true}).is("read_at",null).neq("sender",uid);
-  q = profile.role==="admin" ? q.or(`recipient.eq.${uid},to_admin.eq.true`) : q.eq("recipient",uid);
+  const q=sb.from("messages").select("id",{count:"exact",head:true}).is("read_at",null).or(inboxOr(uid,profile.role==="admin"));
   const { count, error } = await q; if(error) return;
   const prev=UNREAD; UNREAD=count||0; setBadges();
-  if(prev!==null && UNREAD>prev){ toast(UNREAD-prev>1?`وصلتك ${UNREAD-prev} رسائل جديدة`:"وصلتك رسالة جديدة"); if(location.hash==="#inbox") vInbox(); }
+  if(prev!==null && UNREAD>prev){ const { data:lt } = await sb.from("messages").select("subject,system").is("read_at",null).or(inboxOr(uid,profile.role==="admin")).order("created_at",{ascending:false}).limit(1); const m=lt?.[0];
+    toast(m?.system?`⚠ ${m.subject}`:(UNREAD-prev>1?`وصلتك ${UNREAD-prev} رسائل جديدة`:`رسالة جديدة: ${m?.subject||""}`), !!m?.system); if(location.hash==="#inbox") vInbox(); else if(["","#dash"].includes(location.hash)) dashAlerts($("#alerts")).catch(()=>{}); }
 }
-setInterval(()=>{ if(document.visibilityState==="visible") refreshUnread().catch(()=>{}); },45000);
+setInterval(()=>{ if(document.visibilityState==="visible") refreshUnread().catch(()=>{}); },30000);
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") refreshUnread().catch(()=>{}); });
 const MKIND={message:"رسالة",notice:"إشعار"};
 function msgItem(m,box){ const uid=session.user.id; const incoming=box==="in"; const unread=incoming&&!m.read_at;
@@ -1227,7 +1265,7 @@ async function vInbox(){
     }catch(err){ toast("تعذّر الإرسال: "+err.message,true); logErr("admin","إرسال رسالة",err.message,JSON.stringify(err)); } finally{ busy(btn,false); } };
   // جلب الرسائل
   let q=sb.from("messages").select("*").order("created_at",{ascending:false}).limit(150);
-  q = tab==="out" ? q.eq("sender",uid) : (admin ? q.neq("sender",uid).or(`recipient.eq.${uid},to_admin.eq.true`) : q.eq("recipient",uid));
+  q = tab==="out" ? q.eq("sender",uid).eq("system",false) : q.or(inboxOr(uid,admin));
   const { data, error } = await q; if(error){ $("#mList").innerHTML=`<div class="empty">${esc(error.message)}</div>`; return; }
   let list=data||[];
   if(tab==="out"){ const groups={}; const out=[]; list.forEach(m=>{ if(!m.batch_id){ out.push(m); return; } const g=groups[m.batch_id]; if(g){ g._batch.n++; if(m.read_at) g._batch.read++; g._batch.names.push([m.recipient_name,!!m.read_at]); g._ids.push(m.id); } else { const c={...m,_batch:{n:1,read:m.read_at?1:0,names:[[m.recipient_name,!!m.read_at]]},_ids:[m.id]}; groups[m.batch_id]=c; out.push(c); } }); list=out; }
@@ -1336,8 +1374,7 @@ async function askApproval(b){ busy(b,true,"جارٍ الإرسال…"); try{ c
 /* التنبيهات في لوحة التحكم: الرسائل غير المقروءة، وللمدير: الأعطال والبلاغات والحسابات المنتظرة */
 async function dashAlerts(el){
   if(!el) return; const uid=session.user.id, admin=profile?.role==="admin";
-  let mq=sb.from("messages").select("id,sender_name,subject,kind,created_at").is("read_at",null).neq("sender",uid).order("created_at",{ascending:false}).limit(4);
-  mq = admin ? mq.or(`recipient.eq.${uid},to_admin.eq.true`) : mq.eq("recipient",uid);
+  const mq=sb.from("messages").select("id,sender_name,subject,kind,created_at").is("read_at",null).or(inboxOr(uid,admin)).order("created_at",{ascending:false}).limit(4);
   const jobs=[mq];
   if(admin) jobs.push(sb.from("system_errors").select("id",{count:"exact",head:true}).eq("status","open"), sb.from("support_tickets").select("id",{count:"exact",head:true}).in("status",["open","in_progress"]), sb.from("profiles").select("id",{count:"exact",head:true}).eq("approved",false));
   else jobs.push(sb.from("support_tickets").select("id,status,resolution,updated_at").eq("user_id",uid).in("status",["resolved","needs_user"]).order("updated_at",{ascending:false}).limit(2));
@@ -1394,7 +1431,7 @@ async function alexaPanel(){
   box.innerHTML=`<div class="card stack"><h2>${ico("voice")} طلبات أليكسا</h2>
     ${jobs.map(jobRow).join("")}
     ${wait.map(x=>`<div class="item"><div><h3>${esc(x.title)}</h3><span class="small muted">جاهزة — تنتظر تصدير الفيديو وحفظه في Drive</span></div><a class="btn sm gold" href="#play-${x.id}">تصدير الفيديو</a></div>`).join("")}
-    ${errs.map(e=>`<div class="item" style="border-color:#f3c7c2;background:#fff6f5"><div><h3 style="color:#b42318">عطل: ${esc(e.context?.topic||e.context?.title||e.stage||"")}</h3><span class="small">${esc(e.reason)}${e.stage?` · مرحلة ${esc(e.stage)}`:""} · ${fmtDate(e.created_at)}</span></div></div>`).join("")}</div>`;
+    ${errs.map(e=>`<div class="item" style="border-color:#f3c7c2;background:#fff6f5"><div><h3 style="color:#b42318">عطل: ${esc(e.context?.topic||e.context?.title||e.stage||"")}</h3><span class="small">${esc(e.reason)}${e.stage?` · مرحلة ${esc(e.stage)}`:""} · ${fmtDate(e.created_at)}</span>${(()=>{ const g=guideMatch(e); return g?`<div class="small" style="margin-top:6px;line-height:1.8"><b>المعنى:</b> ${esc(g.mean)}<br><b>الحل:</b> ${esc(g.fix[0])}${g.fix[1]?" "+esc(g.fix[1]):""}</div>`:""; })()}${profile?.role==="admin"?`<a class="small" href="#trouble" data-trtab="log">التفاصيل في سجل الأعطال</a>`:""}</div></div>`).join("")}</div>`;
   // فتح أول محاضرة جاهزة تلقائياً لتصديرها (مرة واحدة في الجلسة)
   const ready=wait.find(x=>{ try{ return !sessionStorage.getItem("st-ae-"+x.id); }catch(_){ return false; } });
   if(ready && location.hash.replace("#","") in {"":1,dash:1}){ toast(`محاضرة «${ready.title}» جاهزة — أفتحها لتصدير الفيديو تلقائياً…`); setTimeout(()=>{ if(["","#dash"].includes(location.hash)) location.hash="#play-"+ready.id; },2500); }
@@ -1834,24 +1871,34 @@ async function exportVideo(lesson, onP){
 
 // حفظ الفيديو تلقائياً في مجلد «فيديوهات المدرب الذكي» على Google Drive (لحساب المدير، عبر Apps Script المركز)
 async function saveToDrive(blob, name, type, onP){
-  const tok=(await sb.auth.getSession()).data.session?.access_token; if(!tok) return null;
-  const g=await (await fetch(SB_URL+"/functions/v1/drive",{method:"POST",headers:{Authorization:"Bearer "+tok,apikey:SB_KEY}})).json();
-  if(g.error) throw new Error(g.error);
-  if(!g.configured) return {skipped:true};
-  if(!g.allowed || !g.token) return null;
-  onP("جارٍ حفظ الفيديو في Google Drive…",1);
-  const init=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,webViewLink",{method:"POST",
-    headers:{Authorization:"Bearer "+g.token,"Content-Type":"application/json; charset=UTF-8","X-Upload-Content-Type":type,"X-Upload-Content-Length":String(blob.size)},
-    body:JSON.stringify({name, parents:[g.folder], mimeType:type})});
-  if(!init.ok) throw new Error("Google Drive "+init.status+": "+(await init.text()).slice(0,160));
-  const loc=init.headers.get("Location"); if(!loc) throw new Error("لم يُرجع Google رابط الرفع");
-  const up=await fetch(loc,{method:"PUT",headers:{"Content-Type":type},body:blob});
-  if(!up.ok) throw new Error("Google Drive "+up.status+": "+(await up.text()).slice(0,160));
-  const f=await up.json();
-  // مشاركة الفيديو لكل من لديه الرابط، ليُرسل للمتدرّبين مباشرة
-  try{ await fetch(`https://www.googleapis.com/drive/v3/files/${f.id}/permissions?supportsAllDrives=true`,{method:"POST",headers:{Authorization:"Bearer "+g.token,"Content-Type":"application/json"},body:JSON.stringify({role:"reader",type:"anyone"})}); }catch(_){}
-  f.webViewLink=f.webViewLink||`https://drive.google.com/file/d/${f.id}/view`;
-  return f;
+  // رفع على أجزاء (8 ميغابايت) مع إعادة المحاولة لكل جزء، وكل خطأ يذكر المرحلة الفرعية بدقة
+  let step="الحصول على صلاحية Drive من الخادم";
+  const net=e=>/Failed to fetch|Load failed|NetworkError|network/i.test(String(e?.message||e));
+  try{
+    const tok=(await sb.auth.getSession()).data.session?.access_token; if(!tok) return null;
+    let g; for(let t=0;;t++){ try{ g=await (await fetch(SB_URL+"/functions/v1/drive",{method:"POST",headers:{Authorization:"Bearer "+tok,apikey:SB_KEY}})).json(); break; }catch(e){ if(t<2&&net(e)){ await sleep(3000); continue; } throw e; } }
+    if(g.error) throw new Error(g.error);
+    if(!g.configured) return {skipped:true};
+    if(!g.allowed || !g.token) return null;
+    step="بدء جلسة الرفع في Google Drive"; onP("جارٍ حفظ الفيديو في Google Drive…",1);
+    let init; for(let t=0;;t++){ try{ init=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,webViewLink",{method:"POST",
+      headers:{Authorization:"Bearer "+g.token,"Content-Type":"application/json; charset=UTF-8","X-Upload-Content-Type":type,"X-Upload-Content-Length":String(blob.size)},
+      body:JSON.stringify({name, parents:[g.folder], mimeType:type})}); break; }catch(e){ if(t<2&&net(e)){ await sleep(3000); continue; } throw e; } }
+    if(!init.ok) throw new Error("Google Drive "+init.status+": "+(await init.text()).slice(0,160));
+    const loc=init.headers.get("Location"); if(!loc) throw new Error("لم يُرجع Google رابط الرفع");
+    const CH=8*1024*1024, total=blob.size; let off=0, f=null;
+    while(off<total){ const end=Math.min(total,off+CH); step=`رفع الملف ${Math.round(off/total*100)}٪`; onP(`جارٍ الحفظ في Google Drive ${Math.round(off/total*100)}٪…`,1);
+      let r; for(let t=0;;t++){ try{ r=await fetch(loc,{method:"PUT",headers:{"Content-Range":`bytes ${off}-${end-1}/${total}`},body:blob.slice(off,end)}); break; }
+        catch(e){ if(t<4&&net(e)){ onP(`انقطع الاتصال أثناء الرفع، إعادة المحاولة ${t+1} من 4…`,1); await sleep(4000*(t+1)); continue; } throw e; } }
+      if(r.status===308){ off=end; continue; }
+      if(r.ok){ f=await r.json(); off=total; break; }
+      throw new Error("Google Drive "+r.status+": "+(await r.text()).slice(0,160)); }
+    if(!f) throw new Error("انتهى الرفع دون تأكيد من Google");
+    step="مشاركة الفيديو برابط";
+    try{ await fetch(`https://www.googleapis.com/drive/v3/files/${f.id}/permissions?supportsAllDrives=true`,{method:"POST",headers:{Authorization:"Bearer "+g.token,"Content-Type":"application/json"},body:JSON.stringify({role:"reader",type:"anyone"})}); }catch(_){}
+    f.webViewLink=f.webViewLink||`https://drive.google.com/file/d/${f.id}/view`;
+    return f;
+  }catch(e){ throw new Error(`${step}: ${e.message||e}`); }
 }
 
 async function vPlay(id){
@@ -1913,7 +1960,9 @@ async function vPlay0(id){
       $("#vidStep").innerHTML= esc(ext==="mp4"?"اكتمل الفيديو (MP4). إن لم يبدأ التنزيل تلقائياً فاضغط «حفظ الفيديو على الجهاز».":"اكتمل الفيديو بصيغة WebM لأن هذا المتصفح لا يدعم MP4. اضغط «حفظ الفيديو على الجهاز».") + (drive?.id?` وحُفظ في مجلد «فيديوهات المدرب الذكي» على Google Drive.<div class="row" style="gap:8px;margin-top:8px"><input id="dLink" dir="ltr" readonly value="${esc(drive.webViewLink)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="dCopy">نسخ رابط الفيديو</button><a class="btn sm ghost" href="${esc(drive.webViewLink)}" target="_blank" rel="noopener">فتح</a></div>`: drive?.error?` <span style="color:#b42318">لم يُحفظ في Drive: ${esc(drive.error)}</span>`: drive?.skipped?` <span class="muted">الحفظ التلقائي في Google Drive غير مفعّل بعد؛ يحتاج ربط Apps Script (ملف Code.gs).</span>`:"");
       $("#dCopy")?.addEventListener("click",()=>copy($("#dLink").value));
       if(l.settings?.autoExport){ l.settings.autoExport=false; sb.from("lessons").update({settings:l.settings}).eq("id",l.id).then(()=>{}); }
-      if(drive?.error) logErr("drive-upload","الحفظ في Google Drive",drive.error,drive.error,{ lesson:l.id, title:l.title });
+      if(drive?.error){ logErr("drive-upload","الحفظ في Google Drive",drive.error,drive.error,{ lesson:l.id, title:l.title, size_mb:+(vb.size/1048576).toFixed(1), online:navigator.onLine });
+        $("#vidBox").insertAdjacentHTML("beforeend",`<div class="card" style="border-color:#f3c7c2;background:#fff8f7"><b style="color:#b42318">لم يُحفظ الفيديو في Google Drive.</b> <span class="small">${esc(drive.error)}</span><div class="small muted" style="margin:6px 0">الفيديو محفوظ على جهازك. تأكد من الإنترنت ثم أعد المحاولة، فالرفع يكمل الأجزاء تلقائياً.</div><button class="btn sm gold" type="button" id="dRetry">أعد الحفظ في Drive</button></div>`);
+        $("#dRetry").onclick=async e2=>{ const bt=e2.currentTarget; busy(bt,true,"جارٍ الرفع…"); try{ const d2=await saveToDrive(vb,vn,vt,(t)=>{ $("#vidStep").textContent=t; }); if(d2?.id){ l.video_url=d2.webViewLink; await sb.from("lessons").update({video_url:d2.webViewLink}).eq("id",l.id); toast("حُفظ الفيديو في Google Drive"); bt.closest(".card").remove(); $("#dRow").innerHTML=`<input id="vLinkTxt" dir="ltr" readonly value="${esc(d2.webViewLink)}" style="flex:1;min-width:0" onclick="this.select()"><a class="btn sm ghost" href="${esc(d2.webViewLink)}" target="_blank" rel="noopener">فتح</a>`; } }catch(er){ toast(er.message,true); logErr("drive-upload","إعادة الحفظ في Google Drive",er.message,String(er),{lesson:l.id,title:l.title}); } finally{ busy(bt,false); } }; }
       if(drive?.id){ l.video_url=drive.webViewLink; sb.from("lessons").update({video_url:drive.webViewLink}).eq("id",l.id).then(()=>{});
         $("#dRow").innerHTML=`<input id="vLinkTxt" dir="ltr" readonly value="${esc(drive.webViewLink)}" style="flex:1;min-width:0" onclick="this.select()"><button class="btn sm" type="button" id="vCopy">نسخ</button><a class="btn sm ghost" href="${esc(drive.webViewLink)}" target="_blank" rel="noopener">فتح</a>`;
         $("#vCopy").addEventListener("click",()=>copy($("#vLinkTxt").value)); } }
