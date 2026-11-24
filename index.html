@@ -1257,7 +1257,7 @@ async function adminNews(){
   let items=[], img=null, keepUrl=null;
   const F=$("#nForm");
   const reset=()=>{ F.reset(); $("#nId").value=""; $("#nDate").value=today; img=null; keepUrl=null; $("#nPrev").style.display="none"; $("#nImgDel").style.display="none"; $("#nSave").textContent="نشر الخبر"; $("#nReset").style.display="none"; $("#nFormT").textContent="إضافة خبر أو إعلان جديد"; };
-  const list=async()=>{ const { data, error } = await sb.from("announcements").select("*").order("news_date",{ascending:false}).limit(60); if(error){ $("#nList").innerHTML=`<div class="empty">${esc(error.message)}</div>`; return; }
+  const list=async()=>{ const { data, error } = await sb.from("announcements").select("*").order("news_date",{ascending:false}).limit(60); if(!$("#nList")) return; if(error){ $("#nList").innerHTML=`<div class="empty">${esc(error.message)}</div>`; return; }
     items=(data||[]).sort(newsSort);
     $("#nList").innerHTML=items.length?items.map(n=>`<details class="ucard" data-nid="${n.id}"${NOPEN.has(n.id)?" open":""}><summary class="uhead">${n.image_url?`<img class="nthumb" src="${esc(n.image_url)}" alt="" loading="lazy">`:`<span class="nthumb ph">${ico("news")}</span>`}<div class="uhinfo"><b>${esc(n.title)}</b><div class="nmeta"><span class="ntag">${esc(NKIND[n.kind]||"خبر")}</span>${n.pinned?`<span class="ntag gold">مثبّت</span>`:""}${n.published?`<span class="pill green">منشور</span>`:`<span class="pill" style="background:#f1f5f9;color:#64748b">مخفي</span>`}</div><span class="small muted">${fmtDate(n.news_date)} · ${esc(NAUD[n.audience])}</span></div><span class="uchev" aria-hidden="true"></span></summary><div class="ubody">${newsCard(n,true)}</div></details>`).join(""):`<div class="empty">لا توجد أخبار بعد.</div>`;
     nFilt(); };
@@ -2858,12 +2858,12 @@ async function vSettings(){
     $("#clSay").onclick=async e=>{ const b=e.currentTarget; busy(b,true); try{ await speak($("#clTest").value,"clone"); setTimeout(loadVStat,800); }catch(err){ toast(err.message,true);} finally{ busy(b,false);} };
     $("#clRe").onclick=()=>showForm(true);
     $("#clDel").onclick=async e=>{ const b=e.currentTarget; if(b.dataset.c!=="1"){ b.dataset.c="1"; b.textContent="تأكيد الحذف"; return; } await ai("delete_clone"); await loadProfile(); toast("حُذف الصوت المستنسخ"); vSettings(); };
-    const loadVStat=async()=>{ try{ const v=await ai("voice_status"); const now=Date.now();
+    const loadVStat=async()=>{ if(!$("#vStat")) return; try{ const v=await ai("voice_status"); const now=Date.now(); if(!$("#vStat")) return;
       const row=k=>{ const key=v.keys?.[k], id=v.ids?.[k], sk=(v.skip||{})[k];
         const st=!key?`<span class="muted">غير مفعّلة على الخادم</span>`:sk&&sk>now?`<span style="color:var(--warn,#b45309)">نفد الرصيد — تعود ${fmtDate(new Date(sk))} ${new Date(sk).toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"})}</span>`:id?`<span style="color:var(--ok,#15803d)">جاهزة</span>`:k==="gemini"&&!v.has_consent?`<span class="muted">تحتاج عبارة الموافقة (أعد التسجيل)</span>`:`<span class="muted">ستُستنسخ تلقائياً عند الحاجة</span>`;
         return `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0"><b>${PROV[k]||k}${v.last===k?' <span class="pill green">المستخدمة الآن</span>':""}</b>${st}</div>`; };
       $("#vStat").innerHTML=`<p class="muted small" style="margin:0 0 6px">تسجيلك محفوظ مرة واحدة، وتختار المنصة تلقائياً أول خدمة فيها رصيد:</p>${(v.order||[]).map(row).join("")}`;
-    }catch(err){ $("#vStat").textContent=err.message; } };
+    }catch(err){ if($("#vStat")) $("#vStat").textContent=err.message; } };
     loadVStat();
   } else showForm(false);
   const ep = SB_URL + "/functions/v1/alexa";
@@ -2939,7 +2939,7 @@ async function adminVoices(){
   $("#svMic").replaceWith(mic);
   const reset=()=>{ $("#svId").value=""; $("#svName").value=""; $("#svDesc").value=""; $("#svFile").value=""; rec=null; t.textContent="اضغط للتسجيل، ومرة أخرى للإيقاف"; pick=new Set([session.user.id]); drawUsers(); $("#svT").textContent="إضافة صوت خاص جديد"; $("#svRefL").textContent="عيّنة الصوت"; $("#svCancel").classList.add("hidden"); };
   $("#svCancel").onclick=reset;
-  const draw=async()=>{ const list=await loadSharedVoices(); const nm=id=>{ const p=(people||[]).find(x=>x.id===id); return p?(p.full_name||p.email):"—"; };
+  const draw=async()=>{ const list=await loadSharedVoices(); if(!$("#svList")) return; const nm=id=>{ const p=(people||[]).find(x=>x.id===id); return p?(p.full_name||p.email):"—"; };
     $("#svList").innerHTML=list.length?list.map(v=>`<div class="item" style="align-items:center"><span class="av" style="background:#7c3aed;color:#fff;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700">${esc(v.name[0]||"ص")}</span><div style="flex:1;min-width:0"><b>${esc(v.name)}</b> <span class="small muted">${esc(v.desc||"")}</span><br><span class="small muted">يستخدمه: ${(v.users||[]).map(nm).map(esc).join("، ")||"المدير فقط"}</span></div>
       <div class="row" style="gap:6px"><button class="btn ghost sm" data-svp="${v.id}">${ico("play")} استمع</button><button class="btn ghost sm" data-sve="${v.id}">تعديل</button><button class="btn danger sm" data-svd="${v.id}">حذف</button></div></div>`).join(""):`<p class="small muted">لا توجد أصوات خاصة بعد.</p>`;
     $("#svList").onclick=async e=>{ const b=e.target.closest("button"); if(!b) return; const v=list.find(x=>x.id===(b.dataset.svp||b.dataset.sve||b.dataset.svd));
