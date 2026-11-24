@@ -519,6 +519,13 @@ details.fold[open] .uchev{transform:rotate(180deg)}
 .psoon{background:#1b3263;color:#c9d6ec;border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px}
 .pjoin{display:inline-flex;align-items:center;gap:8px;background:#46d37f;color:#fff;font:700 17px Cairo,sans-serif;border-radius:14px;padding:12px 22px;text-decoration:none}
 .pjoin svg{width:22px;height:22px}.pjoin.off{background:#2a4a85}
+button.pjoin{border:0;cursor:pointer}
+.ptitle a{margin-inline-start:auto;font-size:15px;color:#8fb4ff;text-decoration:none;font-weight:600}
+.pnext{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #1f3a6e;padding-top:10px;color:#c9d6ec;font-size:14px;text-decoration:none}.pnext b{color:#fff;font-weight:600}
+.ppush{display:flex;align-items:center;gap:10px;background:#13306a;border:1px dashed #3a5ea8;border-radius:14px;padding:10px 12px;color:#dbe6fb;font-size:14px}.ppush span{flex:1}
+.ppush button{border:0;background:var(--gold);color:#1d1606;font:700 14px Cairo,sans-serif;border-radius:10px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.ppush.ok{border-style:solid;border-color:#2f7a4c;background:#0f3a2a}
+.pchips{display:flex;flex-wrap:wrap;gap:6px}.pchips label{display:inline-flex;align-items:center;gap:6px;background:#1b3263;color:#dbe6fb;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}.pchips input{width:auto;margin:0;accent-color:var(--gold)}
 .portalcta{max-width:1100px;margin:0 auto 18px;width:calc(100% - 32px);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--navy),#123b7a);color:#fff;border-radius:16px;padding:14px 18px;text-decoration:none}
 .portalcta span:nth-child(2){flex:1;display:grid}.portalcta small{color:#c9d6ec;font-size:13px}
 </style>
@@ -1594,11 +1601,13 @@ async function vDash(){
   const main=$("#main");
   main.innerHTML = `<div class="welcome"><div class="wtext"><span class="muted small">أهلاً</span><h1>${esc(profile?.full_name||"")}</h1><p class="muted wsub">ابدأ محاضرة جديدة<br>أو تابع عملك</p></div>${MYPHOTO?`<img class="havatar" src="${esc(MYPHOTO)}" alt="">`:`<a class="havatar hph" href="#settings" title="أضف صورتك الشخصية">${esc(String(profile?.full_name||"؟").replace(/^(د|أ\.?د)\.?\s*/,"").trim()[0]||"؟")}</a>`}</div><div class="row wbtns">${can("studio")?`<a class="btn gold" href="#studio">${ico("studio")} محاضرة متحركة جديدة</a>`:""}${can("exams")?`<a class="btn ghost" href="#exams">اختبار جديد</a>`:""}</div></div>${pending()}
   <div class="stats" id="stats">${"<div class='card stat'><b>…</b></div>".repeat(4)}</div>
+  <div id="liveBox"></div>
   <div id="newsBox"></div>
   <div id="quotaBox"></div>
   <div id="alexaBox"></div>
   <div id="actBox"></div>
   <div class="grid2"><div class="card stack"><h2>آخر المحاضرات</h2><div class="list" id="recentL"></div></div><div class="card stack"><h2 class="row" style="gap:8px">${ico("bell")}التنبيهات</h2><div id="alerts" class="stack" style="gap:8px"><span class="small muted">جارٍ التحميل…</span></div><div id="usage" class="usagemini"></div></div></div>`;
+  dashLive($("#liveBox")).catch(e=>{ $("#liveBox").innerHTML=""; console.error(e); });
   newsBox($("#newsBox")).catch(e=>console.error(e));
   quotaBox($("#quotaBox")).catch(e=>console.error(e));
   actBox($("#actBox")).catch(e=>{ $("#actBox").innerHTML=""; console.error(e); });
@@ -1932,19 +1941,67 @@ async function openAttention(s, onClose){
   ov.querySelector("[data-x]").onclick=async()=>{ await stop(); ov.remove(); document.body.style.overflow=""; onClose?.(); };
 }
 
+
+/* ================= تنبيهات الجوال (Web Push) ================= */
+const VAPID_PUB="BCkWmBBg3z9-ICTp1fxC5LusvFyNM6VOGNQ85IsDIE5LWbf4R9sWdwJtevZVQDEgbzBbLXAZWMv3tKkJbbnxKrM";
+const isIOS=()=>/iP(hone|ad|od)/.test(navigator.userAgent);
+const isStandalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+function b64uToBytes(s){ const p="=".repeat((4-s.length%4)%4), b=atob((s+p).replace(/-/g,"+").replace(/_/g,"/")); return Uint8Array.from(b,c=>c.charCodeAt(0)); }
+async function pushOn(){ try{ if(!("PushManager" in window)||Notification.permission!=="granted") return false; const r=await navigator.serviceWorker.getRegistration(); return !!(await r?.pushManager.getSubscription()); }catch(_){ return false; } }
+async function pushEnable(role, courses=null){
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window)) throw new Error(isIOS()&&!isStandalone()?"على iPhone: أضف المنصة إلى الشاشة الرئيسية أولاً (زر المشاركة ← «إضافة إلى الشاشة الرئيسية») ثم افتحها من الأيقونة وفعّل التنبيهات.":"هذا المتصفح لا يدعم تنبيهات الجوال. استخدم Chrome أو Edge أو Safari الحديث.");
+  const perm=await Notification.requestPermission(); if(perm!=="granted") throw new Error("لم يُسمح بالتنبيهات. اسمح بها للموقع من إعدادات المتصفح ثم أعد المحاولة.");
+  const reg=await navigator.serviceWorker.ready; let sub=await reg.pushManager.getSubscription();
+  if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uToBytes(VAPID_PUB)});
+  await live("push_subscribe",{sub:sub.toJSON(),role,courses},role!=="trainer");
+  try{ localStorage.setItem("st_push_role",role); }catch(_){}
+  return true;
+}
+function pushBanner(el, role, getCourses){
+  pushOn().then(on=>{ if(!el.isConnected) return;
+    const mine=(()=>{ try{ return localStorage.getItem("st_push_role"); }catch(_){ return null; } })();
+    if(on&&(mine===role||role==="trainee")){ el.innerHTML=`<div class="ppush ok">🔔<span>تنبيهات الجوال مفعّلة: يصلك تنبيه قبل ${role==="trainer"?"كل جلسة لك":"كل جلسة"} بساعة.</span></div>`; return; }
+    el.innerHTML=`<div class="ppush">🔔<span>${role==="trainer"?"فعّل تنبيهات الجوال ليصلك تذكير قبل كل جلسة بساعة، حتى لو كانت المنصة مغلقة.":"نبّهني على جوالي قبل كل جلسة بساعة."}</span><button type="button">تفعيل</button></div>`;
+    el.querySelector("button").onclick=async e=>{ const b=e.target; busy(b,true,"…"); try{ await pushEnable(role, getCourses?.()||null); toast("فُعّلت تنبيهات الجوال ✓"); pushBanner(el,role,getCourses); }catch(err){ toast(err.message,true); busy(b,false); } };
+  });
+}
+
+/* الجلسة القادمة في الرئيسية */
+async function dashLive(el){
+  if(!el||!can("live")) return;
+  const { data, error } = await sb.from("live_sessions").select("id,title,course,kind,settings,start_at,duration_min,status,published").eq("owner",session.user.id).in("status",["scheduled","live"]).gte("start_at",new Date(Date.now()-12*3600e3).toISOString()).order("start_at").limit(8);
+  if(error||!el.isConnected) return;
+  const now=Date.now(), L=(data||[]).filter(s=>new Date(s.start_at).getTime()+s.duration_min*60000>now);
+  const before=(LCFG?.v?.config?.defaults?.window_before??15)*60000;
+  if(!L.length){ el.innerHTML=`<div class="pcard"><div class="ptitle">${ico("live")}<b>الجلسة القادمة</b><a href="#live">القاعات الذكية</a></div><p class="pmuted" style="margin:0">لا توجد جلسات قادمة في القاعات الذكية.</p><div class="prow"><span></span><a class="pjoin off" href="#live">${ico("live")} جدولة جلسة</a></div><div data-push></div></div>`; pushBanner(el.querySelector("[data-push]"),"trainer"); return; }
+  const s=L[0], st=new Date(s.start_at).getTime(), isLive=s.status==="live"||(now>=st&&now<=st+s.duration_min*60000), open=now>=st-before;
+  el.innerHTML=`<div class="pcard"><div class="ptitle">${ico("live")}<b>${isLive?"الجلسة الجارية":"الجلسة القادمة"}</b><a href="#live">كل الجلسات</a></div>
+    <h2>${esc(s.title)}</h2><p class="pmuted" style="margin:0">${esc([kindOf(s),s.course].filter(Boolean).join(" · "))}${serTag(s)}</p>
+    <p style="margin:0">${new Date(s.start_at).toLocaleString("ar-EG-u-nu-latn",{weekday:"long",day:"numeric",month:"long",hour:"numeric",minute:"2-digit"})} · ${num(s.duration_min)} دقيقة${s.published?"":` · <span class="pmuted">غير منشورة للمتدرّبين</span>`}</p>
+    <div class="prow">${isLive?`<span class="plive">● مباشر الآن</span>`:`<span class="psoon">يبدأ ${untilTxt(s.start_at)}</span>`}
+     ${open?`<button class="pjoin" type="button" data-host="${s.id}">${ico("live")} ادخل كمحاضر</button>`:`<a class="pjoin off" href="#live">${ico("live")} التفاصيل</a>`}</div>
+    ${L.slice(1,3).map(x=>`<a class="pnext" href="#live"><b>${esc(x.title)}</b><span>${fmtDT(x.start_at)}</span></a>`).join("")}
+    <div data-push></div></div>`;
+  pushBanner(el.querySelector("[data-push]"),"trainer");
+  const hb=el.querySelector("[data-host]"); if(hb) hb.onclick=async()=>{ const w=window.open("about:blank","_blank"); busy(hb,true,"جارٍ الفتح…"); try{ const r=await live("host_link",{id:s.id}); if(w) w.location=r.url; else location.href=r.url; }catch(err){ w?.close(); toast(err.message,true); } finally{ busy(hb,false); } };
+  clearTimeout(window.__dlT); window.__dlT=setTimeout(()=>{ if(["","#dash"].includes(location.hash)&&$("#liveBox")) dashLive($("#liveBox")).catch(()=>{}); },60000);
+}
+
 /* بوابة المتدرّب: القاعات الذكية المنشورة (بدون أي روابط) */
 async function showPortal(){
   $("#appView").classList.add("hidden"); $("#authView").classList.add("hidden"); $("#publicView").classList.remove("hidden");
   const body=$("#pubBody"); body.innerHTML=`<div class="portal"><div class="phead"><h1>بوابة المتدرّب</h1><p>القاعات الذكية المنشورة من المركز</p></div><div id="pList" class="stack"><p class="pmuted">جارٍ التحميل…</p></div></div>`;
   let d; try{ d=await live("portal_list",{},true); }catch(e){ $("#pList").innerHTML=`<p class="pmuted">${esc(e.message)}</p>`; return; }
   const L=d.sessions||[];
-  if(!L.length){ $("#pList").innerHTML=`<div class="pcard"><p class="pmuted">لا توجد محاضرات مباشرة منشورة حالياً.</p></div>`; return; }
+  if(!L.length){ $("#pList").innerHTML=`<div class="pcard"><p class="pmuted">لا توجد محاضرات مباشرة منشورة حالياً.</p><div data-push></div></div>`; pushBanner($("#pList [data-push]"),"trainee"); return; }
   const when=x=>new Date(x).toLocaleString("ar-EG",{weekday:"long",day:"numeric",month:"long",hour:"numeric",minute:"2-digit"});
   const card=(x,i)=>`<div class="pcard">${i===0?`<div class="ptitle">${ico("live")}<b>${x.live?"الجلسة الجارية":"الجلسة القادمة"}</b></div>`:""}
     <h2>${esc(x.title)}</h2><p class="pmuted">${esc([kindOf(x),x.course,x.trainer].filter(Boolean).join(" · "))}</p><p>${when(x.start_at)} · ${num(x.duration_min)} دقيقة</p>
     <div class="prow">${x.live?`<span class="plive">● مباشر الآن</span>`:x.open?`<span class="psoon">الدخول مفتوح</span>`:`<span class="psoon">يبدأ ${untilTxt(x.start_at)}</span>`}
      <a class="pjoin${x.open?"":" off"}" href="#live-${x.id}">${ico("live")} ${x.open?"انضم الآن":"التفاصيل"}</a></div></div>`;
-  $("#pList").innerHTML=L.map(card).join("");
+  const courses=[...new Set(L.map(x=>x.course).filter(Boolean))];
+  $("#pList").innerHTML=`<div class="pcard" style="gap:10px"><div data-push></div>${courses.length>1?`<div class="pchips" data-cs><span class="pmuted" style="font-size:13px;align-self:center">تنبيهات لـ:</span>${courses.map(c=>`<label><input type="checkbox" value="${esc(c)}">${esc(c)}</label>`).join("")}<span class="pmuted" style="font-size:12px;align-self:center">(بدون اختيار = كل الدورات)</span></div>`:""}</div>`+L.map(card).join("");
+  pushBanner($("#pList [data-push]"),"trainee",()=>{ const v=[...document.querySelectorAll("#pList [data-cs] input:checked")].map(x=>x.value); return v.length?v:null; });
   clearTimeout(window.__pT); window.__pT=setTimeout(()=>{ if(location.hash==="#portal") showPortal(); },60000);
 }
 

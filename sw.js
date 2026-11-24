@@ -1,7 +1,7 @@
 // منصة المحاضر الذكية — Service Worker
 // الواجهة: تُعرض فوراً من الذاكرة ثم تُحدَّث في الخلفية. المكتبات والخطوط الخارجية: تُحفظ بعد أول تحميل.
 // لا يخزّن أي طلب لـ Supabase أو الذكاء الاصطناعي.
-const CACHE = "smart-trainer-v54";
+const CACHE = "smart-trainer-v55";
 const LIBS = "smart-trainer-libs-v1";
 const SHELL = ["./", "./index.html", "./manifest.json", "./logo.jpg", "./icon-192.png", "./icon-512.png", "./icon-192-maskable.png", "./icon-512-maskable.png"];
 const CDN = /^https:\/\/(cdn\.jsdelivr\.net|storage\.googleapis\.com\/mediapipe-models|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
@@ -19,4 +19,22 @@ self.addEventListener("fetch", e => {
     const net = fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => hit || caches.match("./index.html"));
     return hit || net;
   })));
+});
+
+// تنبيهات الجوال: تذكير القاعات الذكية قبل الجلسة بساعة
+self.addEventListener("push", e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "منصة المحاضر الذكية", {
+    body: d.body || "", icon: "./icon-192.png", badge: "./icon-192.png", dir: "rtl", lang: "ar",
+    tag: d.tag || undefined, renotify: !!d.tag, requireInteraction: !!d.sticky, vibrate: [200, 100, 200],
+    data: { url: d.url || "./" }
+  }));
+});
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url || "./", self.registration.scope).href;
+  e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(ws => {
+    for (const w of ws) if (w.url.startsWith(self.registration.scope)) { return w.focus().then(c => c.navigate ? c.navigate(url) : c).catch(() => clients.openWindow(url)); }
+    return clients.openWindow(url);
+  }));
 });
